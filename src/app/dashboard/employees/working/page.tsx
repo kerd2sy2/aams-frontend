@@ -381,7 +381,7 @@ export default function WorkingEmployeesPage() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/40 hover:bg-muted/40">
-                        <TableHead className="text-right font-bold text-xs text-muted-foreground">المندوب</TableHead>
+                        <TableHead className="text-right font-bold text-xs text-muted-foreground min-w-[200px]">المندوب</TableHead>
                         <TableHead className="text-right font-bold text-xs text-muted-foreground">الهوية الوطنية</TableHead>
                         <TableHead className="text-right font-bold text-xs text-muted-foreground">رقم الدراجة</TableHead>
                         <TableHead className="text-right font-bold text-xs text-muted-foreground">المفتاح</TableHead>
@@ -394,7 +394,7 @@ export default function WorkingEmployeesPage() {
                     <TableBody>
                       {group.employees.map((emp) => (
                         <TableRow key={emp.id} className="hover:bg-muted/30 transition-colors">
-                          <TableCell>
+                        <TableCell className="min-w-[200px]">
                             <div className="flex items-center gap-3">
                               <EmployeeAvatar emp={emp} size="md" />
                               <div>

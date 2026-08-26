@@ -253,7 +253,7 @@ export default function EmployeesPage() {
                         <TableHeader>
                           <TableRow className='bg-muted/30 hover:bg-muted/30'>
                             <TableHead className='text-center w-12 text-xs'>#</TableHead>
-                            <TableHead className='text-right text-xs'>الموظف</TableHead>
+                            <TableHead className='text-right text-xs min-w-[200px]'>الموظف</TableHead>
                             <TableHead className='text-center text-xs'>الوظيفة</TableHead>
                             <TableHead className='text-center text-xs'>الهوية الوطنية</TableHead>
                             <TableHead className='text-center text-xs'>رقم الدراجة</TableHead>
@@ -279,7 +279,7 @@ export default function EmployeesPage() {
                                   {idx + 1}
                                 </TableCell>
 
-                                <TableCell className='text-right'>
+                                <TableCell className='text-right min-w-[200px]'>
                                   <div className='flex items-center justify-start gap-3'>
                                     <EmployeeAvatar emp={emp} />
                                     <div className='min-w-0 text-right'>
