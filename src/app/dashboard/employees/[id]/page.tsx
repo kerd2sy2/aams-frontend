@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useOfflineQuery } from '@/hooks/use-offline-query';
 import { employeeApi } from '@/lib/aams/services';
 import { DetailSkeleton } from '@/components/aams/skeletons';
-import { Code128Barcode, QRCodeImage } from '@/components/aams/employee-codes';
+import { QRCodeImage } from '@/components/aams/employee-codes';
 import { toast } from 'sonner';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -98,6 +98,21 @@ export default function EmployeeDetailsPage({
 
   const waUrl = employee.employee_number ? getWhatsAppURL(employee.employee_number) : null;
 
+  const totalDistanceNum =
+    Number(
+      employee.total_distance ??
+        (employee as any).total_km ??
+        (employee as any).distance ??
+        0
+    ) || 0;
+  const lastOilDistanceNum =
+    Number(
+      employee.last_oil_change_distance ??
+        (employee as any).oil_change_km ??
+        (employee as any).distance_since_oil ??
+        0
+    ) || 0;
+
   return (
     <PageContainer>
       <div className="space-y-6 max-w-5xl mx-auto" dir="rtl">
@@ -183,31 +198,18 @@ export default function EmployeeDetailsPage({
                 </p>
               </div>
 
-              {/* Barcode & QR Box in Header */}
-              <div className="bg-muted/40 rounded-xl p-3 border border-border/60 flex flex-row items-center gap-4">
-                <div className="flex flex-col items-center gap-1.5">
-                  <div className="bg-white p-1.5 rounded-lg shadow-2xs border border-slate-200 dark:border-slate-800">
-                    <QRCodeImage
-                      value={employee.id}
-                      size={58}
-                    />
-                  </div>
-                  <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
-                    <QrCode className="size-3" />
-                    QR (UUID)
-                  </span>
+              {/* QR Box in Header (Code128 Barcode Removed) */}
+              <div className="bg-muted/40 rounded-xl p-3 border border-border/60 flex flex-col items-center gap-1.5 shrink-0">
+                <div className="bg-white p-1.5 rounded-lg shadow-2xs border border-slate-200 dark:border-slate-800">
+                  <QRCodeImage
+                    value={employee.id}
+                    size={58}
+                  />
                 </div>
-
-                <div className="h-16 w-px bg-border/60" />
-
-                <div className="flex flex-col items-center gap-1.5">
-                  <div className="bg-white p-1.5 rounded-lg shadow-2xs border border-slate-200 dark:border-slate-800">
-                    <Code128Barcode value={employee.national_id || employee.barcode} height={36} />
-                  </div>
-                  <span className="text-[10px] text-muted-foreground font-mono">
-                    {employee.national_id || employee.barcode}
-                  </span>
-                </div>
+                <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
+                  <QrCode className="size-3" />
+                  QR (UUID)
+                </span>
               </div>
             </div>
           </CardContent>
@@ -219,7 +221,7 @@ export default function EmployeeDetailsPage({
             <CardContent className="p-4 text-center">
               <p className="text-xs text-muted-foreground">إجمالي المسافة</p>
               <p className="text-xl font-bold font-mono tabular-nums mt-1">
-                {(employee.total_distance || 0).toLocaleString('ar-SA')} كم
+                {totalDistanceNum.toLocaleString('en-US')} كم
               </p>
             </CardContent>
           </Card>
@@ -227,7 +229,7 @@ export default function EmployeeDetailsPage({
             <CardContent className="p-4 text-center">
               <p className="text-xs text-muted-foreground">آخر مسافة زيت</p>
               <p className="text-xl font-bold font-mono tabular-nums mt-1">
-                {(employee.last_oil_change_distance || 0).toLocaleString('ar-SA')} كم
+                {lastOilDistanceNum.toLocaleString('en-US')} كم
               </p>
             </CardContent>
           </Card>
@@ -249,62 +251,27 @@ export default function EmployeeDetailsPage({
           </Card>
         </div>
 
-        {/* Dedicated QR & Barcode Section Card */}
+        {/* Dedicated QR Section Card (Code128 Barcode Removed) */}
         <Card className="border-border shadow-xs">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <QrCode className="size-4 text-primary" />
-              أكواد التعريف والمطابقة الرقمية (QR UUID & Barcode)
+              رمز الاستجابة السريعة للتعريف والمطابقة الرقمية (QR UUID)
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* QR Box */}
-              <div className="p-4 rounded-xl border bg-muted/20 flex flex-col items-center justify-center text-center gap-3">
-                <div className="bg-white p-3 rounded-2xl shadow-xs border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-center p-2">
+              <div className="p-6 rounded-xl border bg-muted/20 flex flex-col items-center justify-center text-center gap-3 max-w-sm w-full">
+                <div className="bg-white p-4 rounded-2xl shadow-xs border border-slate-200 dark:border-slate-800">
                   <QRCodeImage
                     value={employee.id}
-                    size={140}
+                    size={150}
                   />
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-bold text-foreground">رمز الاستجابة السريعة (UUID QR Code)</p>
                   <p className="text-xs text-muted-foreground font-mono select-all">
                     {employee.id}
-                  </p>
-                </div>
-              </div>
-
-              {/* Barcode Box */}
-              <div className="p-4 rounded-xl border bg-muted/20 flex flex-col items-center justify-center text-center gap-3">
-                <div className="bg-white p-4 rounded-2xl shadow-xs border border-slate-200 dark:border-slate-800 w-full flex items-center justify-center min-h-[140px]">
-                  <Code128Barcode
-                    value={employee.national_id || employee.barcode}
-                    height={55}
-                    className="max-w-[240px]"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-foreground">الباركود الخطي (رقم الهوية)</p>
-                  <p className="text-xs text-muted-foreground font-mono">
-                    {employee.national_id || employee.barcode}
-                  </p>
-                </div>
-              </div>
-
-              {/* Barcode Box */}
-              <div className="p-4 rounded-xl border bg-muted/20 flex flex-col items-center justify-center text-center gap-3">
-                <div className="bg-white p-4 rounded-2xl shadow-xs border border-slate-200 dark:border-slate-800 w-full flex items-center justify-center min-h-[140px]">
-                  <Code128Barcode
-                    value={employee.barcode || employee.national_id}
-                    height={55}
-                    className="max-w-[240px]"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-foreground">الباركود الخطي (Code128 Barcode)</p>
-                  <p className="text-xs text-muted-foreground font-mono">
-                    {employee.barcode || employee.national_id}
                   </p>
                 </div>
               </div>
