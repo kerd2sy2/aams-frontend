@@ -40,7 +40,6 @@ export const navGroups: NavGroup[] = [
         icon: 'clipboardList',
         permission: 'investigations.view',
         items: [
-          { title: 'All Investigations', url: '/dashboard/investigation', permission: 'investigations.view' },
           { title: 'Approvals', url: '/dashboard/investigation/approvals', permission: 'investigations.approve' },
           { title: 'Investigation', url: '/dashboard/investigation/investigation', permission: 'investigations.create' },
           { title: 'Supervisor Report', url: '/dashboard/investigation/supervisor_report', permission: 'investigations.create' },
