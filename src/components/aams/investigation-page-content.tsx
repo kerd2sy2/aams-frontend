@@ -592,7 +592,7 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
   };
 
   const getDocumentUrl = (docType: string, docId: string, withPhotos = false) => {
-    let origin = 'https://aams-frontend.vercel.app';
+    let origin = 'https://aams-frontend-lime.vercel.app';
     if (typeof window !== 'undefined') {
       origin = window.location.origin;
     }
