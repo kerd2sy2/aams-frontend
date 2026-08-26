@@ -339,7 +339,7 @@ export default function DocumentDetailsPage({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.print()}
+              onClick={() => setTimeout(() => window.print(), 10)}
               className="hidden sm:inline-flex gap-1.5"
             >
               <Printer className="size-4" />

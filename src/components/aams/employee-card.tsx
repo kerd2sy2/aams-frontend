@@ -38,7 +38,9 @@ export function EmployeeCard({ employee, barcodeData, qrCodeData }: EmployeeCard
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
-    window.print();
+    setTimeout(() => {
+      window.print();
+    }, 10);
   };
 
   const handleDownloadPDF = async () => {

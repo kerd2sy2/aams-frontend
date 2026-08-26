@@ -466,7 +466,9 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
   };
 
   const handlePrint = (inv: InvestigationResponse) => {
-    window.print();
+    setTimeout(() => {
+      window.print();
+    }, 10);
   };
 
   // Add/remove Q&A

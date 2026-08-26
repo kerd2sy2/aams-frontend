@@ -107,7 +107,9 @@ export default function DailyReportPage() {
   };
 
   const handlePrint = () => {
-    window.print();
+    setTimeout(() => {
+      window.print();
+    }, 10);
   };
 
   // Direct scannable URL to immediately open this supervisor daily report
