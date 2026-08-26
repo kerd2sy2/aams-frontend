@@ -101,7 +101,38 @@ export default function AppSidebar() {
     [admin]
   );
 
+  // Helper to find which parent dropdown contains the active route
+  const getActiveParentTitle = React.useCallback(
+    (grps: NavGroup[]) => {
+      for (const group of grps) {
+        for (const item of group.items) {
+          if (item.items?.length) {
+            const hasActiveChild = item.items.some(
+              (child) => pathname === child.url || pathname.startsWith(`${child.url}/`)
+            );
+            if (hasActiveChild) {
+              return item.title;
+            }
+          }
+        }
+      }
+      return null;
+    },
+    [pathname]
+  );
 
+  // Single active accordion state: only ONE dropdown open at a time
+  const [openDropdown, setOpenDropdown] = React.useState<string | null>(() =>
+    getActiveParentTitle(groups)
+  );
+
+  // When pathname changes (e.g. user clicked any link), auto-switch to ONLY the active dropdown
+  React.useEffect(() => {
+    const activeParent = getActiveParentTitle(groups);
+    if (activeParent) {
+      setOpenDropdown(activeParent);
+    }
+  }, [pathname, groups, getActiveParentTitle]);
 
   function handleLogout() {
     clearAuth();
@@ -140,19 +171,18 @@ export default function AppSidebar() {
                 {group.items.map((item) => {
                   const Icon = item.icon ? Icons[item.icon] : Icons.logo;
                   const hasChildren = Boolean(item.items?.length);
-                  const isParentActive = hasChildren
-                    ? item.items!.some(
-                        (child) => pathname === child.url || pathname.startsWith(`${child.url}/`)
-                      )
-                    : false;
 
                   if (hasChildren) {
+                    const isOpen = openDropdown === item.title;
                     return (
                       <CollapsibleNavItem
                         key={item.title}
                         item={item}
                         pathname={pathname}
-                        isParentActive={isParentActive}
+                        isOpen={isOpen}
+                        onOpenChange={(open) => {
+                          setOpenDropdown(open ? item.title : null);
+                        }}
                         t={t}
                         Icon={Icon}
                       />
@@ -217,32 +247,27 @@ export default function AppSidebar() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Collapsible nav item — auto-opens when a child route is active      */
+/* Collapsible nav item — controlled single open accordion behavior   */
 /* ------------------------------------------------------------------ */
 function CollapsibleNavItem({
   item,
   pathname,
-  isParentActive,
+  isOpen,
+  onOpenChange,
   t,
   Icon
 }: {
   item: NavItem;
   pathname: string;
-  isParentActive: boolean;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
   t: (key: string, fallback?: string) => string;
   Icon: React.ComponentType<{ className?: string }>;
 }) {
-  const [open, setOpen] = React.useState(isParentActive);
-
-  // Auto-open / auto-close whenever the route changes
-  React.useEffect(() => {
-    setOpen(isParentActive);
-  }, [isParentActive]);
-
   return (
     <Collapsible
-      open={open}
-      onOpenChange={setOpen}
+      open={isOpen}
+      onOpenChange={onOpenChange}
       render={<SidebarMenuItem />}
     >
       <CollapsibleTrigger
