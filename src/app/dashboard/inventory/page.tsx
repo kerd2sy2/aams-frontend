@@ -186,7 +186,12 @@ export default function InventoryPage() {
       setEditingItemId(null);
       setShowAddForm(false);
     },
-    onError: () => toast.error('حدث خطأ أثناء تعديل الصنف')
+    onError: (err: unknown) => {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'حدث خطأ أثناء تعديل الصنف';
+      toast.error(msg);
+    }
   });
 
   const deleteItemMut = useMutation({
@@ -196,7 +201,12 @@ export default function InventoryPage() {
       queryClient.invalidateQueries({ queryKey: ['inventory-items'] });
       setDeleteModalId(null);
     },
-    onError: () => toast.error('حدث خطأ أثناء حذف الصنف')
+    onError: (err: unknown) => {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'حدث خطأ أثناء حذف الصنف';
+      toast.error(msg);
+    }
   });
 
   // Mutations: Stock
