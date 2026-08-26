@@ -12,6 +12,17 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     if (!isAuthenticated()) {
+      const path = typeof window !== 'undefined' ? window.location.pathname : '';
+      const invDetailMatch = path.match(/^\/dashboard\/investigation\/([^/]+)\/([^/]+)$/);
+      if (invDetailMatch) {
+        const type = invDetailMatch[1];
+        const id = invDetailMatch[2];
+        if (type !== 'approvals') {
+          window.location.replace(`/doc/${type}/${id}${window.location.search}`);
+          return;
+        }
+      }
+
       window.location.replace('/login');
       return;
     }

@@ -590,16 +590,9 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
   };
 
   const getDocumentUrl = (docType: string, docId: string, withPhotos = false) => {
-    let origin = 'https://aams-logistics.kerd2sy.com';
+    let origin = 'https://aams-frontend-ds48yd12r-aams2.vercel.app';
     if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        const portStr = window.location.port ? `:${window.location.port}` : ':3001';
-        origin = `http://192.168.1.141${portStr}`;
-      } else {
-        const portStr = window.location.port ? `:${window.location.port}` : '';
-        origin = `${window.location.protocol}//${hostname}${portStr}`;
-      }
+      origin = window.location.origin;
     }
     return `${origin}/doc/${docType || 'supervisor_report'}/${docId || ''}${withPhotos ? '?photos=1' : ''}`;
   };
