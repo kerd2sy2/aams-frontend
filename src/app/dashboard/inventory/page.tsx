@@ -278,7 +278,12 @@ export default function InventoryPage() {
       queryClient.invalidateQueries({ queryKey: ['inventory-transactions'] });
       setDeletePurchaseId(null);
     },
-    onError: () => toast.error('حدث خطأ أثناء حذف الفاتورة')
+    onError: (err: unknown) => {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'حدث خطأ أثناء حذف الفاتورة';
+      toast.error(msg);
+    }
   });
 
   const resetAddForm = () => {
