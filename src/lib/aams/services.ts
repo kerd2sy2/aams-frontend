@@ -12,6 +12,8 @@ import type {
   DailyReportResponse,
   InventoryItem,
   InventoryTransaction,
+  PurchaseInvoice,
+  PurchaseInvoiceItem,
   MaintenanceLog,
   OilChangeCheck,
   InvestigationResponse,
@@ -442,6 +444,39 @@ export const inventoryApi = {
       limit: number;
       total_pages: number;
     }>('/inventory/transactions', { params });
+    return res.data;
+  },
+  getPurchases: async (params?: { search?: string; page?: number; limit?: number }) => {
+    const res = await apiClient.get<{
+      data: PurchaseInvoice[];
+      total: number;
+      page: number;
+      limit: number;
+      total_pages: number;
+    }>('/inventory/purchases', { params });
+    return res.data;
+  },
+  getPurchaseById: async (id: string) => {
+    const res = await apiClient.get<PurchaseInvoice>(`/inventory/purchases/${id}`);
+    return res.data;
+  },
+  createPurchase: async (data: {
+    invoice_number?: string;
+    supplier_name: string;
+    invoice_date?: string;
+    notes?: string;
+    items: {
+      item_id: string;
+      quantity: number;
+      unit_price: number;
+      notes?: string;
+    }[];
+  }) => {
+    const res = await apiClient.post<PurchaseInvoice>('/inventory/purchases', data);
+    return res.data;
+  },
+  deletePurchase: async (id: string) => {
+    const res = await apiClient.delete(`/inventory/purchases/${id}`);
     return res.data;
   }
 };

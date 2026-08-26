@@ -234,6 +234,33 @@ export interface InventoryTransaction {
   created_at: string;
 }
 
+export interface PurchaseInvoiceItem {
+  id: string;
+  invoice_id: string;
+  item_id: string;
+  item?: InventoryItem;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  notes?: string;
+  created_at: string;
+}
+
+export interface PurchaseInvoice {
+  id: string;
+  invoice_number: string;
+  supplier_name: string;
+  invoice_date: string;
+  total_amount: number;
+  branch_id?: string | null;
+  branch?: Branch | null;
+  created_by_name: string;
+  notes: string;
+  items?: PurchaseInvoiceItem[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface MaintenanceLog {
   id: string;
   employee_id: string;
