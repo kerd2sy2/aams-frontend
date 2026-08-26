@@ -15,7 +15,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Icons } from '@/components/icons';
 import { employeeApi, workApi } from '@/lib/aams/services';
-import { useOfflineQuery } from '@/hooks/use-offline-query';
+import { useOfflineQuery, clearOfflineMemoryCache } from '@/hooks/use-offline-query';
 import { useOfflineMutation } from '@/hooks/use-offline-mutation';
 import { isNetworkError } from '@/lib/aams/network-utils';
 import { formatRiyadh } from '@/lib/aams/riyadh-time';
@@ -67,8 +67,15 @@ export default function EndWorkPage() {
       ? `تم حفظ إنهاء شفت العمل محلياً للموظف ${selectedEmployee.name} — ستتم المزامنة عند عودة الاتصال`
       : 'تم الحفظ محلياً — ستتم المزامنة عند عودة الاتصال',
     onSuccess: () => {
+      clearOfflineMemoryCache();
       queryClient.invalidateQueries({ queryKey: ['reports'] });
+      queryClient.invalidateQueries({ queryKey: ['reports-active-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['all-vehicles-cache'] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles-list'] });
+      queryClient.invalidateQueries({ queryKey: ['employees-working'] });
+      queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
       resetForm();
     },
     onError: (msg) => toast.error(msg || 'فشل إنهاء الشفت')

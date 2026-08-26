@@ -15,7 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { employeeApi, workApi, inventoryApi, vehicleApi } from '@/lib/aams/services';
-import { useOfflineQuery, offlineAwareFetch } from '@/hooks/use-offline-query';
+import { useOfflineQuery, offlineAwareFetch, clearOfflineMemoryCache } from '@/hooks/use-offline-query';
 import { useOfflineMutation } from '@/hooks/use-offline-mutation';
 import { isNetworkError } from '@/lib/aams/network-utils';
 import { BarcodeScannerModal } from '@/components/aams/barcode-scanner-modal';
@@ -64,7 +64,8 @@ export default function StartWorkPage() {
     queryKey: ['all-vehicles-cache'],
     queryFn: () => vehicleApi.getAll({ limit: 200 }),
     cacheKey: 'vehicles_all',
-    staleTime: 1000 * 60 * 2
+    staleTime: 1000 * 30,
+    refetchOnMount: true
   });
 
   const appIdOptions = useMemo(() => {
@@ -99,9 +100,15 @@ export default function StartWorkPage() {
       ? `تم الحفظ محلياً لـ ${selectedEmployee.name} — ستتم المزامنة عند عودة الاتصال`
       : 'تم الحفظ محلياً — ستتم المزامنة عند عودة الاتصال',
     onSuccess: () => {
+      clearOfflineMemoryCache();
       queryClient.invalidateQueries({ queryKey: ['reports'] });
+      queryClient.invalidateQueries({ queryKey: ['reports-active-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['all-vehicles-cache'] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles-list'] });
+      queryClient.invalidateQueries({ queryKey: ['employees-working'] });
+      queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
       resetForm();
     },
     onError: (msg) => toast.error(msg || 'فشل بدء الشفت')
@@ -121,40 +128,51 @@ export default function StartWorkPage() {
     setSearchTerm('');
   }
 
+  const fetchLatestKm = async (empId?: string, motoNumber?: string) => {
+    const cleanMoto = (motoNumber || '').trim();
+    if (!cleanMoto && !empId) return;
+
+    try {
+      // 1. Query live API first for the latest server odometer reading
+      const last = await workApi.getLastKM(empId, cleanMoto || undefined);
+      const apiKm = Math.max(last?.last_end_km || 0, last?.last_start_km || 0);
+
+      if (apiKm > 0) {
+        setLastEndKm(apiKm);
+        setStartKm(String(apiKm));
+        toast.info(
+          cleanMoto
+            ? `تم جلب العداد الأحدث للدباب ${cleanMoto} (${apiKm.toLocaleString('en-US')} كم)`
+            : `تم جلب آخر عداد للموظف (${apiKm.toLocaleString('en-US')} كم)`
+        );
+        return;
+      }
+    } catch {
+      // ignore & fallback
+    }
+
+    // 2. Fallback to cached allVehicles list if offline or server returned 0
+    if (cleanMoto && allVehicles?.data) {
+      const matched = allVehicles.data.find(
+        (v) => v.plate_number.toLowerCase() === cleanMoto.toLowerCase()
+      );
+      if (matched && matched.current_km > 0) {
+        setLastEndKm(matched.current_km);
+        setStartKm(String(matched.current_km));
+        toast.info(
+          `تم ضبط عداد البداية للدباب رقم ${cleanMoto} (${matched.current_km.toLocaleString('en-US')} كم)`
+        );
+        return;
+      }
+    }
+
+    setLastEndKm(null);
+  };
+
   const handleMotorcycleChange = async (val: string) => {
     setMotorcycleNumber(val);
     if (!val.trim()) return;
-
-    const cleanMoto = val.trim();
-    // 1. Check if vehicle is in cached list with current_km
-    const matched = allVehicles?.data?.find(
-      (v) => v.plate_number.toLowerCase() === cleanMoto.toLowerCase()
-    );
-
-    if (matched && matched.current_km > 0) {
-      setLastEndKm(matched.current_km);
-      setStartKm(String(matched.current_km));
-      toast.info(
-        `تم ضبط عداد البداية تلقائياً من الدباب رقم ${cleanMoto} (${matched.current_km.toLocaleString('en-US')} كم)`
-      );
-      return;
-    }
-
-    // 2. Fetch from backend API by motorcycle number
-    try {
-      const last = await offlineAwareFetch(`last_km_${cleanMoto}`, () =>
-        workApi.getLastKM(selectedEmployee?.id, cleanMoto)
-      );
-      if (last && last.last_end_km > 0) {
-        setLastEndKm(last.last_end_km);
-        setStartKm(String(last.last_end_km));
-        toast.info(
-          `تم ضبط عداد البداية للدباب ${cleanMoto}: ${last.last_end_km.toLocaleString('en-US')} كم`
-        );
-      }
-    } catch {
-      // ignore
-    }
+    await fetchLatestKm(selectedEmployee?.id, val);
   };
 
   const selectEmployee = async (emp: Employee) => {
@@ -195,41 +213,8 @@ export default function StartWorkPage() {
       setCheckingOil(false);
     }
 
-    // Check vehicle in fleet list first for latest shared odometer
-    if (defaultMoto) {
-      const matchedVeh = allVehicles?.data?.find(
-        (v) => v.plate_number.toLowerCase() === defaultMoto.trim().toLowerCase()
-      );
-      if (matchedVeh && matchedVeh.current_km > 0) {
-        setLastEndKm(matchedVeh.current_km);
-        setStartKm(String(matchedVeh.current_km));
-        autoFilledRef.current = true;
-        toast.info(
-          `تم ضبط عداد البداية تلقائياً من الدباب رقم ${defaultMoto} (${matchedVeh.current_km.toLocaleString('en-US')} كم)`
-        );
-      }
-    }
-
-    if (!autoFilledRef.current) {
-      try {
-        const cacheKey = `last_km_${defaultMoto || emp.id}`;
-        const last = await offlineAwareFetch(cacheKey, () =>
-          workApi.getLastKM(emp.id, defaultMoto)
-        );
-        if (last && last.last_end_km > 0) {
-          setLastEndKm(last.last_end_km);
-          setStartKm(String(last.last_end_km));
-          autoFilledRef.current = true;
-          if (defaultMoto) {
-            toast.info(
-              `تم جلب آخر عداد للدباب ${defaultMoto} (${last.last_end_km.toLocaleString('en-US')} كم)`
-            );
-          }
-        }
-      } catch {
-        setLastEndKm(null);
-      }
-    }
+    // Fetch the latest counter for the selected employee and motorcycle directly
+    await fetchLatestKm(emp.id, defaultMoto);
   };
 
   const handleSearch = async (e: FormEvent) => {
