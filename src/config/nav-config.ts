@@ -41,7 +41,6 @@ export const navGroups: NavGroup[] = [
         permission: 'investigations.view',
         items: [
           { title: 'Approvals', url: '/dashboard/investigation/approvals', permission: 'investigations.approve' },
-          { title: 'Investigation', url: '/dashboard/investigation/investigation', permission: 'investigations.create' },
           { title: 'Supervisor Report', url: '/dashboard/investigation/supervisor_report', permission: 'investigations.create' },
           { title: 'Advance', url: '/dashboard/investigation/advance', permission: 'investigations.create' },
           { title: 'Internet Advance', url: '/dashboard/investigation/internet_advance', permission: 'investigations.create' },

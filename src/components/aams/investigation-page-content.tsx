@@ -32,7 +32,6 @@ import {
 
 // Template types
 const TEMPLATES = [
-  { key: 'investigation', label: 'تحقيق', icon: Icons.search, color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/30' },
   { key: 'supervisor_report', label: 'تقرير مشرف', icon: Icons.fileText, color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/30' },
   { key: 'advance', label: 'سلفة', icon: Icons.dollarSign, color: 'text-green-600 bg-green-50 dark:bg-green-950/30' },
   { key: 'internet_advance', label: 'سلفة انترنت', icon: Icons.wifi, color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/30' },
@@ -2051,27 +2050,32 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                     </div>
                   )}
 
-                  {/* Selected / Manual Employee Details */}
-                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1'>
-                    <div>
-                      <Label className='text-[11px] text-muted-foreground'>اسم الموظف:</Label>
-                      <Input
-                        value={employeeName}
-                        onChange={(e) => setEmployeeName(e.target.value)}
-                        placeholder='اسم الموظف'
-                        className='text-xs font-bold mt-1'
-                      />
+                  {/* Selected Employee Details Badge */}
+                  {selectedEmployee && (
+                    <div className='flex items-center justify-between p-2.5 rounded-lg bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 mt-2'>
+                      <div className='flex items-center gap-2'>
+                        <User className='size-4 text-blue-600' />
+                        <div>
+                          <p className='font-bold text-xs text-foreground'>{selectedEmployee.name}</p>
+                          <p className='text-[10px] text-muted-foreground font-mono'>رقم الهوية: {selectedEmployee.national_id || '—'}</p>
+                        </div>
+                      </div>
+                      <Button
+                        type='button'
+                        variant='ghost'
+                        size='sm'
+                        onClick={() => {
+                          setSelectedEmployee(null);
+                          setEmployeeName('');
+                          setNationalId('');
+                          setEmployeeSearch('');
+                        }}
+                        className='h-7 text-xs text-destructive hover:bg-destructive/10'
+                      >
+                        تغيير
+                      </Button>
                     </div>
-                    <div>
-                      <Label className='text-[11px] text-muted-foreground'>رقم الهوية:</Label>
-                      <Input
-                        value={nationalId}
-                        onChange={(e) => setNationalId(e.target.value)}
-                        placeholder='رقم الهوية'
-                        className='text-xs font-mono font-bold mt-1'
-                      />
-                    </div>
-                  </div>
+                  )}
                 </div>
               )}
 
@@ -2302,8 +2306,8 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                 )}
               </div>
 
-              {/* Extra Notes (if not advance) */}
-              {selectedType !== 'advance' && selectedType !== 'internet_advance' && (
+              {/* Extra Notes (if not advance and not supervisor_report) */}
+              {selectedType !== 'advance' && selectedType !== 'internet_advance' && selectedType !== 'supervisor_report' && (
                 <div className='space-y-1 pt-2 border-t'>
                   <Label className='text-xs font-bold text-foreground'>ملاحظات إضافية:</Label>
                   <Textarea
