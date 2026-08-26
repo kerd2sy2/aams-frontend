@@ -464,6 +464,11 @@ export const inventoryApi = {
     invoice_number?: string;
     supplier_name: string;
     invoice_date?: string;
+    subtotal?: number;
+    discount?: number;
+    tax_rate?: number;
+    tax_amount?: number;
+    total_amount?: number;
     notes?: string;
     items: {
       item_id: string;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import PageContainer from '@/components/layout/page-container';
@@ -56,6 +56,7 @@ type StockAction = 'add' | 'remove';
 interface PurchaseFormRow {
   rowId: string;
   item_id: string;
+  itemSearchQuery: string;
   quantity: string;
   unit_price: string;
   notes: string;
@@ -73,9 +74,9 @@ export default function InventoryPage() {
   } | null>(null);
   const [deleteModalId, setDeleteModalId] = useState<string | null>(null);
 
-  // Add Item form state
+  // Add Item form state - Default to 'spare_part' (قطع غيار) as requested
   const [formName, setFormName] = useState('');
-  const [formType, setFormType] = useState('oil');
+  const [formType, setFormType] = useState('spare_part');
   const [formUnit, setFormUnit] = useState('');
   const [formMinAlert, setFormMinAlert] = useState('0');
   const [formNotes, setFormNotes] = useState('');
@@ -86,7 +87,6 @@ export default function InventoryPage() {
   const [stockQuantity, setStockQuantity] = useState('0');
   const [stockEmployeeId, setStockEmployeeId] = useState('');
   const [stockNotes, setStockNotes] = useState('');
-  const [stockBarcodeScan, setStockBarcodeScan] = useState(false);
 
   // Purchases state
   const [purchasePage, setPurchasePage] = useState(1);
@@ -100,8 +100,11 @@ export default function InventoryPage() {
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
   const [invoiceNotes, setInvoiceNotes] = useState('');
+  const [discountType, setDiscountType] = useState<'fixed' | 'percent'>('percent');
+  const [discountValue, setDiscountValue] = useState<string>('0');
+  const [taxRate, setTaxRate] = useState<string>('14'); // Default VAT 14% or user customizable
   const [purchaseRows, setPurchaseRows] = useState<PurchaseFormRow[]>([
-    { rowId: 'row-1', item_id: '', quantity: '1', unit_price: '0', notes: '' }
+    { rowId: 'row-1', item_id: '', itemSearchQuery: '', quantity: '', unit_price: '', notes: '' }
   ]);
 
   // Transactions state
@@ -237,6 +240,11 @@ export default function InventoryPage() {
       invoice_number?: string;
       supplier_name: string;
       invoice_date?: string;
+      subtotal?: number;
+      discount?: number;
+      tax_rate?: number;
+      tax_amount?: number;
+      total_amount?: number;
       notes?: string;
       items: {
         item_id: string;
@@ -275,7 +283,7 @@ export default function InventoryPage() {
 
   const resetAddForm = () => {
     setFormName('');
-    setFormType('oil');
+    setFormType('spare_part'); // Default to spare_part
     setFormUnit('');
     setFormMinAlert('0');
     setFormNotes('');
@@ -300,7 +308,7 @@ export default function InventoryPage() {
       type: formType as 'oil' | 'spare_part',
       unit: formUnit || undefined,
       quantity: 0,
-      min_alert: Number(formMinAlert) || undefined,
+      min_alert: Number(formMinAlert) || 0,
       notes: formNotes || undefined,
       barcode: formBarcode || undefined
     };
@@ -318,20 +326,31 @@ export default function InventoryPage() {
     setInvoiceNumber('');
     setInvoiceDate(new Date().toISOString().split('T')[0]);
     setInvoiceNotes('');
-    setPurchaseRows([{ rowId: 'row-1', item_id: '', quantity: '1', unit_price: '0', notes: '' }]);
+    setDiscountType('percent');
+    setDiscountValue('0');
+    setTaxRate('14');
+    setPurchaseRows([
+      { rowId: 'row-1', item_id: '', itemSearchQuery: '', quantity: '', unit_price: '', notes: '' }
+    ]);
   };
 
   const addPurchaseRow = () => {
+    const newRowId = `row-${Date.now()}-${Math.random()}`;
     setPurchaseRows((prev) => [
       ...prev,
       {
-        rowId: `row-${Date.now()}-${Math.random()}`,
+        rowId: newRowId,
         item_id: '',
-        quantity: '1',
-        unit_price: '0',
+        itemSearchQuery: '',
+        quantity: '',
+        unit_price: '',
         notes: ''
       }
     ]);
+    setTimeout(() => {
+      const searchEl = document.getElementById(`item-search-${newRowId}`);
+      if (searchEl) searchEl.focus();
+    }, 100);
   };
 
   const removePurchaseRow = (rowId: string) => {
@@ -348,12 +367,44 @@ export default function InventoryPage() {
     );
   };
 
-  // Calculate totals for purchase form
-  const totalPurchaseAmount = purchaseRows.reduce((sum, r) => {
+  // Select Item in a row with instant focus to Price, then Enter to Quantity
+  const handleSelectItem = (rowId: string, item: InventoryItem) => {
+    setPurchaseRows((prev) =>
+      prev.map((r) =>
+        r.rowId === rowId
+          ? {
+              ...r,
+              item_id: item.id,
+              itemSearchQuery: item.name
+            }
+          : r
+      )
+    );
+    setTimeout(() => {
+      const priceInput = document.getElementById(`price-input-${rowId}`);
+      if (priceInput) {
+        priceInput.focus();
+      }
+    }, 50);
+  };
+
+  // Calculations for purchase form with Discount & VAT %
+  const subtotalAmount = purchaseRows.reduce((sum, r) => {
     const qty = Number(r.quantity) || 0;
     const price = Number(r.unit_price) || 0;
     return sum + qty * price;
   }, 0);
+
+  const parsedDiscountVal = Number(discountValue) || 0;
+  const calculatedDiscount =
+    discountType === 'percent'
+      ? (subtotalAmount * parsedDiscountVal) / 100
+      : parsedDiscountVal;
+
+  const afterDiscount = Math.max(0, subtotalAmount - calculatedDiscount);
+  const parsedTaxRate = Number(taxRate) || 0;
+  const calculatedTax = afterDiscount * (parsedTaxRate / 100);
+  const grandTotalAmount = Math.max(0, afterDiscount + calculatedTax);
 
   const totalPurchaseItemsQty = purchaseRows.reduce((sum, r) => {
     return sum + (Number(r.quantity) || 0);
@@ -368,14 +419,14 @@ export default function InventoryPage() {
 
     const validItems = purchaseRows.filter((r) => r.item_id.trim() !== '');
     if (validItems.length === 0) {
-      toast.error('يرجى اختيار صنف واحد على الأقل');
+      toast.error('يرجى اختيار صنف واحد على الأقل في الفاتورة');
       return;
     }
 
     for (const item of validItems) {
       const qty = Number(item.quantity);
       if (!qty || qty <= 0) {
-        toast.error('يرجى التأكد من أن كميات جميع الأصناف أكبر من صفر');
+        toast.error('يرجى كتابة كمية أكبر من صفر لكل صنف تم اختياره');
         return;
       }
     }
@@ -384,6 +435,11 @@ export default function InventoryPage() {
       supplier_name: supplierName.trim(),
       invoice_number: invoiceNumber.trim() || undefined,
       invoice_date: invoiceDate ? new Date(invoiceDate).toISOString() : undefined,
+      subtotal: subtotalAmount,
+      discount: calculatedDiscount,
+      tax_rate: parsedTaxRate,
+      tax_amount: calculatedTax,
+      total_amount: grandTotalAmount,
       notes: invoiceNotes.trim() || undefined,
       items: validItems.map((r) => ({
         item_id: r.item_id,
@@ -422,8 +478,8 @@ export default function InventoryPage() {
                 {(
                   [
                     { value: 'all', label: 'الكل' },
-                    { value: 'oil', label: 'زيت' },
-                    { value: 'spare_part', label: 'قطع غيار' }
+                    { value: 'spare_part', label: 'قطع غيار' },
+                    { value: 'oil', label: 'زيت' }
                   ] as const
                 ).map((f) => (
                   <button
@@ -510,6 +566,23 @@ export default function InventoryPage() {
                 <form onSubmit={handleFormSubmit} className='flex-1 space-y-4 px-1 py-2 overflow-y-auto'>
                   <div className='space-y-1.5'>
                     <label className='text-muted-foreground text-xs font-medium'>
+                      النوع <span className='text-destructive'>*</span>
+                    </label>
+                    <Select
+                      value={formType}
+                      onValueChange={(v) => setFormType(v || 'spare_part')}
+                    >
+                      <SelectTrigger className='h-10 w-full font-bold'>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent dir={dir}>
+                        <SelectItem value='spare_part'>قطع غيار (افتراضي)</SelectItem>
+                        <SelectItem value='oil'>زيت</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className='space-y-1.5'>
+                    <label className='text-muted-foreground text-xs font-medium'>
                       الاسم <span className='text-destructive'>*</span>
                     </label>
                     <Input
@@ -521,28 +594,11 @@ export default function InventoryPage() {
                     />
                   </div>
                   <div className='space-y-1.5'>
-                    <label className='text-muted-foreground text-xs font-medium'>
-                      النوع <span className='text-destructive'>*</span>
-                    </label>
-                    <Select
-                      value={formType}
-                      onValueChange={(v) => setFormType(v || 'oil')}
-                    >
-                      <SelectTrigger className='h-10 w-full'>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent dir={dir}>
-                        <SelectItem value='oil'>زيت</SelectItem>
-                        <SelectItem value='spare_part'>قطع غيار</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className='space-y-1.5'>
                     <label className='text-muted-foreground text-xs font-medium'>الوحدة</label>
                     <Input
                       value={formUnit}
                       onChange={(e) => setFormUnit(e.target.value)}
-                      placeholder='مثلاً: لتر، قطعة، علبة'
+                      placeholder='مثلاً: قطعة، لتر، طقم، علبة'
                       className='h-10'
                     />
                   </div>
@@ -598,7 +654,7 @@ export default function InventoryPage() {
                       className='h-11 flex-1 gap-2 px-6 font-bold'
                     >
                       {isFormSubmitting && <Icons.spinner className='size-4 animate-spin' />}
-                      {editingItemId ? 'حفظ التعديلات' : 'إضافة'}
+                      {editingItemId ? 'حفظ التعديلات' : 'إضافة الصنف'}
                     </Button>
                     <Button
                       type='button'
@@ -665,7 +721,7 @@ export default function InventoryPage() {
                         <TableCell className='font-bold'>{item.name}</TableCell>
                         <TableCell>
                           <Badge
-                            variant={item.type === 'oil' ? 'default' : 'secondary'}
+                            variant={item.type === 'spare_part' ? 'secondary' : 'default'}
                             className='gap-1 font-bold'
                           >
                             {item.type === 'oil' ? (
@@ -981,9 +1037,10 @@ export default function InventoryPage() {
                       <TableHead className='text-right'>المورد</TableHead>
                       <TableHead className='text-right'>تاريخ الفاتورة</TableHead>
                       <TableHead className='text-center'>عدد البنود</TableHead>
-                      <TableHead className='text-right'>إجمالي الفاتورة</TableHead>
+                      <TableHead className='text-right'>الإجمالي قبل الخصم</TableHead>
+                      <TableHead className='text-right'>الخصم / الضريبة</TableHead>
+                      <TableHead className='text-right'>صافي الفاتورة النهائي</TableHead>
                       <TableHead className='hidden text-right md:table-cell'>المسؤول</TableHead>
-                      <TableHead className='hidden text-right lg:table-cell'>ملاحظات</TableHead>
                       <TableHead className='text-center'>إجراءات</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1006,7 +1063,25 @@ export default function InventoryPage() {
                             {inv.items?.length || 0} أصناف
                           </Badge>
                         </TableCell>
-                        <TableCell className='font-bold tabular-nums text-emerald-600 dark:text-emerald-400'>
+                        <TableCell className='text-muted-foreground text-xs font-mono tabular-nums'>
+                          {Number(inv.subtotal || inv.total_amount || 0).toLocaleString('ar-SA', {
+                            minimumFractionDigits: 2
+                          })}
+                        </TableCell>
+                        <TableCell className='text-xs tabular-nums'>
+                          {inv.discount > 0 && (
+                            <span className='text-rose-500 font-bold block'>
+                              - {Number(inv.discount).toLocaleString('ar-SA')} خصم
+                            </span>
+                          )}
+                          {inv.tax_amount > 0 && (
+                            <span className='text-blue-500 font-medium block'>
+                              + {Number(inv.tax_amount).toLocaleString('ar-SA')} ضريبة ({inv.tax_rate}%)
+                            </span>
+                          )}
+                          {!inv.discount && !inv.tax_amount && <span className='text-muted-foreground'>—</span>}
+                        </TableCell>
+                        <TableCell className='font-bold tabular-nums text-emerald-600 dark:text-emerald-400 font-mono text-base'>
                           {Number(inv.total_amount || 0).toLocaleString('ar-SA', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
@@ -1014,9 +1089,6 @@ export default function InventoryPage() {
                         </TableCell>
                         <TableCell className='hidden text-xs text-muted-foreground md:table-cell'>
                           {inv.created_by_name || '—'}
-                        </TableCell>
-                        <TableCell className='text-muted-foreground hidden max-w-[150px] truncate text-xs lg:table-cell'>
-                          {inv.notes || '—'}
                         </TableCell>
                         <TableCell className='text-center'>
                           <div className='flex items-center justify-center gap-1'>
@@ -1069,7 +1141,7 @@ export default function InventoryPage() {
             >
               <SheetContent
                 side={dir === 'rtl' ? 'left' : 'right'}
-                className='w-full sm:max-w-2xl overflow-y-auto flex flex-col p-6'
+                className='w-full sm:max-w-3xl overflow-y-auto flex flex-col p-6'
                 dir={dir}
               >
                 <SheetHeader className='text-right pb-2'>
@@ -1078,7 +1150,7 @@ export default function InventoryPage() {
                     فاتورة مشتريات وتوريد مخزون جديدة
                   </SheetTitle>
                   <SheetDescription className='text-xs'>
-                    أدخل تفاصيل الفاتورة وبنود الأصناف. سيتم حساب إجمالي الفاتورة وترحيل الكميات مباشرة إلى أرصدة المخزن.
+                    أدخل تفاصيل الفاتورة، ابحث عن الأصناف بالأحرف الأولى، وسجل السعر والكمية والخصم والضريبة.
                   </SheetDescription>
                 </SheetHeader>
 
@@ -1086,7 +1158,7 @@ export default function InventoryPage() {
 
                 <form onSubmit={handlePurchaseSubmit} className='flex-1 space-y-5 py-3 overflow-y-auto'>
                   {/* Invoice Header details */}
-                  <div className='grid grid-cols-1 gap-3 sm:grid-cols-3 bg-muted/40 p-3 rounded-lg border'>
+                  <div className='grid grid-cols-1 gap-3 sm:grid-cols-3 bg-muted/40 p-3.5 rounded-xl border'>
                     <div className='space-y-1.5'>
                       <label className='text-foreground text-xs font-semibold'>
                         اسم المورد / الشركة <span className='text-destructive'>*</span>
@@ -1096,7 +1168,7 @@ export default function InventoryPage() {
                         onChange={(e) => setSupplierName(e.target.value)}
                         placeholder='مثال: شركة الزيوت والقطع'
                         required
-                        className='h-10 bg-background'
+                        className='h-10 bg-background font-medium'
                       />
                     </div>
                     <div className='space-y-1.5'>
@@ -1130,13 +1202,18 @@ export default function InventoryPage() {
                     </div>
                   </div>
 
-                  {/* Items Repeater Section */}
+                  {/* Items Repeater Section with Fast Autocomplete & Focus Flow */}
                   <div className='space-y-3'>
                     <div className='flex items-center justify-between'>
-                      <h4 className='text-sm font-bold flex items-center gap-1.5'>
-                        <Icons.inventory className='size-4 text-primary' />
-                        بنود الأصناف في الفاتورة
-                      </h4>
+                      <div>
+                        <h4 className='text-sm font-bold flex items-center gap-1.5 text-foreground'>
+                          <Icons.inventory className='size-4 text-primary' />
+                          بنود الأصناف في الفاتورة
+                        </h4>
+                        <p className='text-muted-foreground text-[11px] mt-0.5'>
+                          اكتب أول حروف اسم الصنف للبحث، ثم اضغط Enter للتنقل الفوري بين السعر والكمية.
+                        </p>
+                      </div>
                       <Button
                         type='button'
                         variant='outline'
@@ -1156,18 +1233,35 @@ export default function InventoryPage() {
                         const rowPrice = Number(row.unit_price) || 0;
                         const rowTotal = rowQty * rowPrice;
 
+                        // Filter matching items by query
+                        const matchingItems = row.itemSearchQuery.trim()
+                          ? allItems.filter((itm) =>
+                              itm.name.toLowerCase().includes(row.itemSearchQuery.toLowerCase()) ||
+                              (itm.barcode && itm.barcode.includes(row.itemSearchQuery))
+                            )
+                          : allItems;
+
                         return (
                           <div
                             key={row.rowId}
-                            className='relative rounded-lg border bg-card p-3 shadow-xs space-y-3'
+                            className='relative rounded-xl border bg-card p-3.5 shadow-xs space-y-3'
                           >
-                            <div className='flex items-center justify-between text-xs font-bold text-muted-foreground pb-1 border-b'>
-                              <span>بند #{idx + 1}</span>
+                            <div className='flex items-center justify-between text-xs font-bold text-muted-foreground pb-1.5 border-b'>
+                              <span className='flex items-center gap-1.5'>
+                                <Badge variant='outline' className='font-mono text-xs'>
+                                  بند #{idx + 1}
+                                </Badge>
+                                {selectedItemObj && (
+                                  <Badge variant='secondary' className='text-xs font-normal'>
+                                    {selectedItemObj.type === 'spare_part' ? 'قطع غيار' : 'زيت'} - الرصيد الحالي: {selectedItemObj.branch_quantity ?? 0} {selectedItemObj.unit}
+                                  </Badge>
+                                )}
+                              </span>
                               {purchaseRows.length > 1 && (
                                 <button
                                   type='button'
                                   onClick={() => removePurchaseRow(row.rowId)}
-                                  className='text-destructive hover:underline text-xs flex items-center gap-1'
+                                  className='text-destructive hover:underline text-xs flex items-center gap-1 font-semibold'
                                 >
                                   <Icons.trash className='size-3.5' />
                                   حذف البند
@@ -1176,53 +1270,106 @@ export default function InventoryPage() {
                             </div>
 
                             <div className='grid grid-cols-1 gap-3 sm:grid-cols-12 items-end'>
-                              {/* Item select */}
-                              <div className='sm:col-span-5 space-y-1'>
+                              {/* Search & Select Item Box */}
+                              <div className='sm:col-span-5 space-y-1 relative'>
                                 <label className='text-muted-foreground text-xs font-medium'>
-                                  الصنف <span className='text-destructive'>*</span>
+                                  بحث واختيار الصنف <span className='text-destructive'>*</span>
                                 </label>
-                                <Select
-                                  value={row.item_id}
-                                  onValueChange={(val) => updatePurchaseRow(row.rowId, 'item_id', val || '')}
-                                >
-                                  <SelectTrigger className='h-10 w-full'>
-                                    <SelectValue placeholder='اختر الصنف' />
-                                  </SelectTrigger>
-                                  <SelectContent dir={dir}>
-                                    {allItems.map((itm) => (
-                                      <SelectItem key={itm.id} value={itm.id}>
-                                        {itm.name} ({itm.type === 'oil' ? 'زيت' : 'قطع غيار'} - رصيد: {itm.branch_quantity ?? 0} {itm.unit})
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                <div className='relative'>
+                                  <Input
+                                    id={`item-search-${row.rowId}`}
+                                    value={row.itemSearchQuery}
+                                    onChange={(e) => {
+                                      updatePurchaseRow(row.rowId, 'itemSearchQuery', e.target.value);
+                                      if (!e.target.value) {
+                                        updatePurchaseRow(row.rowId, 'item_id', '');
+                                      }
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        if (matchingItems.length > 0) {
+                                          handleSelectItem(row.rowId, matchingItems[0]);
+                                        }
+                                      }
+                                    }}
+                                    placeholder='اكتب اسم الصنف أو الباركود...'
+                                    className='h-10 pr-3 font-medium'
+                                  />
+                                </div>
+
+                                {/* Autocomplete dropdown when searching and item not locked */}
+                                {row.itemSearchQuery.trim() !== '' && (!selectedItemObj || selectedItemObj.name !== row.itemSearchQuery) && (
+                                  <div className='absolute z-50 top-full right-0 left-0 mt-1 max-h-48 overflow-y-auto rounded-lg border bg-popover text-popover-foreground shadow-lg p-1'>
+                                    {matchingItems.length === 0 ? (
+                                      <div className='p-2.5 text-xs text-muted-foreground text-center'>
+                                        لا يوجد صنف مطابق &quot;{row.itemSearchQuery}&quot;
+                                      </div>
+                                    ) : (
+                                      matchingItems.map((itm) => (
+                                        <div
+                                          key={itm.id}
+                                          onClick={() => handleSelectItem(row.rowId, itm)}
+                                          className='flex items-center justify-between p-2 rounded cursor-pointer hover:bg-accent text-xs font-medium transition-colors'
+                                        >
+                                          <span>
+                                            <strong className='text-foreground'>{itm.name}</strong>
+                                            <span className='text-muted-foreground mr-1.5 text-[11px]'>
+                                              ({itm.type === 'spare_part' ? 'قطع غيار' : 'زيت'})
+                                            </span>
+                                          </span>
+                                          <Badge variant='outline' className='text-[10px] font-mono'>
+                                            رصيد: {itm.branch_quantity ?? 0} {itm.unit}
+                                          </Badge>
+                                        </div>
+                                      ))
+                                    )}
+                                  </div>
+                                )}
                               </div>
 
-                              {/* Quantity */}
-                              <div className='sm:col-span-2 space-y-1'>
-                                <label className='text-muted-foreground text-xs font-medium'>
-                                  الكمية {selectedItemObj?.unit ? `(${selectedItemObj.unit})` : ''} <span className='text-destructive'>*</span>
-                                </label>
-                                <Input
-                                  type='number'
-                                  min='1'
-                                  value={row.quantity}
-                                  onChange={(e) => updatePurchaseRow(row.rowId, 'quantity', e.target.value)}
-                                  className='h-10 text-center font-bold font-mono'
-                                />
-                              </div>
-
-                              {/* Unit Price */}
+                              {/* Unit Price (Price appears / editable upon selection) */}
                               <div className='sm:col-span-2 space-y-1'>
                                 <label className='text-muted-foreground text-xs font-medium'>
                                   سعر الوحدة
                                 </label>
                                 <Input
+                                  id={`price-input-${row.rowId}`}
                                   type='number'
                                   min='0'
                                   step='0.01'
+                                  placeholder='0'
                                   value={row.unit_price}
                                   onChange={(e) => updatePurchaseRow(row.rowId, 'unit_price', e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      const qtyEl = document.getElementById(`qty-input-${row.rowId}`);
+                                      if (qtyEl) qtyEl.focus();
+                                    }
+                                  }}
+                                  className='h-10 text-center font-bold font-mono'
+                                />
+                              </div>
+
+                              {/* Quantity (Defaults to 0/empty until typed) */}
+                              <div className='sm:col-span-2 space-y-1'>
+                                <label className='text-muted-foreground text-xs font-medium'>
+                                  الكمية {selectedItemObj?.unit ? `(${selectedItemObj.unit})` : ''} <span className='text-destructive'>*</span>
+                                </label>
+                                <Input
+                                  id={`qty-input-${row.rowId}`}
+                                  type='number'
+                                  min='0'
+                                  placeholder='0'
+                                  value={row.quantity}
+                                  onChange={(e) => updatePurchaseRow(row.rowId, 'quantity', e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      addPurchaseRow();
+                                    }
+                                  }}
                                   className='h-10 text-center font-bold font-mono'
                                 />
                               </div>
@@ -1232,7 +1379,7 @@ export default function InventoryPage() {
                                 <label className='text-muted-foreground text-xs font-medium'>
                                   الإجمالي الفرعي
                                 </label>
-                                <div className='h-10 flex items-center justify-center rounded-md bg-muted font-bold font-mono text-sm text-foreground'>
+                                <div className='h-10 flex items-center justify-center rounded-md bg-muted font-bold font-mono text-sm text-foreground border'>
                                   {rowTotal.toLocaleString('ar-SA', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
@@ -1246,24 +1393,113 @@ export default function InventoryPage() {
                     </div>
                   </div>
 
-                  {/* Real-time Summary Card */}
-                  <div className='bg-primary/5 border border-primary/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4'>
-                    <div className='flex items-center gap-6 text-xs'>
+                  {/* Financial Adjustments: Discount & VAT */}
+                  <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 bg-muted/40 p-3.5 rounded-xl border'>
+                    {/* Discount */}
+                    <div className='space-y-1.5'>
+                      <div className='flex items-center justify-between'>
+                        <label className='text-foreground text-xs font-bold flex items-center gap-1'>
+                          <Icons.dollarSign className='size-3.5 text-rose-500' />
+                          الخصم على الفاتورة
+                        </label>
+                        <div className='flex items-center gap-1 text-[11px]'>
+                          <button
+                            type='button'
+                            onClick={() => setDiscountType('percent')}
+                            className={cn(
+                              'px-2 py-0.5 rounded font-bold transition-all',
+                              discountType === 'percent'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted text-muted-foreground'
+                            )}
+                          >
+                            نسبة %
+                          </button>
+                          <button
+                            type='button'
+                            onClick={() => setDiscountType('fixed')}
+                            className={cn(
+                              'px-2 py-0.5 rounded font-bold transition-all',
+                              discountType === 'fixed'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted text-muted-foreground'
+                            )}
+                          >
+                            مبلغ ثابت
+                          </button>
+                        </div>
+                      </div>
+                      <div className='flex items-center gap-2'>
+                        <Input
+                          type='number'
+                          min='0'
+                          step='0.01'
+                          value={discountValue}
+                          onChange={(e) => setDiscountValue(e.target.value)}
+                          placeholder='0'
+                          className='h-10 font-mono font-bold bg-background'
+                        />
+                        <span className='text-xs font-bold text-rose-500 whitespace-nowrap'>
+                          {discountType === 'percent' ? `% (- ${calculatedDiscount.toLocaleString('ar-SA', { maximumFractionDigits: 2 })})` : 'مبلغ الخصم'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* VAT % */}
+                    <div className='space-y-1.5'>
+                      <label className='text-foreground text-xs font-bold flex items-center gap-1'>
+                        <Icons.help className='size-3.5 text-blue-500' />
+                        ضريبة القيمة المضافة (VAT %)
+                      </label>
+                      <div className='flex items-center gap-2'>
+                        <Input
+                          type='number'
+                          min='0'
+                          max='100'
+                          step='0.5'
+                          value={taxRate}
+                          onChange={(e) => setTaxRate(e.target.value)}
+                          placeholder='0'
+                          className='h-10 font-mono font-bold bg-background'
+                        />
+                        <span className='text-xs font-bold text-blue-500 whitespace-nowrap'>
+                          (+ {calculatedTax.toLocaleString('ar-SA', { maximumFractionDigits: 2 })})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Real-time Detailed Invoice Summary Card */}
+                  <div className='bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-3'>
+                    <div className='grid grid-cols-2 gap-2 text-xs sm:grid-cols-4 border-b pb-3'>
                       <div>
-                        <span className='text-muted-foreground block'>عدد الأصناف:</span>
+                        <span className='text-muted-foreground block text-[11px]'>عدد البنود:</span>
                         <span className='font-bold text-sm'>{purchaseRows.length} صنف</span>
                       </div>
                       <div>
-                        <span className='text-muted-foreground block'>إجمالي الكميات:</span>
+                        <span className='text-muted-foreground block text-[11px]'>إجمالي القطع:</span>
                         <span className='font-bold text-sm'>{totalPurchaseItemsQty} وحدة</span>
                       </div>
+                      <div>
+                        <span className='text-muted-foreground block text-[11px]'>إجمالي الأصناف:</span>
+                        <span className='font-bold text-sm font-mono'>
+                          {subtotalAmount.toLocaleString('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div>
+                        <span className='text-muted-foreground block text-[11px]'>الخصم والضريبة:</span>
+                        <span className='font-bold text-sm font-mono text-muted-foreground'>
+                          - {calculatedDiscount.toLocaleString('ar-SA', { maximumFractionDigits: 2 })} / + {calculatedTax.toLocaleString('ar-SA', { maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
                     </div>
-                    <div className='text-left sm:text-right'>
-                      <span className='text-muted-foreground text-xs block font-medium'>
-                        إجمالي قيمة الفاتورة النهائي:
+
+                    <div className='flex items-center justify-between pt-1'>
+                      <span className='text-foreground text-sm font-bold'>
+                        صافي إجمالي الفاتورة النهائي المستحق:
                       </span>
-                      <span className='text-2xl font-black text-primary font-mono tabular-nums'>
-                        {totalPurchaseAmount.toLocaleString('ar-SA', {
+                      <span className='text-2xl sm:text-3xl font-black text-primary font-mono tabular-nums'>
+                        {grandTotalAmount.toLocaleString('ar-SA', {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2
                         })}
@@ -1375,15 +1611,53 @@ export default function InventoryPage() {
                     </Table>
                   </div>
 
-                  {/* Summary Total */}
-                  <div className='flex items-center justify-between p-4 rounded-xl bg-muted border'>
-                    <span className='font-bold text-sm'>إجمالي قيمة الفاتورة:</span>
-                    <span className='text-xl font-black text-primary font-mono'>
-                      {Number(selectedInvoiceForView?.total_amount || 0).toLocaleString('ar-SA', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}
-                    </span>
+                  {/* Summary Totals with Discount & Tax */}
+                  <div className='space-y-2 p-4 rounded-xl bg-muted/60 border text-xs'>
+                    <div className='flex items-center justify-between'>
+                      <span className='text-muted-foreground'>إجمالي الأصناف:</span>
+                      <span className='font-mono font-bold'>
+                        {Number(selectedInvoiceForView?.subtotal || selectedInvoiceForView?.total_amount || 0).toLocaleString('ar-SA', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}
+                      </span>
+                    </div>
+
+                    {(selectedInvoiceForView?.discount ?? 0) > 0 && (
+                      <div className='flex items-center justify-between text-rose-500 font-bold'>
+                        <span>الخصم:</span>
+                        <span className='font-mono'>
+                          - {Number(selectedInvoiceForView?.discount).toLocaleString('ar-SA', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          })}
+                        </span>
+                      </div>
+                    )}
+
+                    {(selectedInvoiceForView?.tax_amount ?? 0) > 0 && (
+                      <div className='flex items-center justify-between text-blue-500 font-medium'>
+                        <span>ضريبة القيمة المضافة ({selectedInvoiceForView?.tax_rate}%):</span>
+                        <span className='font-mono font-bold'>
+                          + {Number(selectedInvoiceForView?.tax_amount).toLocaleString('ar-SA', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          })}
+                        </span>
+                      </div>
+                    )}
+
+                    <Separator className='my-1' />
+
+                    <div className='flex items-center justify-between text-sm font-bold'>
+                      <span>صافي إجمالي الفاتورة النهائي:</span>
+                      <span className='text-xl font-black text-primary font-mono'>
+                        {Number(selectedInvoiceForView?.total_amount || 0).toLocaleString('ar-SA', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}
+                      </span>
+                    </div>
                   </div>
                 </div>
 

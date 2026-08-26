@@ -243,7 +243,7 @@ export interface PurchaseInvoiceItem {
   unit_price: number;
   total_price: number;
   notes?: string;
-  created_at: string;
+  created_at?: string;
 }
 
 export interface PurchaseInvoice {
@@ -251,14 +251,18 @@ export interface PurchaseInvoice {
   invoice_number: string;
   supplier_name: string;
   invoice_date: string;
+  subtotal: number;
+  discount: number;
+  tax_rate: number;
+  tax_amount: number;
   total_amount: number;
   branch_id?: string | null;
   branch?: Branch | null;
-  created_by_name: string;
-  notes: string;
+  created_by_name?: string;
+  notes?: string;
   items?: PurchaseInvoiceItem[];
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface MaintenanceLog {
@@ -570,6 +574,3 @@ export interface ArchiveResponse {
   limit: number;
   total_pages: number;
 }
-
-
-
