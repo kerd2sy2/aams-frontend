@@ -39,6 +39,14 @@ import {
   TableCell
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLocale } from '@/components/layout/locale-provider';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle
+} from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { Icons } from '@/components/icons';
 
@@ -46,6 +54,7 @@ type ItemTypeFilter = 'all' | 'oil' | 'spare_part';
 type StockAction = 'add' | 'remove';
 
 export default function InventoryPage() {
+  const { dir } = useLocale();
   const [activeTab, setActiveTab] = useState('items');
   const [filter, setFilter] = useState<ItemTypeFilter>('all');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -279,134 +288,152 @@ export default function InventoryPage() {
               </Button>
             </div>
 
-            {/* Inline Add / Edit Form */}
-            {showAddForm && (
-              <Card>
-                <CardContent className='p-4'>
-                  <form onSubmit={handleFormSubmit} className='space-y-4'>
-                    <div className='flex items-center justify-between'>
-                      <h3 className='text-sm font-bold'>
-                        {editingItemId ? 'تعديل صنف' : 'إضافة صنف جديد'}
-                      </h3>
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => {
-                          setShowAddForm(false);
-                          setEditingItemId(null);
-                          resetAddForm();
-                        }}
-                        aria-label='إغلاق'
-                      >
-                        <Icons.close className='size-5' />
-                      </Button>
-                    </div>
-                    <Separator />
-                    <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-                      <div className='space-y-1.5'>
-                        <label className='text-muted-foreground text-xs font-medium'>الاسم</label>
-                        <Input
-                          value={formName}
-                          onChange={(e) => setFormName(e.target.value)}
-                          placeholder='اسم الصنف'
-                          required
-                          className='h-10'
-                        />
-                      </div>
-                      <div className='space-y-1.5'>
-                        <label className='text-muted-foreground text-xs font-medium'>النوع</label>
-                        <Select value={formType} onValueChange={(v) => setFormType(v as string)}>
-                          <SelectTrigger className='h-10 w-full'>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value='oil'>زيت</SelectItem>
-                            <SelectItem value='spare_part'>قطع غيار</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className='space-y-1.5'>
-                        <label className='text-muted-foreground text-xs font-medium'>الوحدة</label>
-                        <Input
-                          value={formUnit}
-                          onChange={(e) => setFormUnit(e.target.value)}
-                          placeholder='مثلاً: لتر، قطعة، علبة'
-                          className='h-10'
-                        />
-                      </div>
-                      <div className='space-y-1.5'>
-                        <label className='text-muted-foreground text-xs font-medium'>الباركود</label>
-                        <div className='flex items-center gap-2'>
-                          <Input
-                            value={formBarcode}
-                            onChange={(e) => setFormBarcode(e.target.value)}
-                            placeholder='أدخل أو امسح الباركود'
-                            className='h-10 flex-1 font-mono'
-                          />
-                          <Button
-                            type='button'
-                            variant='outline'
-                            size='icon'
-                            onClick={() => setShowBarcodeScanner(true)}
-                            className='h-10 w-10 shrink-0'
-                            aria-label='مسح الباركود'
-                            title='مسح الباركود'
-                          >
-                            <Icons.qrCode className='size-[18px]' />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className='space-y-1.5'>
-                        <label className='text-muted-foreground text-xs font-medium'>
-                          الحد الأدنى للتنبيه
-                        </label>
-                        <Input
-                          type='number'
-                          value={formMinAlert}
-                          onChange={(e) => setFormMinAlert(e.target.value)}
-                          placeholder='0'
-                          min='0'
-                          className='h-10'
-                        />
-                      </div>
-                      <div className='space-y-1.5 sm:col-span-2 lg:col-span-1'>
-                        <label className='text-muted-foreground text-xs font-medium'>ملاحظات</label>
-                        <Input
-                          value={formNotes}
-                          onChange={(e) => setFormNotes(e.target.value)}
-                          placeholder='ملاحظات إضافية'
-                          className='h-10'
-                        />
-                      </div>
-                    </div>
-                    <div className='flex items-center gap-3 pt-2'>
-                      <Button
-                        type='submit'
-                        size='lg'
-                        disabled={isFormSubmitting}
-                        className='h-11 gap-2 px-6 font-bold'
-                      >
-                        {isFormSubmitting && <Icons.spinner className='size-4 animate-spin' />}
-                        {editingItemId ? 'حفظ التعديلات' : 'إضافة'}
-                      </Button>
+            {/* Slide-over Sheet for Add / Edit Item (Modal on the left side in Arabic) */}
+            <Sheet
+              open={showAddForm}
+              onOpenChange={(open) => {
+                setShowAddForm(open);
+                if (!open) {
+                  setEditingItemId(null);
+                  resetAddForm();
+                }
+              }}
+            >
+              <SheetContent
+                side={dir === 'rtl' ? 'left' : 'right'}
+                className='w-full sm:max-w-md overflow-y-auto flex flex-col'
+                dir={dir}
+              >
+                <SheetHeader className='text-right'>
+                  <SheetTitle className='text-lg font-bold flex items-center gap-2'>
+                    {editingItemId ? (
+                      <>
+                        <Icons.edit className='size-5 text-primary' />
+                        تعديل صنف
+                      </>
+                    ) : (
+                      <>
+                        <Icons.add className='size-5 text-primary' />
+                        إضافة صنف جديد
+                      </>
+                    )}
+                  </SheetTitle>
+                  <SheetDescription className='text-xs'>
+                    {editingItemId
+                      ? 'تعديل تفاصيل وحقول الصنف المحدد بالمخزن.'
+                      : 'أدخل بيانات الصنف الجديد لإضافته إلى قائمة أصناف المخزن.'}
+                  </SheetDescription>
+                </SheetHeader>
+
+                <Separator className='my-2' />
+
+                <form onSubmit={handleFormSubmit} className='flex-1 space-y-4 px-1 py-2 overflow-y-auto'>
+                  <div className='space-y-1.5'>
+                    <label className='text-muted-foreground text-xs font-medium'>
+                      الاسم <span className='text-destructive'>*</span>
+                    </label>
+                    <Input
+                      value={formName}
+                      onChange={(e) => setFormName(e.target.value)}
+                      placeholder='اسم الصنف'
+                      required
+                      className='h-10'
+                    />
+                  </div>
+                  <div className='space-y-1.5'>
+                    <label className='text-muted-foreground text-xs font-medium'>
+                      النوع <span className='text-destructive'>*</span>
+                    </label>
+                    <Select value={formType} onValueChange={(v) => setFormType(v as string)}>
+                      <SelectTrigger className='h-10 w-full'>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent dir={dir}>
+                        <SelectItem value='oil'>زيت</SelectItem>
+                        <SelectItem value='spare_part'>قطع غيار</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className='space-y-1.5'>
+                    <label className='text-muted-foreground text-xs font-medium'>الوحدة</label>
+                    <Input
+                      value={formUnit}
+                      onChange={(e) => setFormUnit(e.target.value)}
+                      placeholder='مثلاً: لتر، قطعة، علبة'
+                      className='h-10'
+                    />
+                  </div>
+                  <div className='space-y-1.5'>
+                    <label className='text-muted-foreground text-xs font-medium'>الباركود</label>
+                    <div className='flex items-center gap-2'>
+                      <Input
+                        value={formBarcode}
+                        onChange={(e) => setFormBarcode(e.target.value)}
+                        placeholder='أدخل أو امسح الباركود'
+                        className='h-10 flex-1 font-mono'
+                      />
                       <Button
                         type='button'
                         variant='outline'
-                        size='lg'
-                        onClick={() => {
-                          setShowAddForm(false);
-                          setEditingItemId(null);
-                          resetAddForm();
-                        }}
-                        className='h-11 px-4 font-bold'
+                        size='icon'
+                        onClick={() => setShowBarcodeScanner(true)}
+                        className='h-10 w-10 shrink-0'
+                        aria-label='مسح الباركود'
+                        title='مسح الباركود'
                       >
-                        إلغاء
+                        <Icons.qrCode className='size-[18px]' />
                       </Button>
                     </div>
-                  </form>
-                </CardContent>
-              </Card>
-            )}
+                  </div>
+                  <div className='space-y-1.5'>
+                    <label className='text-muted-foreground text-xs font-medium'>
+                      الحد الأدنى للتنبيه
+                    </label>
+                    <Input
+                      type='number'
+                      value={formMinAlert}
+                      onChange={(e) => setFormMinAlert(e.target.value)}
+                      placeholder='0'
+                      min='0'
+                      className='h-10'
+                    />
+                  </div>
+                  <div className='space-y-1.5'>
+                    <label className='text-muted-foreground text-xs font-medium'>ملاحظات</label>
+                    <Input
+                      value={formNotes}
+                      onChange={(e) => setFormNotes(e.target.value)}
+                      placeholder='ملاحظات إضافية'
+                      className='h-10'
+                    />
+                  </div>
+                  <div className='flex items-center gap-3 pt-4'>
+                    <Button
+                      type='submit'
+                      size='lg'
+                      disabled={isFormSubmitting}
+                      className='h-11 flex-1 gap-2 px-6 font-bold'
+                    >
+                      {isFormSubmitting && <Icons.spinner className='size-4 animate-spin' />}
+                      {editingItemId ? 'حفظ التعديلات' : 'إضافة'}
+                    </Button>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      size='lg'
+                      onClick={() => {
+                        setShowAddForm(false);
+                        setEditingItemId(null);
+                        resetAddForm();
+                      }}
+                      className='h-11 px-4 font-bold'
+                    >
+                      إلغاء
+                    </Button>
+                  </div>
+                </form>
+              </SheetContent>
+            </Sheet>
 
             {/* Barcode Scanner for Add/Edit Form */}
             {showBarcodeScanner && (
