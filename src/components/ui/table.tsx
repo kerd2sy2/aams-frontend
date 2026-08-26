@@ -3,10 +3,19 @@
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
+import { useLocale } from '@/components/layout/locale-provider';
 
 function Table({ className, ...props }: React.ComponentProps<'table'>) {
+  let dir: 'ltr' | 'rtl' = 'ltr';
+  try {
+    const localeCtx = useLocale();
+    dir = localeCtx?.dir || 'ltr';
+  } catch (e) {
+    // fallback if outside LocaleProvider
+  }
+
   return (
-    <div data-slot='table-container' className='relative w-full overflow-x-auto'>
+    <div data-slot='table-container' className='relative w-full overflow-x-auto' dir={dir}>
       <table
         data-slot='table'
         className={cn('w-full caption-bottom text-sm', className)}
@@ -58,7 +67,7 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
     <th
       data-slot='table-head'
       className={cn(
-        'h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0',
+        'h-10 px-2 text-left rtl:text-right align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0',
         className
       )}
       {...props}
