@@ -8,14 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter
-} from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
 import {
   Table,
   TableBody,
@@ -31,12 +24,20 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription
+} from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Icons } from '@/components/icons';
 import { toast } from 'sonner';
 import { maintenanceRequestApi, employeeApi, vehicleApi } from '@/lib/aams/services';
 import type { MaintenanceRequest, Employee, Vehicle } from '@/types/aams';
 import { formatRiyadhDate } from '@/lib/aams/riyadh-time';
+import { useLocale } from '@/components/layout/locale-provider';
 
 const PRIORITY_LABELS: Record<string, { label: string; color: string }> = {
   LOW: { label: 'منخفض', color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' },
@@ -53,6 +54,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export default function MaintenanceRequestsPage() {
+  const { dir } = useLocale();
   const [requests, setRequests] = useState<MaintenanceRequest[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -63,19 +65,16 @@ export default function MaintenanceRequestsPage() {
   const [priorityFilter, setPriorityFilter] = useState('ALL');
   const [search, setSearch] = useState('');
 
-  // Modal
-  const [modalOpen, setModalOpen] = useState(false);
+  // Sheet Modal
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [editingReq, setEditingReq] = useState<MaintenanceRequest | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form fields
+  // Form fields (Removed: estimatedCost, actualCost, workshopName)
   const [vehiclePlate, setVehiclePlate] = useState('');
   const [employeeId, setEmployeeId] = useState('');
   const [issueDescription, setIssueDescription] = useState('');
   const [priority, setPriority] = useState('MEDIUM');
-  const [estimatedCost, setEstimatedCost] = useState('');
-  const [actualCost, setActualCost] = useState('');
-  const [workshopName, setWorkshopName] = useState('');
   const [status, setStatus] = useState('OPEN');
   const [notes, setNotes] = useState('');
 
@@ -89,7 +88,7 @@ export default function MaintenanceRequestsPage() {
         limit: 200
       });
       setRequests(res.data || []);
-    } catch (err: any) {
+    } catch {
       toast.error('فشل في جلب طلبات الصيانة');
     } finally {
       setLoading(false);
@@ -111,12 +110,9 @@ export default function MaintenanceRequestsPage() {
     setEmployeeId('');
     setIssueDescription('');
     setPriority('MEDIUM');
-    setEstimatedCost('');
-    setActualCost('');
-    setWorkshopName('');
     setStatus('OPEN');
     setNotes('');
-    setModalOpen(true);
+    setSheetOpen(true);
   };
 
   const handleOpenEdit = (req: MaintenanceRequest) => {
@@ -125,12 +121,9 @@ export default function MaintenanceRequestsPage() {
     setEmployeeId(req.employee_id || '');
     setIssueDescription(req.issue_description || '');
     setPriority(req.priority || 'MEDIUM');
-    setEstimatedCost(req.estimated_cost?.toString() || '');
-    setActualCost(req.actual_cost?.toString() || '');
-    setWorkshopName(req.workshop_name || '');
     setStatus(req.status || 'OPEN');
     setNotes(req.notes || '');
-    setModalOpen(true);
+    setSheetOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -147,9 +140,6 @@ export default function MaintenanceRequestsPage() {
         employee_id: employeeId || undefined,
         issue_description: issueDescription,
         priority,
-        estimated_cost: estimatedCost ? parseFloat(estimatedCost) : 0,
-        actual_cost: actualCost ? parseFloat(actualCost) : 0,
-        workshop_name: workshopName,
         status,
         notes
       };
@@ -162,10 +152,11 @@ export default function MaintenanceRequestsPage() {
         toast.success('تم إنشاء طلب الصيانة بنجاح');
       }
 
-      setModalOpen(false);
+      setSheetOpen(false);
       fetchRequests();
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'حدث خطأ أثناء حفظ الطلب');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'حدث خطأ أثناء حفظ الطلب';
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -176,7 +167,7 @@ export default function MaintenanceRequestsPage() {
       await maintenanceRequestApi.update(id, { status: newStatus });
       toast.success(`تم تحديث حالة الصيانة إلى: ${STATUS_LABELS[newStatus]?.label || newStatus}`);
       fetchRequests();
-    } catch (err: any) {
+    } catch {
       toast.error('فشل في تحديث الحالة');
     }
   };
@@ -187,7 +178,7 @@ export default function MaintenanceRequestsPage() {
       await maintenanceRequestApi.delete(id);
       toast.success('تم حذف الطلب بنجاح');
       fetchRequests();
-    } catch (err: any) {
+    } catch {
       toast.error('فشل في حذف الطلب');
     }
   };
@@ -198,19 +189,17 @@ export default function MaintenanceRequestsPage() {
     return (
       r.vehicle_plate?.toLowerCase().includes(s) ||
       r.issue_description?.toLowerCase().includes(s) ||
-      r.workshop_name?.toLowerCase().includes(s) ||
       r.employee?.name?.toLowerCase().includes(s)
     );
   });
 
-  const totalCost = requests.reduce((acc, r) => acc + (r.actual_cost || r.estimated_cost || 0), 0);
   const openCount = requests.filter(r => r.status === 'OPEN').length;
   const inProgressCount = requests.filter(r => r.status === 'IN_PROGRESS').length;
   const resolvedCount = requests.filter(r => r.status === 'RESOLVED' || r.status === 'CLOSED').length;
 
   return (
     <PageContainer>
-      <div className="space-y-6" dir="rtl">
+      <div className="space-y-6" dir={dir}>
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -219,17 +208,17 @@ export default function MaintenanceRequestsPage() {
               طلبات صيانة الأسطول
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              متابعة أعطال الدبابات والمركبات وتكاليف الإصلاح في الورش
+              متابعة وتسجيل أعطال الدبابات والمركبات وحالات الإصلاح
             </p>
           </div>
-          <Button onClick={handleOpenAdd} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
-            <Icons.add className="h-4 w-4" />
+          <Button onClick={handleOpenAdd} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-bold h-11 px-5 shadow-sm">
+            <Icons.add className="h-5 w-5" />
             إنشاء طلب صيانة
           </Button>
         </div>
 
         {/* Stats */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-3">
           <Card className="border-blue-100 bg-blue-50/40 dark:border-blue-950/40 dark:bg-blue-950/20">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-200">طلبات جديدة ومفتوحة</CardTitle>
@@ -265,18 +254,6 @@ export default function MaintenanceRequestsPage() {
               </div>
             </CardContent>
           </Card>
-
-          <Card className="border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">إجمالي تكاليف الصيانة</CardTitle>
-              <Icons.dollarSign className="h-4 w-4 text-slate-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {totalCost.toLocaleString('ar-SA')} <span className="text-sm font-normal text-slate-500">ر.س</span>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Tabs & Filters */}
@@ -300,7 +277,7 @@ export default function MaintenanceRequestsPage() {
                 className="pr-9"
               />
             </div>
-            <Button variant="outline" onClick={fetchRequests}>
+            <Button variant="outline" onClick={fetchRequests} title="تحديث">
               <Icons.refresh className="h-4 w-4" />
             </Button>
           </div>
@@ -310,7 +287,7 @@ export default function MaintenanceRequestsPage() {
         <Card>
           <CardHeader>
             <CardTitle>سجل بلاغات وأعطال الصيانة</CardTitle>
-            <CardDescription>متابعة تفاصيل الإصلاح وقطع الغيار والتكاليف</CardDescription>
+            <CardDescription>متابعة تفاصيل البلاغات والأعطال وحالات جاهزية المركبات</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="rounded-md border overflow-x-auto">
@@ -322,9 +299,8 @@ export default function MaintenanceRequestsPage() {
                     <TableHead className="text-right">المندوب المُبلغ</TableHead>
                     <TableHead className="text-right">وصف العطل</TableHead>
                     <TableHead className="text-right">الأولوية</TableHead>
-                    <TableHead className="text-right">الورشة / الفني</TableHead>
-                    <TableHead className="text-right">التكلفة</TableHead>
                     <TableHead className="text-right">الحالة</TableHead>
+                    <TableHead className="text-right">ملاحظات</TableHead>
                     <TableHead className="text-center">إجراء سريع</TableHead>
                     <TableHead className="text-center">إجراءات</TableHead>
                   </TableRow>
@@ -332,14 +308,14 @@ export default function MaintenanceRequestsPage() {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="h-32 text-center text-slate-500">
+                      <TableCell colSpan={9} className="h-32 text-center text-slate-500">
                         <Icons.spinner className="h-6 w-6 animate-spin mx-auto mb-2 text-indigo-600" />
                         جارٍ تحميل طلبات الصيانة...
                       </TableCell>
                     </TableRow>
                   ) : filteredRequests.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="h-32 text-center text-slate-500">
+                      <TableCell colSpan={9} className="h-32 text-center text-slate-500">
                         لا توجد طلبات صيانة مطابقة
                       </TableCell>
                     </TableRow>
@@ -349,11 +325,11 @@ export default function MaintenanceRequestsPage() {
                       const st = STATUS_LABELS[r.status] || { label: r.status, color: 'bg-slate-500 text-white' };
                       return (
                         <TableRow key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
-                          <TableCell className="whitespace-nowrap">
+                          <TableCell className="whitespace-nowrap font-mono text-xs">
                             {formatRiyadhDate(r.created_at)}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="secondary" className="font-mono">
+                            <Badge variant="secondary" className="font-mono font-bold">
                               🛵 {r.vehicle_plate}
                             </Badge>
                           </TableCell>
@@ -374,14 +350,13 @@ export default function MaintenanceRequestsPage() {
                               {pri.label}
                             </span>
                           </TableCell>
-                          <TableCell>{r.workshop_name || '-'}</TableCell>
-                          <TableCell className="font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap">
-                            {r.actual_cost > 0 ? `${r.actual_cost} ر.س` : r.estimated_cost > 0 ? `~${r.estimated_cost} ر.س` : '-'}
-                          </TableCell>
                           <TableCell>
                             <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${st.color}`}>
                               {st.label}
                             </span>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-xs max-w-[150px] truncate">
+                            {r.notes || '—'}
                           </TableCell>
                           <TableCell className="text-center">
                             {r.status === 'OPEN' && (
@@ -389,7 +364,7 @@ export default function MaintenanceRequestsPage() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleStatusChange(r.id, 'IN_PROGRESS')}
-                                className="h-7 text-xs text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                                className="h-7 text-xs text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/30 font-bold"
                               >
                                 تحويل للورشة
                               </Button>
@@ -399,13 +374,13 @@ export default function MaintenanceRequestsPage() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleStatusChange(r.id, 'RESOLVED')}
-                                className="h-7 text-xs text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                                className="h-7 text-xs text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-bold"
                               >
                                 تأكيد الإصلاح
                               </Button>
                             )}
                             {(r.status === 'RESOLVED' || r.status === 'CLOSED') && (
-                              <span className="text-xs text-emerald-600 font-medium">✓ جاهز للعمل</span>
+                              <span className="text-xs text-emerald-600 font-bold">✓ جاهز للعمل</span>
                             )}
                           </TableCell>
                           <TableCell className="text-center">
@@ -415,6 +390,7 @@ export default function MaintenanceRequestsPage() {
                                 size="icon"
                                 onClick={() => handleOpenEdit(r)}
                                 className="h-8 w-8 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                                title="تعديل"
                               >
                                 <Icons.edit className="h-4 w-4" />
                               </Button>
@@ -423,6 +399,7 @@ export default function MaintenanceRequestsPage() {
                                 size="icon"
                                 onClick={() => handleDelete(r.id)}
                                 className="h-8 w-8 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                                title="حذف"
                               >
                                 <Icons.trash className="h-4 w-4" />
                               </Button>
@@ -438,87 +415,96 @@ export default function MaintenanceRequestsPage() {
           </CardContent>
         </Card>
 
-        {/* Modal */}
-        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-          <DialogContent className="sm:max-w-[500px]" dir="rtl">
-            <DialogHeader>
-              <DialogTitle>{editingReq ? 'تعديل طلب الصيانة' : 'إنشاء طلب صيانة جديد'}</DialogTitle>
-              <DialogDescription>
-                أدخل تفاصيل العطل والدباب والتكلفة التقديرية أو الفعلية
-              </DialogDescription>
-            </DialogHeader>
+        {/* Slide-over Sheet Modal (Appears from the left side in RTL) */}
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          <SheetContent
+            side={dir === 'rtl' ? 'left' : 'right'}
+            className="w-full sm:max-w-md overflow-y-auto flex flex-col p-6"
+            dir={dir}
+          >
+            <SheetHeader className="text-right pb-2">
+              <SheetTitle className="text-lg font-bold flex items-center gap-2 text-indigo-600">
+                <Icons.tool className="h-5 w-5" />
+                {editingReq ? 'تعديل طلب الصيانة' : 'إنشاء طلب صيانة جديد'}
+              </SheetTitle>
+              <SheetDescription className="text-xs">
+                أدخل تفاصيل العطل، حدد رقم اللوحة والمندوب المُبلغ ومستوى الأولوية.
+              </SheetDescription>
+            </SheetHeader>
 
-            <form onSubmit={handleSubmit} className="space-y-4 py-2">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label>رقم اللوحة / الدباب *</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="مثال: 2565"
-                      value={vehiclePlate}
-                      onChange={e => setVehiclePlate(e.target.value)}
-                      required
-                    />
-                    {vehicles.length > 0 && (
-                      <Select value={vehiclePlate} onValueChange={(val) => setVehiclePlate(val || '')}>
-                        <SelectTrigger className="w-[110px]">
-                          <SelectValue placeholder="الأسطول" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {vehicles.map(v => (
-                            <SelectItem key={v.id} value={v.plate_number}>
-                              {v.plate_number}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </div>
-                </div>
+            <Separator className="my-1" />
 
-                <div className="space-y-1.5">
-                  <Label>المندوب المُبلغ (اختياري)</Label>
-                  <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="اختر المندوب">
-                        {employeeId
-                          ? (() => {
-                              const emp = employees.find(e => e.id === employeeId);
-                              return emp ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})` : 'اختر المندوب';
-                            })()
-                          : null}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {employees.map(emp => (
-                        <SelectItem key={emp.id} value={emp.id}>
-                          {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            <form onSubmit={handleSubmit} className="flex-1 space-y-4 py-2 overflow-y-auto">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">رقم اللوحة / الدباب *</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="مثال: 2565"
+                    value={vehiclePlate}
+                    onChange={e => setVehiclePlate(e.target.value)}
+                    required
+                    className="h-10 font-mono"
+                  />
+                  {vehicles.length > 0 && (
+                    <Select value={vehiclePlate} onValueChange={(val) => setVehiclePlate(val || '')}>
+                      <SelectTrigger className="w-[120px] h-10 font-mono">
+                        <SelectValue placeholder="الأسطول" />
+                      </SelectTrigger>
+                      <SelectContent dir={dir}>
+                        {vehicles.map(v => (
+                          <SelectItem key={v.id} value={v.plate_number}>
+                            {v.plate_number}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <Label>وصف العطل / المشكلة *</Label>
+                <Label className="text-xs font-semibold">المندوب المُبلغ (اختياري)</Label>
+                <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
+                  <SelectTrigger className="w-full h-10">
+                    <SelectValue placeholder="اختر المندوب">
+                      {employeeId
+                        ? (() => {
+                            const emp = employees.find(e => e.id === employeeId);
+                            return emp ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})` : 'اختر المندوب';
+                          })()
+                        : null}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent dir={dir}>
+                    {employees.map(emp => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">وصف العطل / المشكلة *</Label>
                 <Textarea
                   placeholder="مثال: مشكلة في الفرامل الخلفية وصوت في المحرك..."
                   value={issueDescription}
                   onChange={e => setIssueDescription(e.target.value)}
                   required
-                  rows={2}
+                  rows={3}
+                  className="resize-none"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>مستوى الأولوية</Label>
-                  <Select value={priority} onValueChange={(val) => setPriority(val || '')}>
-                    <SelectTrigger>
+                  <Label className="text-xs font-semibold">مستوى الأولوية</Label>
+                  <Select value={priority} onValueChange={(val) => setPriority(val || 'MEDIUM')}>
+                    <SelectTrigger className="h-10">
                       <SelectValue placeholder="الأولوية" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent dir={dir}>
                       <SelectItem value="LOW">منخفض</SelectItem>
                       <SelectItem value="MEDIUM">متوسط</SelectItem>
                       <SelectItem value="HIGH">عالي</SelectItem>
@@ -528,12 +514,12 @@ export default function MaintenanceRequestsPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label>حالة الطلب</Label>
-                  <Select value={status} onValueChange={(val) => setStatus(val || '')}>
-                    <SelectTrigger>
+                  <Label className="text-xs font-semibold">حالة الطلب</Label>
+                  <Select value={status} onValueChange={(val) => setStatus(val || 'OPEN')}>
+                    <SelectTrigger className="h-10">
                       <SelectValue placeholder="الحالة" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent dir={dir}>
                       <SelectItem value="OPEN">مفتوح (جديد)</SelectItem>
                       <SelectItem value="IN_PROGRESS">قيد الإصلاح</SelectItem>
                       <SelectItem value="RESOLVED">تم الإصلاح</SelectItem>
@@ -543,58 +529,42 @@ export default function MaintenanceRequestsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1.5">
-                  <Label>التكلفة التقديرية</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="0"
-                    value={estimatedCost}
-                    onChange={e => setEstimatedCost(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>التكلفة الفعلية</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="0"
-                    value={actualCost}
-                    onChange={e => setActualCost(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>اسم الورشة</Label>
-                  <Input
-                    placeholder="مثال: ورشة الأمانة"
-                    value={workshopName}
-                    onChange={e => setWorkshopName(e.target.value)}
-                  />
-                </div>
-              </div>
-
               <div className="space-y-1.5">
-                <Label>ملاحظات إضافية</Label>
+                <Label className="text-xs font-semibold">ملاحظات إضافية</Label>
                 <Textarea
-                  placeholder="قطع الغيار المستبدلة أو تفاصيل الفاتورة..."
+                  placeholder="ملاحظات إضافية عن البلاغ..."
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
-                  rows={2}
+                  rows={3}
+                  className="resize-none"
                 />
               </div>
 
-              <DialogFooter className="gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
+              <div className="flex items-center gap-3 pt-4">
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  className="h-11 flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold gap-2"
+                >
+                  {submitting ? (
+                    <Icons.spinner className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Icons.save className="h-4 w-4" />
+                  )}
+                  {editingReq ? 'حفظ التعديلات' : 'إنشاء الطلب'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setSheetOpen(false)}
+                  className="h-11 px-4 font-bold"
+                >
                   إلغاء
                 </Button>
-                <Button type="submit" disabled={submitting} className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                  {submitting ? 'جارٍ الحفظ...' : editingReq ? 'حفظ التعديلات' : 'إنشاء الطلب'}
-                </Button>
-              </DialogFooter>
+              </div>
             </form>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       </div>
     </PageContainer>
   );
