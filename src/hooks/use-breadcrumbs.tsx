@@ -35,8 +35,13 @@ export function useBreadcrumbs() {
     const segments = pathname.split('/').filter(Boolean);
     return segments.map((segment, index) => {
       const path = `/${segments.slice(0, index + 1).join('/')}`;
+      const title = segment
+        .replace(/[-_]/g, ' ')
+        .split(' ')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
       return {
-        title: segment.charAt(0).toUpperCase() + segment.slice(1),
+        title,
         link: path
       };
     });
