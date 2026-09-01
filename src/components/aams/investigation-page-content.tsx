@@ -523,7 +523,7 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
   };
 
   // ============ DOCUMENT STYLE HELPER ============
-  const DocHeader = () => {
+  const DocHeader = ({ qrUrl }: { qrUrl?: string }) => {
     return (
       <>
         {/* Top Accent Line: Orange on Right (1/4) + Black on Left (3/4) */}
@@ -546,6 +546,21 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                 </span>
               </div>
             </div>
+
+            {/* Clickable QR Code aligned on opposite side */}
+            {qrUrl && (
+              <a
+                href={qrUrl}
+                target='_blank'
+                rel='noopener noreferrer'
+                className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105 group'
+                title='انقر للانتقال إلى الوثيقة'
+              >
+                <div className='p-1 bg-white rounded-lg border border-slate-200 shadow-2xs group-hover:border-primary'>
+                  <QRCodeImage value={qrUrl} size={64} />
+                </div>
+              </a>
+            )}
           </div>
         </div>
       </>
@@ -1166,7 +1181,7 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
 
                 <div className='relative z-10 flex-1 flex flex-col justify-between'>
                   <div className='flex-1 flex flex-col justify-start'>
-                    <DocHeader />
+                    <DocHeader qrUrl={getDocumentUrl(t.type, t.id)} />
 
                     {/* Document Title in the Body */}
                     <div className='text-center my-3'>
@@ -1239,13 +1254,6 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                                   {formatDate(t.created_at)}
                                 </span>
                               </div>
-                            </div>
-
-                            <div className='flex flex-col items-center justify-center shrink-0'>
-                              <QRCodeImage
-                                value={getDocumentUrl(t.type, t.id)}
-                                size={78}
-                              />
                             </div>
                           </div>
                         </div>
@@ -1465,7 +1473,7 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
         dir='rtl'
         style={{ fontFamily: 'Tajawal, Cairo, sans-serif', width: '210mm', minHeight: '297mm', margin: '0 auto' }}
       >
-        <DocHeader />
+        <DocHeader qrUrl={getDocumentUrl(t.type, t.id)} />
         <div className='text-center my-3'>
           <h1 className='text-xl sm:text-2xl font-black tracking-wide text-slate-950 inline-block border-b-2 border-[#f97316] pb-1 px-8'>
             {TEMPLATE_LABELS[t.type] || 'محضر'}
@@ -1531,14 +1539,6 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                     <span className='text-xs text-slate-500 font-medium min-w-[75px]'>تاريخ الإنشاء:</span>
                     <span className='font-mono font-bold text-slate-900'>{formatDate(t.created_at)}</span>
                   </div>
-                </div>
-
-                {/* Left: Document QR Code */}
-                <div className='flex flex-col items-center justify-center shrink-0'>
-                  <QRCodeImage
-                    value={getDocumentUrl(t.type, t.id)}
-                    size={78}
-                  />
                 </div>
               </div>
             </div>

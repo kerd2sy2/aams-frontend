@@ -244,6 +244,19 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                     </span>
                   </div>
                 </div>
+
+                {/* Clickable QR Code aligned with logo on the other side */}
+                <a
+                  href={docUrl}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105 group'
+                  title='انقر للانتقال إلى الوثيقة'
+                >
+                  <div className='p-1 bg-white rounded-lg border border-slate-200 shadow-2xs group-hover:border-primary'>
+                    <QRCodeImage value={docUrl} size={64} />
+                  </div>
+                </a>
               </div>
             </div>
 
@@ -308,10 +321,6 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                       <span className='text-xs text-slate-500 font-medium min-w-[75px]'>تاريخ الإنشاء:</span>
                       <span className='font-mono font-bold text-slate-900'>{formatDate(t.created_at)}</span>
                     </div>
-                  </div>
-
-                  <div className='flex flex-col items-center justify-center shrink-0'>
-                    <QRCodeImage value={docUrl} size={78} />
                   </div>
                 </div>
               </div>
