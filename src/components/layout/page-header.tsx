@@ -2,6 +2,8 @@
 
 import React from 'react';
 
+import { useLocale } from './locale-provider';
+
 type PageHeaderProps = {
   category?: string;
   title: string;
@@ -10,21 +12,23 @@ type PageHeaderProps = {
 };
 
 export function PageHeader({ category, title, description, actions }: PageHeaderProps) {
+  const { t } = useLocale();
+
   return (
-    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 md:gap-4">
-      <div className="space-y-0.5 md:space-y-1 min-w-0">
+    <div className='flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 md:gap-4'>
+      <div className='space-y-0.5 md:space-y-1 min-w-0'>
         {category && (
-          <p className="text-[11px] md:text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            {category}
+          <p className='text-[11px] md:text-xs font-semibold uppercase tracking-widest text-muted-foreground'>
+            {t(category)}
           </p>
         )}
-        <h1 className="text-xl md:text-3xl font-bold tracking-tight">{title}</h1>
+        <h1 className='text-xl md:text-3xl font-bold tracking-tight'>{t(title)}</h1>
         {description && (
-          <p className="text-xs md:text-sm text-muted-foreground">{description}</p>
+          <p className='text-xs md:text-sm text-muted-foreground'>{t(description)}</p>
         )}
       </div>
       {actions && (
-        <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto sm:pt-0.5">
+        <div className='flex items-center gap-2 flex-shrink-0 self-start sm:self-auto sm:pt-0.5'>
           {actions}
         </div>
       )}

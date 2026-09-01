@@ -1885,8 +1885,8 @@ export function InvestigationPageContent({
 
   return (
     <PageContainer
-      pageTitle={`سجل ${typeLabel}`}
-      pageDescription={typeLabel}
+      pageTitle={t(`سجل ${typeLabel}`)}
+      pageDescription={t(typeLabel)}
       pageHeaderAction={
         <Button
           onClick={() => {
@@ -1895,11 +1895,11 @@ export function InvestigationPageContent({
           }}
           className='gap-2 font-bold shadow-xs'
         >
-          <Icons.plus className='size-4' /> {typeLabel} جديد
+          <Icons.plus className='size-4' /> {t('Create')} {t(typeLabel)}
         </Button>
       }
     >
-      <div className='flex flex-col gap-4'>
+      <div className='flex flex-col gap-4' dir={dir}>
         {/* Smart Search Bar */}
         <div className='relative'>
           <Icons.search className='absolute right-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400' />
@@ -1919,7 +1919,9 @@ export function InvestigationPageContent({
                 }
               }
             }}
-            placeholder='ابحث باسم الموظف، رقم الهوية، رقم السند، أو امسح الباركود / الـ QR مباشرة...'
+            placeholder={t(
+              'ابحث باسم الموظف، رقم الهوية، رقم السند، أو امسح الباركود / الـ QR مباشرة...'
+            )}
             className='pr-10 pl-4 py-2 bg-white dark:bg-slate-900 border-slate-200 rounded-xl shadow-2xs text-sm'
           />
           {listSearch && (
@@ -1927,7 +1929,7 @@ export function InvestigationPageContent({
               onClick={() => setListSearch('')}
               className='absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full px-2 py-0.5'
             >
-              مسح
+              {t('Clear')}
             </button>
           )}
         </div>
@@ -1936,7 +1938,7 @@ export function InvestigationPageContent({
           <Card>
             <CardContent className='text-muted-foreground py-12 text-center'>
               <Icons.spinner className='mx-auto mb-2 size-6 animate-spin' />
-              جارٍ التحميل...
+              {t('Loading...')}
             </CardContent>
           </Card>
         ) : filteredList.length === 0 ? (
@@ -1946,12 +1948,12 @@ export function InvestigationPageContent({
                 <Icons.fileSearch className='size-10' />
               </div>
               <h3 className='text-xl font-bold'>
-                {listSearch ? 'لا توجد نتائج مطابقة للبحث' : `لا توجد ${typeLabel}`}
+                {listSearch
+                  ? t('No results')
+                  : t(`لا توجد ${typeLabel}`) || `${t('No data')} ${t(typeLabel)}`}
               </h3>
               <p className='text-muted-foreground mt-2 text-sm'>
-                {listSearch
-                  ? 'تأكد من كتابة الاسم أو رقم الهوية أو رقم السند بشكل صحيح'
-                  : `لم يتم تسجيل أي ${typeLabel} بعد`}
+                {listSearch ? t('No matching results') : `${t('No data')}`}
               </p>
             </CardContent>
           </Card>

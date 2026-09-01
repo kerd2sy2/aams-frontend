@@ -21,6 +21,7 @@ import { isNetworkError } from '@/lib/aams/network-utils';
 import { formatRiyadh } from '@/lib/aams/riyadh-time';
 import { BarcodeScannerModal } from '@/components/aams/barcode-scanner-modal';
 import { WorkSkeleton } from '@/components/aams/skeletons';
+import { useLocale } from '@/components/layout/locale-provider';
 import type { Employee, WorkSession, PaginatedResponse } from '@/types/aams';
 
 function getApiErrorMessage(err: unknown, fallback: string): string {
@@ -38,6 +39,7 @@ function getApiErrorMessage(err: unknown, fallback: string): string {
 }
 
 export default function EndWorkPage() {
+  const { t, locale, dir } = useLocale();
   const queryClient = useQueryClient();
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [activeSession, setActiveSession] = useState<WorkSession | null>(null);
@@ -97,7 +99,9 @@ export default function EndWorkPage() {
     if (emp.job_role && emp.job_role !== 'DRIVER') {
       const roleLabel =
         emp.job_role === 'SUPERVISOR' ? 'مشرف' : emp.job_role === 'MANAGEMENT' ? 'إدارة' : 'عامل';
-      toast.error(`الموظف «${emp.name}» مسجل بوظيفة (${roleLabel}). إنهاء الشفتات مخصص لمناديب التوصيل فقط.`);
+      toast.error(
+        `الموظف «${emp.name}» مسجل بوظيفة (${roleLabel}). إنهاء الشفتات مخصص لمناديب التوصيل فقط.`
+      );
       return;
     }
     try {
@@ -134,13 +138,12 @@ export default function EndWorkPage() {
       if (isNetworkError(err) && allEmployees?.data) {
         const term = searchTerm.trim().toLowerCase();
         const found = allEmployees.data.filter(
-            (emp) =>
-              (!emp.job_role || emp.job_role === 'DRIVER') && (
-                emp.name.toLowerCase().includes(term) ||
-                emp.national_id.includes(term) ||
-                (emp.key_number ?? '').includes(term)
-              )
-          );
+          (emp) =>
+            (!emp.job_role || emp.job_role === 'DRIVER') &&
+            (emp.name.toLowerCase().includes(term) ||
+              emp.national_id.includes(term) ||
+              (emp.key_number ?? '').includes(term))
+        );
         if (found.length > 0) {
           toast.warning('البحث محلي - لا يمكن التحقق من الشفت النشط بدون اتصال');
           setSelectedEmployee(found[0]);
@@ -192,8 +195,8 @@ export default function EndWorkPage() {
     });
   };
 
-  const endKmNum = parseFloat(endKm) || 0;
   const startKmNum = activeSession?.start_km || 0;
+  const endKmNum = parseFloat(endKm) || 0;
   const calculatedDistance = endKmNum > startKmNum ? endKmNum - startKmNum : 0;
 
   let durationString = '—';
@@ -211,8 +214,11 @@ export default function EndWorkPage() {
   if (searching) return <WorkSkeleton />;
 
   return (
-    <PageContainer pageTitle='إنهاء الدوام' pageDescription='توثيق عداد النهاية وإقفال الدوام'>
-      <div className='flex flex-col gap-4'>
+    <PageContainer
+      pageTitle={t('إنهاء الدوام')}
+      pageDescription={t('توثيق عداد النهاية وإقفال الدوام')}
+    >
+      <div className='flex flex-col gap-4' dir={dir}>
         {!showForm && (
           <Card>
             <CardHeader>
@@ -220,7 +226,7 @@ export default function EndWorkPage() {
                 <div className='bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg'>
                   <Icons.qrCode className='size-4' />
                 </div>
-                مسح / اختيار الموظف
+                {t('مسح / اختيار الموظف')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -229,7 +235,7 @@ export default function EndWorkPage() {
                   <Icons.search className='text-muted-foreground pointer-events-none absolute top-1/2 size-4 -translate-y-1/2 start-3' />
                   <Input
                     type='text'
-                    placeholder='ابحث بالاسم، رقم الهوية، أو امسح الباركود...'
+                    placeholder={t('ابحث بالاسم، رقم الهوية، أو امسح الباركود...')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className='h-11 ps-9 pe-24'
@@ -240,7 +246,7 @@ export default function EndWorkPage() {
                     size='sm'
                     className='absolute end-2 top-1/2 -translate-y-1/2'
                   >
-                    {searching ? <Icons.spinner className='size-3.5 animate-spin' /> : 'بحث'}
+                    {searching ? <Icons.spinner className='size-3.5 animate-spin' /> : t('Search')}
                   </Button>
                 </form>
                 <Button
@@ -250,7 +256,7 @@ export default function EndWorkPage() {
                   className='h-11 gap-2'
                 >
                   <Icons.qrCode className='size-4' />
-                  <span className='hidden sm:inline'>مسح كاميرا</span>
+                  <span className='hidden sm:inline'>{t('مسح كاميرا')}</span>
                 </Button>
               </div>
             </CardContent>
@@ -260,7 +266,7 @@ export default function EndWorkPage() {
         {showForm && (
           <form onSubmit={handleEndWork} className='flex flex-col gap-4'>
             <Card>
-              <CardContent className='flex flex-col gap-5'>
+              <CardContent className='flex flex-col gap-5 pt-6'>
                 {/* Employee Banner */}
                 <div className='flex items-start justify-between gap-3'>
                   <div className='flex min-w-0 flex-1 items-center gap-3 sm:gap-4'>
@@ -294,7 +300,7 @@ export default function EndWorkPage() {
                   </div>
                   <div className='flex shrink-0 flex-col items-end gap-2'>
                     <Badge variant='secondary' className='text-xs font-medium'>
-                      شفت قائم
+                      {t('Open')}
                     </Badge>
                     <Button
                       type='button'
@@ -302,7 +308,7 @@ export default function EndWorkPage() {
                       size='icon'
                       onClick={resetForm}
                       className='text-muted-foreground hover:text-foreground'
-                      aria-label='إلغاء'
+                      aria-label={t('Cancel')}
                     >
                       <Icons.close className='size-4' />
                     </Button>
@@ -316,7 +322,9 @@ export default function EndWorkPage() {
                   {/* Key Number */}
                   <div className='bg-muted/50 flex flex-col items-center gap-1 rounded-xl border p-3 text-center'>
                     <Icons.key className='text-muted-foreground size-4' />
-                    <span className='text-muted-foreground text-[10px] font-medium'>رقم المفتاح</span>
+                    <span className='text-muted-foreground text-[10px] font-medium'>
+                      {t('رقم المفتاح')}
+                    </span>
                     <span className='text-foreground font-mono text-base font-bold'>
                       {selectedEmployee?.key_number || '—'}
                     </span>
@@ -326,26 +334,36 @@ export default function EndWorkPage() {
                   <div className='bg-muted/50 flex flex-col items-center gap-1 rounded-xl border p-3 text-center'>
                     <Icons.clock className='text-muted-foreground size-4' />
                     <span className='text-muted-foreground text-[10px] font-medium'>مدة العمل</span>
-                    <span className='text-foreground font-mono text-sm font-bold'>{durationString}</span>
+                    <span className='text-foreground font-mono text-sm font-bold'>
+                      {durationString}
+                    </span>
                   </div>
 
                   {/* Start KM */}
                   <div className='bg-muted/50 flex flex-col items-center gap-1 rounded-xl border p-3 text-center'>
                     <Icons.gauge className='text-muted-foreground size-4' />
-                    <span className='text-muted-foreground text-[10px] font-medium'>عداد البداية</span>
+                    <span className='text-muted-foreground text-[10px] font-medium'>
+                      عداد البداية
+                    </span>
                     <span className='text-foreground font-mono text-base font-bold'>
                       {startKmNum}
-                      <span className='text-muted-foreground ms-0.5 text-[10px] font-medium'>كم</span>
+                      <span className='text-muted-foreground ms-0.5 text-[10px] font-medium'>
+                        كم
+                      </span>
                     </span>
                   </div>
 
                   {/* Start Time */}
                   <div className='bg-muted/50 flex flex-col items-center gap-1 rounded-xl border p-3 text-center'>
                     <Icons.clock className='text-muted-foreground size-4' />
-                    <span className='text-muted-foreground text-[10px] font-medium'>وقت البداية</span>
+                    <span className='text-muted-foreground text-[10px] font-medium'>
+                      وقت البداية
+                    </span>
                     <span className='text-foreground font-mono text-xs font-bold'>
                       {activeSession?.start_time
-                        ? formatRiyadh(new Date(activeSession.start_time), 'hh:mm a', { locale: ar })
+                        ? formatRiyadh(new Date(activeSession.start_time), 'hh:mm a', {
+                            locale: ar
+                          })
                         : '—'}
                     </span>
                   </div>
@@ -447,12 +465,12 @@ export default function EndWorkPage() {
                 <LoadingButton
                   type='submit'
                   loading={endMutation.isLoading}
-                  loadingLabel='جاري الإقفال...'
+                  loadingLabel={t('جاري إنهاء الشفت...')}
                   size='lg'
                   className='h-12 w-full text-base font-bold'
                 >
                   <Icons.stop className='size-5' />
-                  تأكيد وإقفال الشفت
+                  {t('تأكيد وإنهاء الشفت')}
                 </LoadingButton>
               </CardContent>
             </Card>
@@ -467,10 +485,10 @@ export default function EndWorkPage() {
               </div>
               <div className='space-y-1 text-center'>
                 <p className='text-muted-foreground text-sm font-semibold'>
-                  اختر موظفاً لديه شفت عمل مفتوح
+                  {t('اختر موظفاً لديه شفت عمل مفتوح')}
                 </p>
                 <p className='text-muted-foreground text-xs'>
-                  امسح البطاقة أو ابحث بالاسم لإقفال الشفت القائم
+                  {t('امسح البطاقة أو ابحث بالاسم لإقفال الشفت')}
                 </p>
               </div>
             </CardContent>

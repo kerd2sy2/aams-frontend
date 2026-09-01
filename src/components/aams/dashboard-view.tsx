@@ -169,13 +169,20 @@ export function DashboardView() {
             <CardHeader className='pb-4 border-b border-border/40'>
               <div className='flex items-center justify-between'>
                 <div>
-                  <CardTitle className='text-lg font-bold'>عدد الطلبات — الشهر الحالي</CardTitle>
+                  <CardTitle className='text-lg font-bold'>
+                    {t('Monthly Orders — Current Month')}
+                  </CardTitle>
                   <CardDescription className='text-xs mt-1'>
-                    إجمالي {totalOrders.toLocaleString('ar-SA')} طلباً مسجلاً من أول الشهر حتى اليوم
+                    {locale === 'ar'
+                      ? `إجمالي ${totalOrders.toLocaleString('ar-SA')} طلباً مسجلاً من أول الشهر حتى اليوم`
+                      : `Total of ${totalOrders.toLocaleString('en-US')} orders recorded this month`}
                   </CardDescription>
                 </div>
                 <Badge variant='secondary' className='font-mono font-bold text-xs'>
-                  {new Date().toLocaleString('ar-SA', { month: 'long', year: 'numeric' })}
+                  {new Date().toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', {
+                    month: 'long',
+                    year: 'numeric'
+                  })}
                 </Badge>
               </div>
             </CardHeader>
@@ -220,17 +227,17 @@ export function DashboardView() {
             <div>
               <CardTitle className='flex items-center gap-2 text-lg font-bold'>
                 <span className='bg-emerald-500 size-2.5 rounded-full animate-pulse' />
-                آخر العمليات والنشاطات
+                {t('Live Activity Stream')}
               </CardTitle>
               <CardDescription className='text-xs mt-1'>
-                سجل فوري لآخر الإجراءات المسجلة من المشرفين والإدارة
+                {t('Direct live operational updates')}
               </CardDescription>
             </div>
             <Link
               href='/dashboard/audit-logs'
               className='text-xs text-primary font-bold hover:underline'
             >
-              عرض السجل بالكامل ←
+              {t('View full log')} ←
             </Link>
           </CardHeader>
           <CardContent className='p-0'>
@@ -248,19 +255,22 @@ export function DashboardView() {
                         {act.details ? ` · ${act.details}` : ''}
                       </p>
                     </div>
-                    <Badge variant='outline' className='shrink-0 text-xs tabular-nums font-mono'>
-                      {new Intl.DateTimeFormat('en-GB', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }).format(new Date(act.created_at))}
-                    </Badge>
+                    <span className='text-muted-foreground text-xs shrink-0 font-mono'>
+                      {new Date(act.created_at).toLocaleTimeString(
+                        locale === 'ar' ? 'ar-SA' : 'en-US',
+                        {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        }
+                      )}
+                    </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className='text-muted-foreground px-4 py-8 text-center text-sm'>
-                لا توجد عمليات مسجلة حديثاً
-              </p>
+              <div className='py-8 text-center text-muted-foreground text-xs'>
+                {t('No recent operations')}
+              </div>
             )}
           </CardContent>
         </Card>

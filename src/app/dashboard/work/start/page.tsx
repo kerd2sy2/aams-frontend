@@ -15,11 +15,16 @@ import { Separator } from '@/components/ui/separator';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { employeeApi, workApi, inventoryApi, vehicleApi } from '@/lib/aams/services';
-import { useOfflineQuery, offlineAwareFetch, clearOfflineMemoryCache } from '@/hooks/use-offline-query';
+import {
+  useOfflineQuery,
+  offlineAwareFetch,
+  clearOfflineMemoryCache
+} from '@/hooks/use-offline-query';
 import { useOfflineMutation } from '@/hooks/use-offline-mutation';
 import { isNetworkError } from '@/lib/aams/network-utils';
 import { BarcodeScannerModal } from '@/components/aams/barcode-scanner-modal';
 import { WorkSkeleton } from '@/components/aams/skeletons';
+import { useLocale } from '@/components/layout/locale-provider';
 import type { Employee, OilChangeCheck, PaginatedResponse, Vehicle } from '@/types/aams';
 
 function getApiErrorMessage(err: unknown, fallback: string): string {
@@ -37,6 +42,7 @@ function getApiErrorMessage(err: unknown, fallback: string): string {
 }
 
 export default function StartWorkPage() {
+  const { t, locale, dir } = useLocale();
   const queryClient = useQueryClient();
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [startKm, setStartKm] = useState('');
@@ -179,7 +185,9 @@ export default function StartWorkPage() {
     if (emp.job_role && emp.job_role !== 'DRIVER') {
       const roleLabel =
         emp.job_role === 'SUPERVISOR' ? 'مشرف' : emp.job_role === 'MANAGEMENT' ? 'إدارة' : 'عامل';
-      toast.error(`الموظف «${emp.name}» مسجل بوظيفة (${roleLabel}). بدء الشفتات مخصص لمناديب التوصيل فقط.`);
+      toast.error(
+        `الموظف «${emp.name}» مسجل بوظيفة (${roleLabel}). بدء الشفتات مخصص لمناديب التوصيل فقط.`
+      );
       return;
     }
 
@@ -233,13 +241,12 @@ export default function StartWorkPage() {
       if (isNetworkError(err) && allEmployees?.data) {
         const term = searchTerm.trim().toLowerCase();
         const found = allEmployees.data.filter(
-            (emp) =>
-              (!emp.job_role || emp.job_role === 'DRIVER') && (
-                emp.name.toLowerCase().includes(term) ||
-                emp.national_id.includes(term) ||
-                (emp.key_number ?? '').includes(term)
-              )
-          );
+          (emp) =>
+            (!emp.job_role || emp.job_role === 'DRIVER') &&
+            (emp.name.toLowerCase().includes(term) ||
+              emp.national_id.includes(term) ||
+              (emp.key_number ?? '').includes(term))
+        );
         if (found.length > 0) {
           selectEmployee(found[0]);
           toast.success(`تم اختيار (محلياً): ${found[0].name}`);
@@ -298,8 +305,8 @@ export default function StartWorkPage() {
   if (searching) return <WorkSkeleton />;
 
   return (
-    <PageContainer pageTitle='بدء الدوام' pageDescription='اختيار المندوب وبدء دوام جديد'>
-      <div className='flex flex-col gap-4'>
+    <PageContainer pageTitle={t('بدء الدوام')} pageDescription={t('اختيار المندوب وبدء دوام جديد')}>
+      <div className='flex flex-col gap-4' dir={dir}>
         {!selectedEmployee && (
           <Card>
             <CardHeader>
@@ -307,7 +314,7 @@ export default function StartWorkPage() {
                 <div className='bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg'>
                   <Icons.qrCode className='size-4' />
                 </div>
-                مسح / اختيار المندوب
+                {t('مسح / اختيار المندوب')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -316,7 +323,7 @@ export default function StartWorkPage() {
                   <Icons.search className='text-muted-foreground pointer-events-none absolute top-1/2 size-4 -translate-y-1/2 start-3' />
                   <Input
                     type='text'
-                    placeholder='ابحث بالاسم، رقم الهوية، أو امسح الباركود...'
+                    placeholder={t('ابحث بالاسم، رقم الهوية، أو امسح الباركود...')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className='h-11 ps-9 pe-24'
@@ -328,7 +335,7 @@ export default function StartWorkPage() {
                     size='sm'
                     className='absolute end-2 top-1/2 -translate-y-1/2'
                   >
-                    {searching ? <Icons.spinner className='size-3.5 animate-spin' /> : 'بحث'}
+                    {searching ? <Icons.spinner className='size-3.5 animate-spin' /> : t('Search')}
                   </Button>
                 </form>
                 <Button
@@ -338,7 +345,7 @@ export default function StartWorkPage() {
                   className='h-11 gap-2'
                 >
                   <Icons.qrCode className='size-4' />
-                  <span className='hidden sm:inline'>مسح كاميرا</span>
+                  <span className='hidden sm:inline'>{t('مسح كاميرا')}</span>
                 </Button>
               </div>
             </CardContent>
@@ -349,12 +356,15 @@ export default function StartWorkPage() {
           <form onSubmit={handleStartWork} className='flex flex-col gap-4'>
             <Card>
               <CardContent className='flex flex-col gap-5'>
-                {/* Employee Banner */}
                 <div className='flex items-start justify-between gap-3'>
                   <div className='flex min-w-0 flex-1 items-center gap-3 sm:gap-4'>
                     <Avatar className='size-12 shrink-0 rounded-xl border sm:size-14'>
                       {empImageSrc ? (
-                        <AvatarImage src={empImageSrc} alt={selectedEmployee.name} className='rounded-xl' />
+                        <AvatarImage
+                          src={empImageSrc}
+                          alt={selectedEmployee.name}
+                          className='rounded-xl'
+                        />
                       ) : null}
                       <AvatarFallback className='rounded-xl'>
                         <Icons.user className='text-muted-foreground size-6' />
@@ -374,7 +384,7 @@ export default function StartWorkPage() {
                   </div>
                   <div className='flex shrink-0 flex-col items-end gap-2'>
                     <Badge variant='secondary' className='text-xs font-medium'>
-                      بدء شفت جديد
+                      {t('بدء شفت جديد')}
                     </Badge>
                     <Button
                       type='button'
@@ -382,7 +392,7 @@ export default function StartWorkPage() {
                       size='icon'
                       onClick={resetForm}
                       className='text-muted-foreground hover:text-foreground'
-                      aria-label='إلغاء'
+                      aria-label={t('Cancel')}
                     >
                       <Icons.close className='size-4' />
                     </Button>
@@ -391,49 +401,54 @@ export default function StartWorkPage() {
 
                 <Separator />
 
-                {/* Info Cards */}
                 <div className='grid grid-cols-2 gap-3 lg:grid-cols-5'>
-                  {/* Key Number */}
                   <div className='bg-muted/50 flex flex-col items-center gap-1 rounded-xl border p-3 text-center'>
                     <Icons.key className='text-muted-foreground size-4' />
-                    <span className='text-muted-foreground text-[10px] font-medium'>رقم المفتاح</span>
+                    <span className='text-muted-foreground text-[10px] font-medium'>
+                      {t('رقم المفتاح')}
+                    </span>
                     <span className='text-foreground font-mono text-base font-bold'>
                       {selectedEmployee.key_number || '—'}
                     </span>
                   </div>
 
-                  {/* Motorcycle Number */}
                   <div className='bg-muted/50 flex flex-col gap-1.5 rounded-xl border p-3'>
                     <div className='flex items-center justify-between'>
                       <div className='flex items-center gap-1.5'>
                         <Icons.bike className='text-muted-foreground size-3.5 shrink-0' />
-                        <span className='text-muted-foreground text-[10px] font-medium'>رقم الدباب</span>
+                        <span className='text-muted-foreground text-[10px] font-medium'>
+                          {t('رقم الدباب')}
+                        </span>
                       </div>
                       {lastEndKm !== null && lastEndKm > 0 && (
                         <span className='text-primary text-[10px] font-mono font-bold'>
-                          {lastEndKm.toLocaleString('en-US')} كم
+                          {lastEndKm.toLocaleString('en-US')} {t('KM')}
                         </span>
                       )}
                     </div>
                     <div className='flex gap-1.5 items-center'>
                       <Input
-                        placeholder='رقم الدباب...'
+                        placeholder={t('رقم الدباب')}
                         value={motorcycleNumber}
                         onChange={(e) => handleMotorcycleChange(e.target.value)}
                         className='h-8 flex-1 rounded-lg font-mono text-xs'
                       />
                       {allVehicles?.data && allVehicles.data.length > 0 && (
                         <NativeSelect
-                          value={allVehicles.data.some((v) => v.plate_number === motorcycleNumber) ? motorcycleNumber : ''}
+                          value={
+                            allVehicles.data.some((v) => v.plate_number === motorcycleNumber)
+                              ? motorcycleNumber
+                              : ''
+                          }
                           onChange={(e) => {
                             if (e.target.value) handleMotorcycleChange(e.target.value);
                           }}
                           className='h-8 w-24 shrink-0 text-[11px]'
                         >
-                          <option value=''>اختر...</option>
+                          <option value=''>{t('Select Branch')}</option>
                           {allVehicles.data.map((v) => (
                             <option key={v.id} value={v.plate_number}>
-                              {v.plate_number} ({v.current_km} كم)
+                              {v.plate_number} ({v.current_km} {t('KM')})
                             </option>
                           ))}
                         </NativeSelect>
@@ -441,11 +456,10 @@ export default function StartWorkPage() {
                     </div>
                   </div>
 
-                  {/* Oil Check */}
                   {checkingOil ? (
                     <div className='bg-muted/50 flex flex-col items-center gap-1 rounded-xl border p-3 text-center'>
                       <Icons.spinner className='text-muted-foreground size-4 animate-spin' />
-                      <span className='text-muted-foreground text-[10px]'>جاري الفحص...</span>
+                      <span className='text-muted-foreground text-[10px]'>{t('Loading...')}</span>
                     </div>
                   ) : oilCheck ? (
                     <div
@@ -463,7 +477,9 @@ export default function StartWorkPage() {
                       ) : (
                         <Icons.circleCheck className='text-muted-foreground size-4' />
                       )}
-                      <span className='text-muted-foreground text-[10px] font-medium'>حالة الزيت</span>
+                      <span className='text-muted-foreground text-[10px] font-medium'>
+                        حالة الزيت
+                      </span>
                       <span className='text-xs font-semibold'>
                         {oilCheck.needs_oil_change
                           ? 'يحتاج تغيير'
@@ -503,7 +519,9 @@ export default function StartWorkPage() {
                   <div className='bg-muted/50 flex flex-col gap-1.5 rounded-xl border p-3'>
                     <div className='flex items-center gap-1.5'>
                       <Icons.smartphone className='text-muted-foreground size-3.5 shrink-0' />
-                      <span className='text-muted-foreground text-[10px] font-medium'>تطبيق التوصيل</span>
+                      <span className='text-muted-foreground text-[10px] font-medium'>
+                        تطبيق التوصيل
+                      </span>
                     </div>
                     <NativeSelect
                       value={isCustomAppId ? '__custom__' : applicationId}
@@ -541,7 +559,9 @@ export default function StartWorkPage() {
                   <div className='bg-muted/50 flex flex-col gap-1.5 rounded-xl border p-3'>
                     <div className='flex items-center gap-1.5'>
                       <Icons.gauge className='text-muted-foreground size-3.5 shrink-0' />
-                      <span className='text-muted-foreground text-[10px] font-medium'>نوع التطبيق</span>
+                      <span className='text-muted-foreground text-[10px] font-medium'>
+                        نوع التطبيق
+                      </span>
                     </div>
                     <NativeSelect
                       value={applicationType}
@@ -622,13 +642,13 @@ export default function StartWorkPage() {
                 <LoadingButton
                   type='submit'
                   loading={startMutation.isLoading}
-                  loadingLabel='جاري بدء الشفت...'
+                  loadingLabel={t('جاري بدء الشفت...')}
                   disabled={!!oilCheck?.needs_oil_change}
                   size='lg'
                   className='h-12 w-full text-base font-bold'
                 >
                   <Icons.play className='size-5' />
-                  تأكيد وبدء الشفت
+                  {t('تأكيد وبدء الشفت')}
                 </LoadingButton>
               </CardContent>
             </Card>
@@ -643,10 +663,10 @@ export default function StartWorkPage() {
               </div>
               <div className='space-y-1 text-center'>
                 <p className='text-muted-foreground text-sm font-semibold'>
-                  اختر مندوباً لبدء شفت جديد
+                  {t('اختر مندوباً لبدء شفت جديد')}
                 </p>
                 <p className='text-muted-foreground text-xs'>
-                  امسح البطاقة أو ابحث بالاسم لبدء شفت عمل جديد
+                  {t('امسح البطاقة أو ابحث بالاسم لبدء شفت عمل جديد')}
                 </p>
               </div>
             </CardContent>

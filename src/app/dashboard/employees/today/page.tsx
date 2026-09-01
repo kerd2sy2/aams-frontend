@@ -16,19 +16,15 @@ import {
   TableBody,
   TableRow,
   TableHead,
-  TableCell,
+  TableCell
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/layout/page-header';
 import PageContainer from '@/components/layout/page-container';
 import { formatRiyadh } from '@/lib/aams/riyadh-time';
-import {
-  Eye,
-  Bike,
-  FileText,
-  ArrowLeft,
-  Users,
-} from 'lucide-react';
+import { Eye, Bike, FileText, ArrowLeft, Users } from 'lucide-react';
+
+import { useLocale } from '@/components/layout/locale-provider';
 
 function getTodayStr() {
   return formatRiyadh(new Date(), 'yyyy-MM-dd');
@@ -36,6 +32,7 @@ function getTodayStr() {
 
 export default function TodayEmployeesPage() {
   const router = useRouter();
+  const { t, locale, dir } = useLocale();
   const today = getTodayStr();
 
   const { data, isLoading } = useOfflineQuery({
@@ -43,7 +40,7 @@ export default function TodayEmployeesPage() {
     queryFn: () => reportApi.getReports({ start_date: today, end_date: today, limit: 200 }),
     staleTime: 1000 * 60,
     refetchOnMount: true,
-    cacheKey: 'employees_today',
+    cacheKey: 'employees_today'
   });
 
   const todayEmployees = useMemo(() => {
@@ -61,21 +58,21 @@ export default function TodayEmployeesPage() {
 
   return (
     <PageContainer>
-      <div className="space-y-6" dir="rtl">
+      <div className='space-y-6' dir={dir}>
         <PageHeader
-          category="المناديب"
-          title="مناديب اليوم"
-          description="المناديب الذين بدأوا شفت عمل اليوم"
+          category={t('Employees')}
+          title={t("Today's Shifts")}
+          description={t('المناديب الذين بدأوا شفت عمل اليوم')}
         />
 
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <Users className="size-6" />
+        <Card className='border-primary/20 bg-primary/5'>
+          <CardContent className='flex items-center gap-4 p-4'>
+            <div className='flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary'>
+              <Users className='size-6' />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">إجمالي مناديب اليوم</p>
-              <p className="text-2xl font-bold tabular-nums">
+              <p className='text-sm text-muted-foreground'>{t('إجمالي مناديب اليوم')}</p>
+              <p className='text-2xl font-bold tabular-nums'>
                 {isLoading ? '...' : todayEmployees.length}
               </p>
             </div>
@@ -85,64 +82,67 @@ export default function TodayEmployeesPage() {
         {isLoading ? (
           <TableSkeleton rows={6} />
         ) : !todayEmployees.length ? (
-          <Card className="p-10 md:p-14 text-center">
-            <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-              <FileText className="size-8" />
+          <Card className='p-10 md:p-14 text-center'>
+            <div className='mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-muted text-muted-foreground'>
+              <FileText className='size-8' />
             </div>
-            <CardTitle className="text-lg">لا يوجد شفتات مسجلة اليوم</CardTitle>
-            <CardDescription className="mt-1.5 max-w-xs mx-auto">
-              لم يتم تسجيل أي شفت عمل حتى الآن اليوم.
+            <CardTitle className='text-lg'>{t('لا يوجد شفتات مسجلة اليوم')}</CardTitle>
+            <CardDescription className='mt-1.5 max-w-xs mx-auto'>
+              {t('لم يتم تسجيل أي شفت عمل حتى الآن اليوم.')}
             </CardDescription>
             <Link
-              href="/dashboard/work/start"
-              className={cn(buttonVariants({ variant: 'default', size: 'lg' }), 'mt-6 h-11 font-bold gap-2')}
+              href='/dashboard/work/start'
+              className={cn(
+                buttonVariants({ variant: 'default', size: 'lg' }),
+                'mt-6 h-11 font-bold gap-2'
+              )}
             >
-              بدء أول شفت
+              {t('بدء شفت جديد')}
             </Link>
           </Card>
         ) : (
-          <Card className="overflow-hidden">
+          <Card className='overflow-hidden'>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-right">المندوب</TableHead>
-                  <TableHead className="text-center">الحالة</TableHead>
-                  <TableHead className="text-center">وقت البدء</TableHead>
-                  <TableHead className="text-center">الطلبات</TableHead>
-                  <TableHead className="text-center">المسافة (كم)</TableHead>
-                  <TableHead className="text-center">الإجراءات</TableHead>
+                  <TableHead className='text-start'>{t('Employee')}</TableHead>
+                  <TableHead className='text-center'>{t('Status')}</TableHead>
+                  <TableHead className='text-center'>{t('Start Date')}</TableHead>
+                  <TableHead className='text-center'>{t('Orders')}</TableHead>
+                  <TableHead className='text-center'>
+                    {t('Distance')} ({t('KM')})
+                  </TableHead>
+                  <TableHead className='text-center'>{t('Actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {todayEmployees.map((s) => (
                   <TableRow key={s.id}>
-                    <TableCell className="font-bold">
-                      {s.employee_name || '-'}
-                    </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className='font-bold'>{s.employee_name || '-'}</TableCell>
+                    <TableCell className='text-center'>
                       <Badge
                         variant={s.status === 'ACTIVE' ? 'default' : 'secondary'}
-                        className="font-bold"
+                        className='font-bold'
                       >
-                        {s.status === 'ACTIVE' ? 'يعمل الآن' : 'مكتمل'}
+                        {s.status === 'ACTIVE' ? t('Working Now') : t('Completed')}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-center font-mono tabular-nums text-muted-foreground">
+                    <TableCell className='text-center font-mono tabular-nums text-muted-foreground'>
                       {s.start_time ? formatRiyadh(s.start_time, 'hh:mm a') : '-'}
                     </TableCell>
-                    <TableCell className="text-center font-mono tabular-nums font-bold">
+                    <TableCell className='text-center font-mono tabular-nums font-bold'>
                       {s.orders_count || 0}
                     </TableCell>
-                    <TableCell className="text-center font-mono tabular-nums font-bold">
+                    <TableCell className='text-center font-mono tabular-nums font-bold'>
                       {s.distance ? s.distance.toFixed(1) : '0'}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className='text-center'>
                       <Link
                         href={`/dashboard/employees/${s.employee_id}`}
                         className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'gap-1.5')}
                       >
-                        <Eye className="size-4" />
-                        تفاصيل
+                        <Eye className='size-4' />
+                        {t('Details')}
                       </Link>
                     </TableCell>
                   </TableRow>

@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Trophy, Crown, ArrowUpRight, User, Package } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useLocale } from '@/components/layout/locale-provider';
 
 type TimeRange = 'today' | 'week' | 'month' | 'all';
 
@@ -25,6 +26,7 @@ interface TopEmployee {
 }
 
 export function TopEmployeesCard({ className }: { className?: string } = {}) {
+  const { t, locale, dir } = useLocale();
   const [range, setRange] = useState<TimeRange>('month');
 
   // Compute date filter parameters
@@ -73,10 +75,10 @@ export function TopEmployeesCard({ className }: { className?: string } = {}) {
       const id = rep.employee_id;
       if (!id) return;
 
-      const name = rep.employee_name || 'مندوب';
+      const name = rep.employee_name || (locale === 'ar' ? 'مندوب' : 'Delegate');
       const image = rep.personal_image;
       const orders = Number(rep.orders_count) || 0;
-      const distance = Number(rep.distance) || (Number(rep.end_km) - Number(rep.start_km)) || 0;
+      const distance = Number(rep.distance) || Number(rep.end_km) - Number(rep.start_km) || 0;
       const appId = rep.application_id;
 
       if (!map.has(id)) {
@@ -101,7 +103,7 @@ export function TopEmployeesCard({ className }: { className?: string } = {}) {
       .filter((e) => e.total_orders > 0)
       .sort((a, b) => b.total_orders - a.total_orders)
       .slice(0, 5);
-  }, [data?.data]);
+  }, [data?.data, locale]);
 
   const maxOrders = topEmployees.length > 0 ? topEmployees[0].total_orders : 1;
 
@@ -109,25 +111,25 @@ export function TopEmployeesCard({ className }: { className?: string } = {}) {
     switch (rank) {
       case 1:
         return (
-          <div className="size-6 rounded-lg bg-gradient-to-tr from-amber-500 to-yellow-300 text-slate-950 font-black flex items-center justify-center shadow-xs text-xs shrink-0">
-            <Crown className="size-3.5" />
+          <div className='size-6 rounded-lg bg-gradient-to-tr from-amber-500 to-yellow-300 text-slate-950 font-black flex items-center justify-center shadow-xs text-xs shrink-0'>
+            <Crown className='size-3.5' />
           </div>
         );
       case 2:
         return (
-          <div className="size-6 rounded-lg bg-gradient-to-tr from-slate-400 to-slate-200 text-slate-900 font-black flex items-center justify-center shadow-2xs text-[11px] shrink-0">
+          <div className='size-6 rounded-lg bg-gradient-to-tr from-slate-400 to-slate-200 text-slate-900 font-black flex items-center justify-center shadow-2xs text-[11px] shrink-0'>
             2
           </div>
         );
       case 3:
         return (
-          <div className="size-6 rounded-lg bg-gradient-to-tr from-amber-700 to-amber-600 text-white font-black flex items-center justify-center shadow-2xs text-[11px] shrink-0">
+          <div className='size-6 rounded-lg bg-gradient-to-tr from-amber-700 to-amber-600 text-white font-black flex items-center justify-center shadow-2xs text-[11px] shrink-0'>
             3
           </div>
         );
       default:
         return (
-          <div className="size-6 rounded-lg bg-muted text-muted-foreground font-bold flex items-center justify-center text-[11px] shrink-0 border border-border">
+          <div className='size-6 rounded-lg bg-muted text-muted-foreground font-bold flex items-center justify-center text-[11px] shrink-0 border border-border'>
             {rank}
           </div>
         );
@@ -135,23 +137,29 @@ export function TopEmployeesCard({ className }: { className?: string } = {}) {
   };
 
   return (
-    <Card className={cn("overflow-hidden border-border/80 shadow-xs h-full flex flex-col justify-between", className)} dir="rtl">
-      <CardHeader className="p-3.5 pb-2.5 border-b border-border/40 space-y-0">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="size-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-              <Trophy className="size-3.5" />
+    <Card
+      className={cn(
+        'overflow-hidden border-border/80 shadow-xs h-full flex flex-col justify-between',
+        className
+      )}
+      dir={dir}
+    >
+      <CardHeader className='p-3.5 pb-2.5 border-b border-border/40 space-y-0'>
+        <div className='flex items-center justify-between gap-2'>
+          <div className='flex items-center gap-2 min-w-0'>
+            <div className='size-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0'>
+              <Trophy className='size-3.5' />
             </div>
-            <div className="min-w-0">
-              <CardTitle className="text-sm font-bold truncate">أكثر 5 مناديب إنجازاً</CardTitle>
-              <CardDescription className="text-[11px] text-muted-foreground truncate">
-                الأعلى إنتاجية في توصيل الطلبات
+            <div className='min-w-0'>
+              <CardTitle className='text-sm font-bold truncate'>{t('Top 5 Performers')}</CardTitle>
+              <CardDescription className='text-[11px] text-muted-foreground truncate'>
+                {t('Highest delivery productivity')}
               </CardDescription>
             </div>
           </div>
 
           {/* Time Range Filter Buttons */}
-          <div className="flex items-center gap-0.5 bg-muted/80 p-0.5 rounded-lg shrink-0 border border-border/50">
+          <div className='flex items-center gap-0.5 bg-muted/80 p-0.5 rounded-lg shrink-0 border border-border/50'>
             <button
               onClick={() => setRange('today')}
               className={cn(
@@ -161,7 +169,7 @@ export function TopEmployeesCard({ className }: { className?: string } = {}) {
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              اليوم
+              {t('Today')}
             </button>
             <button
               onClick={() => setRange('week')}
@@ -172,7 +180,7 @@ export function TopEmployeesCard({ className }: { className?: string } = {}) {
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              الأسبوع
+              {t('This Week')}
             </button>
             <button
               onClick={() => setRange('month')}
@@ -183,7 +191,7 @@ export function TopEmployeesCard({ className }: { className?: string } = {}) {
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              الشهر
+              {t('This Month')}
             </button>
             <button
               onClick={() => setRange('all')}
@@ -194,42 +202,45 @@ export function TopEmployeesCard({ className }: { className?: string } = {}) {
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              الكل
+              {t('All Time')}
             </button>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="p-3 space-y-1.5 flex-1 flex flex-col justify-center">
+      <CardContent className='p-3 space-y-1.5 flex-1 flex flex-col justify-center'>
         {isLoading ? (
-          <div className="space-y-1.5 py-1 my-auto">
+          <div className='space-y-1.5 py-1 my-auto'>
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-2 p-1.5 px-2 rounded-xl bg-muted/40">
-                <Skeleton className="size-6 rounded-lg" />
-                <Skeleton className="size-7.5 rounded-full" />
-                <div className="flex-1 space-y-1.5">
-                  <Skeleton className="h-3 w-24" />
-                  <Skeleton className="h-1.5 w-full rounded-full" />
+              <div key={i} className='flex items-center gap-2 p-1.5 px-2 rounded-xl bg-muted/40'>
+                <Skeleton className='size-6 rounded-lg' />
+                <Skeleton className='size-7.5 rounded-full' />
+                <div className='flex-1 space-y-1.5'>
+                  <Skeleton className='h-3 w-24' />
+                  <Skeleton className='h-1.5 w-full rounded-full' />
                 </div>
-                <Skeleton className="h-4 w-12 rounded-md" />
+                <Skeleton className='h-4 w-12 rounded-md' />
               </div>
             ))}
           </div>
         ) : !topEmployees.length ? (
-          <div className="py-6 my-auto text-center space-y-2">
-            <div className="size-10 rounded-xl bg-muted mx-auto flex items-center justify-center text-muted-foreground">
-              <Package className="size-5" />
+          <div className='py-6 my-auto text-center space-y-2'>
+            <div className='size-10 rounded-xl bg-muted mx-auto flex items-center justify-center text-muted-foreground'>
+              <Package className='size-5' />
             </div>
-            <p className="text-xs font-semibold text-foreground">لا توجد طلبات مسجلة في هذه الفترة</p>
-            <p className="text-[11px] text-muted-foreground max-w-xs mx-auto">
-              عند إتمام شفتات العمل وتسجيل الطلبات ستظهر لوحة الشرف هنا
+            <p className='text-xs font-semibold text-foreground'>
+              {t('No orders recorded for this period')}
+            </p>
+            <p className='text-[11px] text-muted-foreground max-w-xs mx-auto'>
+              {t('Honor board will appear here once shifts are completed')}
             </p>
           </div>
         ) : (
-          <div className="space-y-1.5">
+          <div className='space-y-1.5'>
             {topEmployees.map((emp, index) => {
               const rank = index + 1;
-              const percentage = maxOrders > 0 ? Math.round((emp.total_orders / maxOrders) * 100) : 0;
+              const percentage =
+                maxOrders > 0 ? Math.round((emp.total_orders / maxOrders) * 100) : 0;
               const isFirst = rank === 1;
 
               return (
@@ -242,53 +253,65 @@ export function TopEmployeesCard({ className }: { className?: string } = {}) {
                       : 'bg-card hover:bg-muted/40 border-border/70'
                   )}
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className='flex items-center gap-2.5'>
                     {/* Rank number badge */}
                     {getRankBadge(rank)}
 
                     {/* Employee Avatar */}
-                    <Avatar className="size-7.5 border border-border shrink-0">
-                      <AvatarImage src={emp.personal_image || ''} alt={emp.employee_name} className="object-cover" />
-                      <AvatarFallback className="bg-muted text-muted-foreground font-bold text-[10px]">
-                        {emp.employee_name ? emp.employee_name.slice(0, 1) : <User className="size-3" />}
+                    <Avatar className='size-7.5 border border-border shrink-0'>
+                      <AvatarImage
+                        src={emp.personal_image || ''}
+                        alt={emp.employee_name}
+                        className='object-cover'
+                      />
+                      <AvatarFallback className='bg-muted text-muted-foreground font-bold text-[10px]'>
+                        {emp.employee_name ? (
+                          emp.employee_name.slice(0, 1)
+                        ) : (
+                          <User className='size-3' />
+                        )}
                       </AvatarFallback>
                     </Avatar>
 
                     {/* Name & Details */}
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex items-center justify-between gap-1.5">
+                    <div className='min-w-0 flex-1 space-y-1'>
+                      <div className='flex items-center justify-between gap-1.5'>
                         <Link
                           href={`/dashboard/employees/${emp.employee_id}`}
-                          className="font-bold text-xs text-foreground hover:text-primary transition-colors truncate flex items-center gap-1"
+                          className='font-bold text-xs text-foreground hover:text-primary transition-colors truncate flex items-center gap-1'
                         >
-                          <span className="truncate">{emp.employee_name}</span>
-                          <ArrowUpRight className="size-3 opacity-0 group-hover:opacity-100 transition-opacity text-primary shrink-0" />
+                          <span className='truncate'>{emp.employee_name}</span>
+                          <ArrowUpRight className='size-3 opacity-0 group-hover:opacity-100 transition-opacity text-primary shrink-0' />
                         </Link>
 
                         {/* Orders count badge */}
-                        <div className="flex items-center gap-1 shrink-0">
-                          <span className={cn(
-                            'font-black text-xs font-mono tabular-nums',
-                            isFirst ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'
-                          )}>
+                        <div className='flex items-center gap-1 shrink-0'>
+                          <span
+                            className={cn(
+                              'font-black text-xs font-mono tabular-nums',
+                              isFirst ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'
+                            )}
+                          >
                             {emp.total_orders.toLocaleString('ar-SA')}
                           </span>
-                          <span className="text-[10px] font-semibold text-muted-foreground">طلب</span>
+                          <span className='text-[10px] font-semibold text-muted-foreground'>
+                            طلب
+                          </span>
                         </div>
                       </div>
 
                       {/* Progress Bar */}
-                      <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                      <div className='h-1.5 w-full bg-muted rounded-full overflow-hidden'>
                         <div
                           className={cn(
                             'h-full rounded-full transition-all duration-500',
                             isFirst
                               ? 'bg-gradient-to-l from-amber-500 to-yellow-400'
                               : rank === 2
-                              ? 'bg-slate-400'
-                              : rank === 3
-                              ? 'bg-amber-700'
-                              : 'bg-primary/70'
+                                ? 'bg-slate-400'
+                                : rank === 3
+                                  ? 'bg-amber-700'
+                                  : 'bg-primary/70'
                           )}
                           style={{ width: `${percentage}%` }}
                         />
