@@ -23,6 +23,7 @@ const ar: Record<string, string> = {
   'Work Sessions': 'جلسات العمل والورديات',
   'Start Work': 'بدء الدوام',
   'End Work': 'إنهاء الدوام',
+  'Odometer Audits': 'مراجعة وتدقيق العدادات',
   Start: 'بدء',
   End: 'إنهاء',
   Custody: 'العهدة',

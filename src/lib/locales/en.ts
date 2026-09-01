@@ -17,6 +17,7 @@ const en: Record<string, string> = {
   'Work Sessions': 'Work Sessions',
   'Start Work': 'Start Work',
   'End Work': 'End Work',
+  'Odometer Audits': 'Odometer Audits',
   Custody: 'Custody',
   'Custody Logs': 'Custody Logs',
   'Custody Balance': 'Custody Balance',

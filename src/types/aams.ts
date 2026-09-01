@@ -43,7 +43,6 @@ export interface Admin {
   branch?: { id: string; name: string } | null;
 }
 
-
 export interface Employee {
   id: string;
   name: string;
@@ -77,13 +76,18 @@ export interface WorkSession {
   start_time: string;
   end_time?: string;
   start_km: number;
+  start_km_image?: string;
   end_km: number;
+  end_km_image?: string;
   distance: number;
   orders_count: number;
   fuel_cost: number;
   application_id: string;
   application_type?: string;
   motorcycle_number?: string;
+  is_reviewed?: boolean;
+  review_notes?: string;
+  reviewed_by?: string;
   notes: string;
   status: 'ACTIVE' | 'COMPLETED';
   created_at: string;
@@ -150,6 +154,7 @@ export interface WorkSessionDetail {
   id: string;
   employee_id: string;
   employee_name: string;
+  employee?: Employee;
   personal_image?: string;
   national_id: string;
   branch_name?: string;
@@ -157,14 +162,21 @@ export interface WorkSessionDetail {
   end_time?: string;
   working_duration: string;
   start_km: number;
+  start_km_image?: string;
   end_km: number;
+  end_km_image?: string;
   distance: number;
   orders_count: number;
   fuel_cost: number;
   application_id: string;
   application_type?: string;
+  motorcycle_number?: string;
+  is_reviewed?: boolean;
+  review_notes?: string;
   notes: string;
   status: 'ACTIVE' | 'COMPLETED';
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface DailyReportEmployee {
@@ -459,7 +471,15 @@ export interface EmployeeDocument {
   id: string;
   employee_id: string;
   employee?: Employee | null;
-  doc_type: 'PROMISSORY_NOTE' | 'CONTRACT' | 'DRIVING_LICENSE' | 'VEHICLE_REGISTRATION' | 'CRIMINAL_RECORD' | 'MEDICAL_INSURANCE' | 'OTHER' | string;
+  doc_type:
+    | 'PROMISSORY_NOTE'
+    | 'CONTRACT'
+    | 'DRIVING_LICENSE'
+    | 'VEHICLE_REGISTRATION'
+    | 'CRIMINAL_RECORD'
+    | 'MEDICAL_INSURANCE'
+    | 'OTHER'
+    | string;
   title: string;
   doc_number?: string;
   file_url?: string;

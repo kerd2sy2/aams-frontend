@@ -38,7 +38,6 @@ import type {
   ArchiveType
 } from '@/types/aams';
 
-
 // Auth API
 export const authApi = {
   login: async (login: string, password: string) => {
@@ -216,7 +215,9 @@ export const workApi = {
     data: {
       employee_id?: string;
       start_km?: number;
+      start_km_image?: string;
       end_km: number;
+      end_km_image?: string;
       orders_count: number;
       fuel_cost: number;
       start_time?: string;
@@ -224,6 +225,20 @@ export const workApi = {
     }
   ) => {
     const res = await apiClient.put<WorkSession>(`/work/${sessionId}`, data);
+    return res.data;
+  },
+  reviewWorkSession: async (
+    sessionId: string,
+    data: {
+      is_reviewed: boolean;
+      review_notes?: string;
+    }
+  ) => {
+    const res = await apiClient.put<WorkSession>(`/work/${sessionId}/review`, data);
+    return res.data;
+  },
+  getSessionById: async (sessionId: string) => {
+    const res = await apiClient.get<WorkSession>(`/work/sessions/${sessionId}`);
     return res.data;
   },
   checkOilChange: async (employee_id: string) => {
@@ -378,7 +393,6 @@ export const roleApi = {
     return res.data;
   }
 };
-
 
 // Inventory API
 export const inventoryApi = {
@@ -633,11 +647,7 @@ export const custodyApi = {
     const res = await apiClient.post<CustodyDay>('/custody', data);
     return res.data;
   },
-  addAmount: async (data: {
-    custody_day_id: string;
-    added_amount: number;
-    branch_id?: string;
-  }) => {
+  addAmount: async (data: { custody_day_id: string; added_amount: number; branch_id?: string }) => {
     const res = await apiClient.post<CustodyDay>('/custody/add-amount', data);
     return res.data;
   },
@@ -712,9 +722,12 @@ export const vehicleApi = {
     return res.data;
   },
   checkKm: async (plate: string) => {
-    const res = await apiClient.get<{ plate_number: string; current_km: number }>('/vehicles/check-km', {
-      params: { plate }
-    });
+    const res = await apiClient.get<{ plate_number: string; current_km: number }>(
+      '/vehicles/check-km',
+      {
+        params: { plate }
+      }
+    );
     return res.data;
   },
   recordOilChange: async (id: string) => {
@@ -972,8 +985,6 @@ export const ticketApi = {
   }
 };
 
-
-
 export interface NotificationResponse {
   id: string;
   title: string;
@@ -1031,6 +1042,3 @@ export const archiveApi = {
     return res.data;
   }
 };
-
-
-

@@ -16,7 +16,8 @@ export const navGroups: NavGroup[] = [
         icon: 'play',
         items: [
           { title: 'Start Work', url: '/dashboard/work/start', permission: 'work.start' },
-          { title: 'End Work', url: '/dashboard/work/end', permission: 'work.end' }
+          { title: 'End Work', url: '/dashboard/work/end', permission: 'work.end' },
+          { title: 'Odometer Audits', url: '/dashboard/odometer-audits', permission: 'work.view' }
         ]
       },
 
@@ -28,7 +29,11 @@ export const navGroups: NavGroup[] = [
         permission: 'work.view',
         items: [
           { title: 'Working Now', url: '/dashboard/employees/working', permission: 'work.view' },
-          { title: 'Finished Today', url: '/dashboard/employees/finished', permission: 'work.view' },
+          {
+            title: 'Finished Today',
+            url: '/dashboard/employees/finished',
+            permission: 'work.view'
+          },
           { title: "Today's Shifts", url: '/dashboard/employees/today', permission: 'work.view' }
         ]
       },
@@ -40,12 +45,36 @@ export const navGroups: NavGroup[] = [
         icon: 'clipboardList',
         permission: 'investigations.view',
         items: [
-          { title: 'Approvals', url: '/dashboard/investigation/approvals', permission: 'investigations.approve' },
-          { title: 'Supervisor Report', url: '/dashboard/investigation/supervisor_report', permission: 'investigations.create' },
-          { title: 'Advance', url: '/dashboard/investigation/advance', permission: 'investigations.create' },
-          { title: 'Internet Advance', url: '/dashboard/investigation/internet_advance', permission: 'investigations.create' },
-          { title: 'Absence', url: '/dashboard/investigation/absence', permission: 'investigations.create' },
-          { title: 'Custody Receipt', url: '/dashboard/investigation/custody', permission: 'investigations.create' }
+          {
+            title: 'Approvals',
+            url: '/dashboard/investigation/approvals',
+            permission: 'investigations.approve'
+          },
+          {
+            title: 'Supervisor Report',
+            url: '/dashboard/investigation/supervisor_report',
+            permission: 'investigations.create'
+          },
+          {
+            title: 'Advance',
+            url: '/dashboard/investigation/advance',
+            permission: 'investigations.create'
+          },
+          {
+            title: 'Internet Advance',
+            url: '/dashboard/investigation/internet_advance',
+            permission: 'investigations.create'
+          },
+          {
+            title: 'Absence',
+            url: '/dashboard/investigation/absence',
+            permission: 'investigations.create'
+          },
+          {
+            title: 'Custody Receipt',
+            url: '/dashboard/investigation/custody',
+            permission: 'investigations.create'
+          }
         ]
       },
 
@@ -82,7 +111,11 @@ export const navGroups: NavGroup[] = [
         items: [
           { title: 'Vehicles', url: '/dashboard/vehicles', permission: 'vehicles.view' },
           { title: 'Violations', url: '/dashboard/violations', permission: 'violations.view' },
-          { title: 'Maintenance Requests', url: '/dashboard/maintenance-requests', permission: 'maintenance.view' }
+          {
+            title: 'Maintenance Requests',
+            url: '/dashboard/maintenance-requests',
+            permission: 'maintenance.view'
+          }
         ]
       },
 
@@ -94,7 +127,11 @@ export const navGroups: NavGroup[] = [
         permission: 'employees.view',
         items: [
           { title: 'All Employees', url: '/dashboard/employees', permission: 'employees.view' },
-          { title: 'Print ID Cards', url: '/dashboard/employees/cards', permission: 'employees.view' }
+          {
+            title: 'Print ID Cards',
+            url: '/dashboard/employees/cards',
+            permission: 'employees.view'
+          }
         ]
       },
 
@@ -109,7 +146,11 @@ export const navGroups: NavGroup[] = [
         permission: 'inventory.view',
         items: [
           { title: 'Inventory', url: '/dashboard/inventory', permission: 'inventory.view' },
-          { title: 'Oil Dispense', url: '/dashboard/oil-dispense', permission: 'inventory.dispense' },
+          {
+            title: 'Oil Dispense',
+            url: '/dashboard/oil-dispense',
+            permission: 'inventory.dispense'
+          },
           { title: 'Oil Setup', url: '/dashboard/oil-setup', permission: 'inventory.manage' }
         ]
       },
@@ -121,7 +162,11 @@ export const navGroups: NavGroup[] = [
         icon: 'fileCertificate',
         items: [
           { title: 'Documents', url: '/dashboard/documents', permission: 'documents.view' },
-          { title: 'Bank Accounts', url: '/dashboard/bank-accounts', permission: 'bank_accounts.view' }
+          {
+            title: 'Bank Accounts',
+            url: '/dashboard/bank-accounts',
+            permission: 'bank_accounts.view'
+          }
         ]
       },
 
