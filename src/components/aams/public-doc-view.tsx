@@ -116,6 +116,18 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
     retry: 1
   });
 
+  // Set document title to [Employee Name] [Date] for default print/save PDF filename
+  useEffect(() => {
+    if (doc) {
+      const empName = doc.employee_name?.trim() || 'وثيقة';
+      const now = new Date();
+      const day = now.getDate();
+      const month = now.getMonth() + 1;
+      const year = now.getFullYear();
+      document.title = `${empName} ${day}-${month}-${year}`;
+    }
+  }, [doc]);
+
   // Auto-open photos if URL has ?photos=1
   useEffect(() => {
     if (typeof window !== 'undefined' && doc?.images && doc.images.length > 0) {
@@ -192,7 +204,23 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
         @media print {
           @page {
             size: A4 portrait;
-            margin: 0mm;
+            margin: 0mm !important;
+          }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          html,
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            max-height: 297mm !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           header,
           aside,
@@ -200,18 +228,25 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
           .no-print {
             display: none !important;
           }
-          body,
-          html {
-            background: white !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
           #public-printable-doc {
             border: none !important;
+            border-radius: 0 !important;
             box-shadow: none !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            padding: 4mm 8mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 210mm !important;
+            max-width: 210mm !important;
+            min-height: 297mm !important;
+            height: 297mm !important;
+            max-height: 297mm !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            box-sizing: border-box !important;
+            page-break-after: avoid !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            overflow: hidden !important;
           }
         }
       `}</style>
@@ -242,14 +277,14 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
           <img
             src='/logo.png'
             alt='Watermark'
-            className='w-80 h-80 object-contain opacity-[0.05] grayscale select-none'
+            className='w-96 h-96 object-contain opacity-[0.08] select-none'
           />
         </div>
 
         <div className='relative z-10 flex-1 flex flex-col justify-between'>
           <div className='flex-1 flex flex-col justify-start'>
-            {/* Top Accent Line */}
-            <div className='flex h-2 w-full'>
+            {/* Top Accent Line: Right 1/4 Orange, Left 3/4 Black */}
+            <div className='flex h-2.5 w-full shrink-0' dir='rtl'>
               <div className='h-full w-1/4 bg-[#f97316]'></div>
               <div className='h-full w-3/4 bg-slate-950'></div>
             </div>

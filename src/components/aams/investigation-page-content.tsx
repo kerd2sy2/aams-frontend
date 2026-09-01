@@ -518,6 +518,16 @@ export function InvestigationPageContent({
 
   const handlePrint = (inv: InvestigationResponse) => {
     const url = getDocumentUrl(inv.type || selectedType, inv.id);
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    const empName = inv.employee_name?.trim() || 'وثيقة';
+    const printTitle = `${empName} ${day}-${month}-${year}`;
+    const originalTitle = document.title;
+
+    document.title = printTitle;
+
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
@@ -529,10 +539,18 @@ export function InvestigationPageContent({
     document.body.appendChild(iframe);
 
     iframe.onload = () => {
+      try {
+        if (iframe.contentDocument) {
+          iframe.contentDocument.title = printTitle;
+        }
+      } catch {
+        // Cross-origin fallback
+      }
       setTimeout(() => {
         iframe.contentWindow?.focus();
         iframe.contentWindow?.print();
         setTimeout(() => {
+          document.title = originalTitle;
           if (document.body.contains(iframe)) {
             document.body.removeChild(iframe);
           }
@@ -1307,7 +1325,7 @@ export function InvestigationPageContent({
                   <img
                     src='/logo.png'
                     alt='Watermark'
-                    className='w-80 h-80 object-contain opacity-[0.05] grayscale select-none'
+                    className='w-96 h-96 object-contain opacity-[0.08] select-none'
                   />
                 </div>
 
