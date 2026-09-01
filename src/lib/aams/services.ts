@@ -232,6 +232,10 @@ export const workApi = {
     data: {
       is_reviewed: boolean;
       review_notes?: string;
+      orders_count?: number;
+      start_km?: number;
+      end_km?: number;
+      fuel_cost?: number;
     }
   ) => {
     const res = await apiClient.put<WorkSession>(`/work/${sessionId}/review`, data);
@@ -995,8 +999,8 @@ export interface NotificationResponse {
 }
 
 export const notificationApi = {
-  getAll: async () => {
-    const res = await apiClient.get<NotificationResponse[]>('/notifications');
+  getAll: async (params?: { status?: string }) => {
+    const res = await apiClient.get<NotificationResponse[]>('/notifications', { params });
     return res.data;
   },
   markAsRead: async (id: string) => {

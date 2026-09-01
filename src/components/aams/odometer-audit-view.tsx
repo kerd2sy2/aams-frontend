@@ -40,7 +40,9 @@ import {
   IconCalendar,
   IconArrowsDiff,
   IconUser,
-  IconRefresh
+  IconRefresh,
+  IconEdit,
+  IconInfoCircle
 } from '@tabler/icons-react';
 
 export default function OdometerAuditView() {
@@ -49,7 +51,7 @@ export default function OdometerAuditView() {
   // Filters State
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'reviewed'>('all');
-  const [mismatchOnly, setMismatchOnly] = useState(false);
+  const [editedOnly, setEditedOnly] = useState(false);
   const [dateFilter, setDateFilter] = useState<'today' | '7days' | 'month' | 'all'>('all');
 
   // Dialog State for Single Image Preview
@@ -63,9 +65,13 @@ export default function OdometerAuditView() {
   // Dialog State for Side-by-Side Comparison
   const [comparisonSession, setComparisonSession] = useState<WorkSessionDetail | null>(null);
 
-  // Dialog State for Review / Audit Action
+  // Dialog State for Review / Audit Action & Editing
   const [reviewModalSession, setReviewModalSession] = useState<WorkSessionDetail | null>(null);
   const [reviewNotes, setReviewNotes] = useState('');
+  const [editOrdersCount, setEditOrdersCount] = useState<number>(0);
+  const [editStartKM, setEditStartKM] = useState<number>(0);
+  const [editEndKM, setEditEndKM] = useState<number>(0);
+  const [editFuelCost, setEditFuelCost] = useState<number>(0);
 
   // Fetch all sessions
   const {
@@ -106,30 +112,44 @@ export default function OdometerAuditView() {
     return Array.isArray(reportsData) ? reportsData : [];
   }, [reportsData]);
 
-  // Review mutation
+  // Review & Edit mutation
   const reviewMutation = useMutation({
     mutationFn: async ({
       sessionId,
       isReviewed,
-      notes
+      notes,
+      ordersCount,
+      startKM,
+      endKM,
+      fuelCost
     }: {
       sessionId: string;
       isReviewed: boolean;
       notes?: string;
+      ordersCount?: number;
+      startKM?: number;
+      endKM?: number;
+      fuelCost?: number;
     }) => {
       return workApi.reviewWorkSession(sessionId, {
         is_reviewed: isReviewed,
-        review_notes: notes
+        review_notes: notes,
+        orders_count: ordersCount,
+        start_km: startKM,
+        end_km: endKM,
+        fuel_cost: fuelCost
       });
     },
     onSuccess: () => {
-      toast.success('تم تحديث حالة مراجعة الشفت بنجاح ✅');
+      toast.success('تمت مصادقة وحفظ تعديلات الشفت بنجاح ✅');
       queryClient.invalidateQueries({ queryKey: ['odometer-audits'] });
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       setReviewModalSession(null);
       setReviewNotes('');
     },
     onError: (err: any) => {
-      toast.error(err?.message || 'تعذر اعتماد المراجعة');
+      toast.error(err?.message || 'تعذر تصديق الشفت');
     }
   });
 
@@ -138,11 +158,9 @@ export default function OdometerAuditView() {
     const total = sessions.length;
     const reviewed = sessions.filter((s) => s.is_reviewed).length;
     const pending = total - reviewed;
-    const mismatches = sessions.filter(
-      (s) => s.motorcycle_number && (s.employee_name || s.employee?.name)
-    ).length;
+    const edited = sessions.filter((s) => s.is_edited_by_supervisor).length;
 
-    return { total, reviewed, pending, mismatches };
+    return { total, reviewed, pending, edited };
   }, [sessions]);
 
   // Filtered sessions
@@ -163,13 +181,20 @@ export default function OdometerAuditView() {
       if (statusFilter === 'pending' && s.is_reviewed) return false;
       if (statusFilter === 'reviewed' && !s.is_reviewed) return false;
 
+      // Edited filter
+      if (editedOnly && !s.is_edited_by_supervisor) return false;
+
       return true;
     });
-  }, [sessions, search, statusFilter]);
+  }, [sessions, search, statusFilter, editedOnly]);
 
   const handleOpenReview = (session: WorkSessionDetail) => {
     setReviewModalSession(session);
     setReviewNotes(session.review_notes || '');
+    setEditOrdersCount(session.orders_count || 0);
+    setEditStartKM(session.start_km || 0);
+    setEditEndKM(session.end_km || 0);
+    setEditFuelCost(session.fuel_cost || 0);
   };
 
   const handleConfirmReview = (isReviewed: boolean) => {
@@ -177,7 +202,11 @@ export default function OdometerAuditView() {
     reviewMutation.mutate({
       sessionId: reviewModalSession.id,
       isReviewed,
-      notes: reviewNotes
+      notes: reviewNotes,
+      ordersCount: Number(editOrdersCount),
+      startKM: Number(editStartKM),
+      endKM: Number(editEndKM),
+      fuelCost: Number(editFuelCost)
     });
   };
 
@@ -188,10 +217,10 @@ export default function OdometerAuditView() {
         <div>
           <h1 className='text-2xl font-bold tracking-tight text-foreground flex items-center gap-2'>
             <IconGauge className='h-7 w-7 text-primary' />
-            مراجعة وتدقيق عدادات الشفتات
+            مراجعة وتصديق عدادات الشفتات
           </h1>
           <p className='text-sm text-muted-foreground mt-1'>
-            لوحة مخصصة للمشرفين لمراجعة صور عدادات البداية والنهاية ومطابقة الدبابات الميدانية
+            لوحة مخصصة للمشرفين لمراجعة وتعديل ومصادقة الطلبات والعدادات الميدانية
           </p>
         </div>
         <div className='flex items-center gap-2'>
@@ -225,7 +254,7 @@ export default function OdometerAuditView() {
         <Card className='border-border/60 bg-card shadow-xs'>
           <CardContent className='p-5 flex items-center justify-between'>
             <div>
-              <p className='text-xs font-medium text-amber-500'>بانتظار المراجعة والتدقيق</p>
+              <p className='text-xs font-medium text-amber-500'>بانتظار مصادقة المشرف</p>
               <h3 className='text-2xl font-bold text-amber-500 mt-1'>{stats.pending}</h3>
             </div>
             <div className='h-12 w-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500'>
@@ -237,7 +266,7 @@ export default function OdometerAuditView() {
         <Card className='border-border/60 bg-card shadow-xs'>
           <CardContent className='p-5 flex items-center justify-between'>
             <div>
-              <p className='text-xs font-medium text-emerald-500'>تمت المراجعة والاعتماد</p>
+              <p className='text-xs font-medium text-emerald-500'>تمت المصادقة والاعتماد</p>
               <h3 className='text-2xl font-bold text-emerald-500 mt-1'>{stats.reviewed}</h3>
             </div>
             <div className='h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500'>
@@ -249,11 +278,11 @@ export default function OdometerAuditView() {
         <Card className='border-border/60 bg-card shadow-xs'>
           <CardContent className='p-5 flex items-center justify-between'>
             <div>
-              <p className='text-xs font-medium text-rose-500'>تنبيهات اختلاف الدباب</p>
-              <h3 className='text-2xl font-bold text-rose-500 mt-1'>{stats.mismatches}</h3>
+              <p className='text-xs font-medium text-indigo-500'>شفتات عُدلت بواسطة المشرف</p>
+              <h3 className='text-2xl font-bold text-indigo-500 mt-1'>{stats.edited}</h3>
             </div>
-            <div className='h-12 w-12 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500'>
-              <IconAlertTriangle className='h-6 w-6' />
+            <div className='h-12 w-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500'>
+              <IconEdit className='h-6 w-6' />
             </div>
           </CardContent>
         </Card>
@@ -322,7 +351,7 @@ export default function OdometerAuditView() {
                 onClick={() => setStatusFilter('pending')}
                 className='text-amber-500 hover:text-amber-600'
               >
-                قيد المراجعة
+                بانتظار المصادقة
               </Button>
               <Button
                 variant={statusFilter === 'reviewed' ? 'default' : 'ghost'}
@@ -330,19 +359,19 @@ export default function OdometerAuditView() {
                 onClick={() => setStatusFilter('reviewed')}
                 className='text-emerald-500 hover:text-emerald-600'
               >
-                معتمد ✅
+                مصادق عليه ✅
               </Button>
             </div>
 
-            {/* Mismatch toggle */}
+            {/* Edited only toggle */}
             <Button
-              variant={mismatchOnly ? 'destructive' : 'outline'}
+              variant={editedOnly ? 'default' : 'outline'}
               size='sm'
-              onClick={() => setMismatchOnly(!mismatchOnly)}
+              onClick={() => setEditedOnly(!editedOnly)}
               className='flex items-center gap-1.5 text-xs'
             >
-              <IconAlertTriangle className='h-3.5 w-3.5' />
-              {mismatchOnly ? 'عرض كل الشفتات' : 'تنبيهات الدباب فقط'}
+              <IconEdit className='h-3.5 w-3.5' />
+              {editedOnly ? 'عرض الكل' : 'المعدل من المشرف فقط'}
             </Button>
           </div>
         </CardContent>
@@ -353,7 +382,7 @@ export default function OdometerAuditView() {
         <CardHeader className='p-4 border-b border-border/40 bg-muted/20 flex flex-row items-center justify-between'>
           <div>
             <CardTitle className='text-base font-semibold'>
-              قائمة الشفتات والعدادات المصورة
+              سجل شفتات العمل ومراجعة وتصديق الطلبات
             </CardTitle>
             <CardDescription className='text-xs'>
               عرض {filteredSessions.length} من أصل {sessions.length} شفت
@@ -366,11 +395,11 @@ export default function OdometerAuditView() {
               <TableHeader>
                 <TableRow className='bg-muted/40 hover:bg-muted/40'>
                   <TableHead className='text-right'>المندوب والفرع</TableHead>
-                  <TableHead className='text-right'>الدباب (المسجل / الفعلي)</TableHead>
+                  <TableHead className='text-right'>الدباب</TableHead>
                   <TableHead className='text-center'>عداد البداية والصورة</TableHead>
                   <TableHead className='text-center'>عداد النهاية والصورة</TableHead>
-                  <TableHead className='text-center'>المسافة والطلبات</TableHead>
-                  <TableHead className='text-center'>حالة التدقيق</TableHead>
+                  <TableHead className='text-center'>المسافة والطلبات والوقود</TableHead>
+                  <TableHead className='text-center'>حالة المصادقة والتعديل</TableHead>
                   <TableHead className='text-center'>الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
@@ -389,12 +418,6 @@ export default function OdometerAuditView() {
                   </TableRow>
                 ) : (
                   filteredSessions.map((session) => {
-                    const isMismatch =
-                      session.motorcycle_number &&
-                      session.employee?.motorcycle_number &&
-                      session.motorcycle_number.trim() !==
-                        session.employee.motorcycle_number.trim();
-
                     return (
                       <TableRow key={session.id} className='hover:bg-muted/30 transition-colors'>
                         {/* Employee & Branch */}
@@ -422,11 +445,10 @@ export default function OdometerAuditView() {
                           </div>
                         </TableCell>
 
-                        {/* Motorcycle Matching */}
+                        {/* Motorcycle */}
                         <TableCell>
                           <div className='flex flex-col gap-1'>
                             <div className='flex items-center gap-1.5 text-xs'>
-                              <span className='text-muted-foreground'>رقم الدباب:</span>
                               <Badge variant='secondary' className='text-xs font-mono font-bold'>
                                 {session.motorcycle_number ||
                                   session.employee?.motorcycle_number ||
@@ -441,6 +463,12 @@ export default function OdometerAuditView() {
                           <div className='font-bold text-foreground font-mono'>
                             {session.start_km.toLocaleString()} كم
                           </div>
+                          {session.original_start_km &&
+                            session.original_start_km !== session.start_km && (
+                              <span className='text-[10px] text-muted-foreground line-through block'>
+                                الأصل: {session.original_start_km}
+                              </span>
+                            )}
                           {session.start_km_image ? (
                             <Button
                               variant='outline'
@@ -473,6 +501,12 @@ export default function OdometerAuditView() {
                               <div className='font-bold text-foreground font-mono'>
                                 {session.end_km.toLocaleString()} كم
                               </div>
+                              {session.original_end_km &&
+                                session.original_end_km !== session.end_km && (
+                                  <span className='text-[10px] text-muted-foreground line-through block'>
+                                    الأصل: {session.original_end_km}
+                                  </span>
+                                )}
                               {session.end_km_image ? (
                                 <Button
                                   variant='outline'
@@ -512,34 +546,52 @@ export default function OdometerAuditView() {
                           <div className='font-bold text-primary font-mono text-sm'>
                             {session.distance > 0 ? `${session.distance.toFixed(1)} كم` : '—'}
                           </div>
-                          <div className='text-xs text-muted-foreground mt-0.5'>
+                          <div className='text-xs text-foreground font-medium mt-0.5'>
                             {session.orders_count} طلبات | {session.fuel_cost} ر.س
                           </div>
+                          {session.original_orders_count &&
+                            session.original_orders_count !== session.orders_count && (
+                              <div className='text-[10px] text-muted-foreground line-through'>
+                                الطلبات الأصلية: {session.original_orders_count}
+                              </div>
+                            )}
                         </TableCell>
 
-                        {/* Review Status */}
+                        {/* Review Status & Supervisor Edit Badges */}
                         <TableCell className='text-center'>
-                          {session.is_reviewed ? (
-                            <div className='flex flex-col items-center gap-0.5'>
+                          <div className='flex flex-col items-center gap-1'>
+                            {session.is_reviewed ? (
                               <Badge className='bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs gap-1'>
                                 <IconCheck className='h-3 w-3' />
-                                معتمد ومراجع
+                                مصادق عليه ومحفوظ ✅
                               </Badge>
-                              {session.review_notes && (
-                                <span className='text-[10px] text-muted-foreground line-clamp-1 max-w-[120px]'>
-                                  {session.review_notes}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <Badge
-                              variant='outline'
-                              className='text-amber-500 border-amber-500/30 text-xs gap-1'
-                            >
-                              <IconClock className='h-3 w-3' />
-                              قيد التدقيق
-                            </Badge>
-                          )}
+                            ) : (
+                              <Badge
+                                variant='outline'
+                                className='text-amber-500 border-amber-500/30 text-xs gap-1'
+                              >
+                                <IconClock className='h-3 w-3' />
+                                بانتظار مصادقة المشرف ⏳
+                              </Badge>
+                            )}
+
+                            {/* Supervisor modification badge */}
+                            {session.is_edited_by_supervisor && (
+                              <Badge
+                                variant='secondary'
+                                className='bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30 text-[10px] gap-1'
+                              >
+                                <IconEdit className='h-2.5 w-2.5' />
+                                تم التعديل بواسطة {session.edited_by_name || 'المشرف'}
+                              </Badge>
+                            )}
+
+                            {session.review_notes && (
+                              <span className='text-[10px] text-muted-foreground line-clamp-1 max-w-[140px] italic'>
+                                "{session.review_notes}"
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
 
                         {/* Actions */}
@@ -559,15 +611,15 @@ export default function OdometerAuditView() {
                               </Button>
                             )}
 
-                            {/* Review button */}
+                            {/* Review & Edit button */}
                             <Button
-                              variant={session.is_reviewed ? 'ghost' : 'default'}
+                              variant={session.is_reviewed ? 'outline' : 'default'}
                               size='xs'
                               onClick={() => handleOpenReview(session)}
                               className='text-xs gap-1'
                             >
-                              <IconCheck className='h-3.5 w-3.5' />
-                              {session.is_reviewed ? 'تعديل التدقيق' : 'اعتماد الشفت'}
+                              <IconEdit className='h-3.5 w-3.5' />
+                              {session.is_reviewed ? 'تعديل / إعادة تدقيق' : 'مصادقة وتعديل'}
                             </Button>
                           </div>
                         </TableCell>
@@ -624,7 +676,8 @@ export default function OdometerAuditView() {
             <DialogTitle className='flex items-center justify-between'>
               <span className='flex items-center gap-2'>
                 <IconArrowsDiff className='h-5 w-5 text-primary' />
-                مقارنة وتدقيق عدادات الشفت — {comparisonSession?.employee?.name}
+                مقارنة وتدقيق عدادات الشفت —{' '}
+                {comparisonSession?.employee_name || comparisonSession?.employee?.name}
               </span>
               <Badge variant='secondary' className='font-mono text-xs'>
                 المسافة: {comparisonSession?.distance.toFixed(1)} كم
@@ -692,11 +745,7 @@ export default function OdometerAuditView() {
           {/* Shift Details Footer Banner */}
           <div className='bg-muted/30 border border-border/40 rounded-lg p-3 text-xs flex flex-wrap items-center justify-between gap-2'>
             <span>
-              <strong>رقم الدباب الفعلي:</strong> {comparisonSession?.motorcycle_number || '—'}
-            </span>
-            <span>
-              <strong>الدباب المربوط:</strong>{' '}
-              {comparisonSession?.employee?.motorcycle_number || '—'}
+              <strong>رقم الدباب:</strong> {comparisonSession?.motorcycle_number || '—'}
             </span>
             <span>
               <strong>الطلبات المنجزة:</strong> {comparisonSession?.orders_count}
@@ -720,36 +769,127 @@ export default function OdometerAuditView() {
               className='gap-1.5'
             >
               <IconCheck className='h-4 w-4' />
-              اعتماد ومراجعة الشفت
+              مصادقة وتعديل الشفت
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ================= DIALOG 3: REVIEW / AUDIT APPROVAL MODAL ================= */}
+      {/* ================= DIALOG 3: REVIEW & SUPERVISOR EDIT MODAL ================= */}
       <Dialog open={!!reviewModalSession} onOpenChange={() => setReviewModalSession(null)}>
-        <DialogContent className='max-w-md' dir='rtl'>
+        <DialogContent className='max-w-lg' dir='rtl'>
           <DialogHeader>
             <DialogTitle className='flex items-center gap-2'>
               <IconCheck className='h-5 w-5 text-emerald-500' />
-              اعتماد وتدقيق شفت المندوب
+              مراجعة وتعديل ومصادقة شفت المندوب
             </DialogTitle>
             <DialogDescription>
-              {reviewModalSession?.employee?.name} | عداد البداية: {reviewModalSession?.start_km} كم
-              | عداد النهاية: {reviewModalSession?.end_km} كم
+              {reviewModalSession?.employee_name || reviewModalSession?.employee?.name} | دباب:{' '}
+              {reviewModalSession?.motorcycle_number || '—'}
             </DialogDescription>
           </DialogHeader>
 
           <div className='space-y-4 my-2'>
+            {/* Odometer Photos Thumbnail helper */}
+            {(reviewModalSession?.start_km_image || reviewModalSession?.end_km_image) && (
+              <div className='flex gap-2 p-2 bg-muted/30 rounded-lg border border-border/40 text-xs'>
+                {reviewModalSession.start_km_image && (
+                  <div className='flex items-center gap-1.5 flex-1'>
+                    <img
+                      src={reviewModalSession.start_km_image}
+                      alt='Start'
+                      className='h-10 w-10 object-cover rounded border'
+                    />
+                    <span>صورة البداية ({reviewModalSession.start_km})</span>
+                  </div>
+                )}
+                {reviewModalSession.end_km_image && (
+                  <div className='flex items-center gap-1.5 flex-1'>
+                    <img
+                      src={reviewModalSession.end_km_image}
+                      alt='End'
+                      className='h-10 w-10 object-cover rounded border'
+                    />
+                    <span>صورة النهاية ({reviewModalSession.end_km})</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Editable Fields Grid */}
+            <div className='grid grid-cols-2 gap-3'>
+              <div>
+                <label className='text-xs font-semibold text-foreground mb-1 block'>
+                  عدد الطلبات المنجزة
+                </label>
+                <Input
+                  type='number'
+                  value={editOrdersCount}
+                  onChange={(e) => setEditOrdersCount(Number(e.target.value))}
+                  className='font-mono text-sm'
+                />
+                {reviewModalSession?.original_orders_count && (
+                  <span className='text-[10px] text-muted-foreground'>
+                    المدخل الأصلي: {reviewModalSession.original_orders_count}
+                  </span>
+                )}
+              </div>
+
+              <div>
+                <label className='text-xs font-semibold text-foreground mb-1 block'>
+                  تكلفة الوقود (ر.س)
+                </label>
+                <Input
+                  type='number'
+                  step='0.1'
+                  value={editFuelCost}
+                  onChange={(e) => setEditFuelCost(Number(e.target.value))}
+                  className='font-mono text-sm'
+                />
+              </div>
+
+              <div>
+                <label className='text-xs font-semibold text-foreground mb-1 block'>
+                  قراءة عداد البداية (كم)
+                </label>
+                <Input
+                  type='number'
+                  value={editStartKM}
+                  onChange={(e) => setEditStartKM(Number(e.target.value))}
+                  className='font-mono text-sm'
+                />
+              </div>
+
+              <div>
+                <label className='text-xs font-semibold text-foreground mb-1 block'>
+                  قراءة عداد النهاية (كم)
+                </label>
+                <Input
+                  type='number'
+                  value={editEndKM}
+                  onChange={(e) => setEditEndKM(Number(e.target.value))}
+                  className='font-mono text-sm'
+                />
+              </div>
+            </div>
+
+            {/* Calculated Distance Feedback */}
+            <div className='bg-primary/5 border border-primary/20 rounded-lg p-2.5 flex items-center justify-between text-xs'>
+              <span className='text-muted-foreground'>المسافة المحسوبة بعد التدقيق:</span>
+              <span className='font-bold text-primary font-mono text-sm'>
+                {editEndKM > editStartKM ? `${(editEndKM - editStartKM).toFixed(1)} كم` : '0 كم'}
+              </span>
+            </div>
+
             <div>
               <label className='text-xs font-semibold text-foreground mb-1 block'>
-                ملاحظات المشرف على التدقيق (اختياري)
+                ملاحظات المشرف على المصادقة / سبب التعديل (اختياري)
               </label>
               <Textarea
-                placeholder='أدخل أي ملاحظات حول قراءة العدادات أو حالة الدباب...'
+                placeholder='أدخل أي ملاحظات حول قراءة العدادات أو سبب تعديل الطلبات...'
                 value={reviewNotes}
                 onChange={(e) => setReviewNotes(e.target.value)}
-                rows={3}
+                rows={2}
                 className='text-sm'
               />
             </div>
@@ -762,7 +902,7 @@ export default function OdometerAuditView() {
               disabled={reviewMutation.isPending}
               className='text-rose-500 hover:text-rose-600'
             >
-              تعيين كـ قيد التدقيق
+              تعيين كـ غير مصادق
             </Button>
             <Button
               variant='default'
@@ -771,7 +911,7 @@ export default function OdometerAuditView() {
               className='gap-1 bg-emerald-600 hover:bg-emerald-700 text-white'
             >
               <IconCheck className='h-4 w-4' />
-              تأكيد الاعتماد والمراجعة ✅
+              مصادقة واعتماد وتثبيت التعديلات ✅
             </Button>
           </DialogFooter>
         </DialogContent>

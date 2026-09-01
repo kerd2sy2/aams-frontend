@@ -88,6 +88,11 @@ export interface WorkSession {
   is_reviewed?: boolean;
   review_notes?: string;
   reviewed_by?: string;
+  is_edited_by_supervisor?: boolean;
+  edited_by_name?: string;
+  original_orders_count?: number;
+  original_end_km?: number;
+  original_start_km?: number;
   notes: string;
   status: 'ACTIVE' | 'COMPLETED';
   created_at: string;
@@ -173,6 +178,11 @@ export interface WorkSessionDetail {
   motorcycle_number?: string;
   is_reviewed?: boolean;
   review_notes?: string;
+  is_edited_by_supervisor?: boolean;
+  edited_by_name?: string;
+  original_orders_count?: number;
+  original_end_km?: number;
+  original_start_km?: number;
   notes: string;
   status: 'ACTIVE' | 'COMPLETED';
   created_at?: string;

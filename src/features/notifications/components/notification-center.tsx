@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { NotificationCard, NotificationStatus, ActionType } from '@/components/ui/notification-card';
+import {
+  NotificationCard,
+  NotificationStatus,
+  ActionType
+} from '@/components/ui/notification-card';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi, NotificationResponse } from '@/lib/aams/services';
 import { useRouter } from 'next/navigation';
@@ -28,8 +32,8 @@ export function NotificationCenter() {
   const { t } = useLocale();
   const { data: rawNotifications = [] } = useQuery({
     queryKey: ['notifications'],
-    queryFn: notificationApi.getAll,
-    refetchInterval: 60000, // refresh every minute
+    queryFn: () => notificationApi.getAll(),
+    refetchInterval: 60000 // refresh every minute
   });
 
   const markAsReadMutation = useMutation({
@@ -48,10 +52,13 @@ export function NotificationCenter() {
     body: n.body,
     status: n.status as NotificationStatus,
     createdAt: n.created_at,
-    actions: n.type === 'iqama_expiry' ? [{ id: 'view-employee', label: 'عرض الموظف', type: 'redirect' as ActionType }] : []
+    actions:
+      n.type === 'iqama_expiry'
+        ? [{ id: 'view-employee', label: 'عرض الموظف', type: 'redirect' as ActionType }]
+        : []
   }));
 
-  const unreadCount = notifications.filter(n => n.status === 'unread').length;
+  const unreadCount = notifications.filter((n) => n.status === 'unread').length;
   const count = unreadCount;
   const visibleNotifications = notifications.slice(0, MAX_VISIBLE);
 

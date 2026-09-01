@@ -24,8 +24,8 @@ export default function NotificationsPage() {
 
   const { data: rawNotifications = [] } = useQuery({
     queryKey: ['notifications'],
-    queryFn: notificationApi.getAll,
-    refetchInterval: 60000,
+    queryFn: () => notificationApi.getAll(),
+    refetchInterval: 60000
   });
 
   const markAsReadMutation = useMutation({
@@ -38,16 +38,33 @@ export default function NotificationsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] })
   });
 
-  const notifications = (rawNotifications || []).map((n: NotificationResponse) => ({
-    id: n.id,
-    title: n.title,
-    body: n.body,
-    status: n.status as NotificationStatus,
-    createdAt: n.created_at,
-    actions: n.type === 'iqama_expiry' ? [{ id: 'view-employee', label: 'عرض الموظف', type: 'redirect' as ActionType }] : []
-  }));
+  const notifications = (rawNotifications || []).map((n: NotificationResponse) => {
+    let actions: { id: string; label: string; type: ActionType }[] = [];
+    if (n.type === 'iqama_expiry') {
+      actions = [{ id: 'view-employee', label: 'عرض الموظف', type: 'redirect' as ActionType }];
+    } else if (
+      n.type === 'WORK_START' ||
+      n.type === 'WORK_END' ||
+      n.type === 'WARNING' ||
+      n.type === 'MOTORCYCLE_MISMATCH'
+    ) {
+      actions = [
+        { id: 'view-audit', label: 'مراجعة وتدقيق العدادات', type: 'redirect' as ActionType }
+      ];
+    }
 
-  const count = notifications.filter(n => n.status === 'unread').length;
+    return {
+      id: n.id,
+      title: n.title,
+      body: n.body,
+      type: n.type,
+      status: n.status as NotificationStatus,
+      createdAt: n.created_at,
+      actions
+    };
+  });
+
+  const count = notifications.filter((n) => n.status === 'unread').length;
 
   const handleMarkAsRead = (id: string) => markAsReadMutation.mutate(id);
   const handleMarkAllAsRead = () => markAllAsReadMutation.mutate();
@@ -60,7 +77,7 @@ export default function NotificationsPage() {
       return (
         <div className='flex flex-col items-center justify-center py-16'>
           <Icons.notification className='text-muted-foreground/40 mb-3 h-10 w-10' />
-          <p className='text-muted-foreground text-sm'>No notifications</p>
+          <p className='text-muted-foreground text-sm'>لا توجد إشعارات في هذا القسم</p>
         </div>
       );
     }
@@ -79,7 +96,11 @@ export default function NotificationsPage() {
             onMarkAsRead={handleMarkAsRead}
             onAction={(notifId, actionId) => {
               handleMarkAsRead(notifId);
-              router.push('/dashboard/employees');
+              if (actionId === 'view-audit') {
+                router.push('/dashboard/odometer-audits');
+              } else {
+                router.push('/dashboard/employees');
+              }
             }}
           />
         ))}
@@ -89,21 +110,21 @@ export default function NotificationsPage() {
 
   return (
     <PageContainer
-      pageTitle='Notifications'
-      pageDescription='View and manage all your notifications.'
+      pageTitle='مركز الإشعارات'
+      pageDescription='عرض ومتابعة كافة الإشعارات وتنبيهات بدء الشفتات وإنهاؤها ومطابقة العدادات.'
       pageHeaderAction={
         count > 0 ? (
           <Button variant='outline' size='sm' onClick={handleMarkAllAsRead}>
-            Mark all as read
+            تعيين الكل كمقروء
           </Button>
         ) : undefined
       }
     >
-      <Tabs defaultValue='all'>
+      <Tabs defaultValue='all' dir='rtl'>
         <TabsList>
-          <TabsTrigger value='all'>All ({notifications.length})</TabsTrigger>
-          <TabsTrigger value='unread'>Unread ({unreadNotifications.length})</TabsTrigger>
-          <TabsTrigger value='read'>Read ({readNotifications.length})</TabsTrigger>
+          <TabsTrigger value='all'>الكل ({notifications.length})</TabsTrigger>
+          <TabsTrigger value='unread'>غير مقروء ({unreadNotifications.length})</TabsTrigger>
+          <TabsTrigger value='read'>مقروء ({readNotifications.length})</TabsTrigger>
         </TabsList>
         <TabsContent value='all' className='mt-4'>
           {renderList(notifications)}
