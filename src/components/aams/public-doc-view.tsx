@@ -125,8 +125,18 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
       const month = now.getMonth() + 1;
       const year = now.getFullYear();
       document.title = `${empName} ${day}-${month}-${year}`;
+
+      // Notify parent iframe that document data is completely loaded and ready to print
+      const timer = setTimeout(() => {
+        try {
+          window.parent?.postMessage({ type: 'DOC_READY_TO_PRINT', docId }, '*');
+        } catch {
+          // Cross-origin fallback
+        }
+      }, 300);
+      return () => clearTimeout(timer);
     }
-  }, [doc]);
+  }, [doc, docId]);
 
   // Auto-open photos if URL has ?photos=1
   useEffect(() => {
@@ -141,7 +151,7 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
   if (isLoading) {
     return (
       <div
-        className='min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center p-4'
+        className='min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center p-4 no-print'
         dir='rtl'
       >
         <div className='bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col items-center gap-3'>
@@ -157,7 +167,7 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
   if (isError || !doc) {
     return (
       <div
-        className='min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center p-4'
+        className='min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center p-4 no-print'
         dir='rtl'
       >
         <div className='bg-white dark:bg-slate-900 rounded-2xl p-8 max-w-md w-full shadow-xl border border-slate-200 dark:border-slate-800 text-center space-y-4'>
@@ -283,14 +293,8 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
         <div className='relative z-10 flex-1 flex flex-col justify-between'>
           <div className='flex-1 flex flex-col justify-start'>
-            {/* Top Accent Line: Right 1/4 Orange, Left 3/4 Black */}
-            <div className='flex h-2.5 w-full shrink-0' dir='rtl'>
-              <div className='h-full w-1/4 bg-[#f97316]'></div>
-              <div className='h-full w-3/4 bg-slate-950'></div>
-            </div>
-
             {/* Header */}
-            <div className='px-6 pb-2 pt-4 sm:px-10'>
+            <div className='px-6 pb-2 pt-6 sm:px-10' dir='rtl'>
               <div className='flex items-center justify-between gap-4 pb-1'>
                 <div className='flex items-center gap-3 shrink-0' dir='ltr'>
                   {/* eslint-disable-next-line @next/next/no-img-element */}

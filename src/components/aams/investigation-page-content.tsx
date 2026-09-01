@@ -538,7 +538,10 @@ export function InvestigationPageContent({
     iframe.src = url;
     document.body.appendChild(iframe);
 
-    iframe.onload = () => {
+    let printed = false;
+    const doPrint = () => {
+      if (printed) return;
+      printed = true;
       try {
         if (iframe.contentDocument) {
           iframe.contentDocument.title = printTitle;
@@ -551,11 +554,29 @@ export function InvestigationPageContent({
         iframe.contentWindow?.print();
         setTimeout(() => {
           document.title = originalTitle;
+          window.removeEventListener('message', handleMessage);
           if (document.body.contains(iframe)) {
             document.body.removeChild(iframe);
           }
         }, 3000);
-      }, 600);
+      }, 200);
+    };
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'DOC_READY_TO_PRINT' && event.data?.docId === inv.id) {
+        doPrint();
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    // Fallback if message not caught within 3.5 seconds
+    iframe.onload = () => {
+      setTimeout(() => {
+        if (!printed) {
+          doPrint();
+        }
+      }, 3500);
     };
   };
 
@@ -595,47 +616,40 @@ export function InvestigationPageContent({
   // ============ DOCUMENT STYLE HELPER ============
   const DocHeader = ({ qrUrl }: { qrUrl?: string }) => {
     return (
-      <>
-        {/* Top Accent Line: Orange on Right (1/4) + Black on Left (3/4) */}
-        <div className='flex h-2 w-full' dir='rtl'>
-          <div className='h-full w-1/4 bg-[#f97316]'></div>
-          <div className='h-full w-3/4 bg-slate-950'></div>
-        </div>
-        <div className='px-6 pb-2 pt-4 sm:px-10' dir='rtl'>
-          <div className='flex items-center justify-between gap-4 pb-1'>
-            {/* Logo before Company Name */}
-            <div className='flex items-center gap-3 shrink-0' dir='ltr'>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src='/logo.png'
-                alt='AAMS LOGISTICS'
-                className='h-12 w-auto object-contain shrink-0'
-              />
-              <div className='flex flex-col items-stretch justify-center select-none text-center min-w-[76px]'>
-                <span className='text-[20px] font-black tracking-[0.16em] text-slate-950 font-sans leading-none pl-[0.16em] block'>
-                  AAMS
-                </span>
-                <span className='text-[7.5px] font-black tracking-[0.37em] text-slate-700 font-sans leading-none mt-1 pl-[0.37em] uppercase block'>
-                  LOGISTICS
-                </span>
-              </div>
+      <div className='px-6 pb-2 pt-6 sm:px-10' dir='rtl'>
+        <div className='flex items-center justify-between gap-4 pb-1'>
+          {/* Logo before Company Name */}
+          <div className='flex items-center gap-3 shrink-0' dir='ltr'>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src='/logo.png'
+              alt='AAMS LOGISTICS'
+              className='h-12 w-auto object-contain shrink-0'
+            />
+            <div className='flex flex-col items-stretch justify-center select-none text-center min-w-[76px]'>
+              <span className='text-[20px] font-black tracking-[0.16em] text-slate-950 font-sans leading-none pl-[0.16em] block'>
+                AAMS
+              </span>
+              <span className='text-[7.5px] font-black tracking-[0.37em] text-slate-700 font-sans leading-none mt-1 pl-[0.37em] uppercase block'>
+                LOGISTICS
+              </span>
             </div>
-
-            {/* Clickable QR Code aligned on opposite side without container box */}
-            {qrUrl && (
-              <a
-                href={qrUrl}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105'
-                title='انقر للانتقال إلى الوثيقة'
-              >
-                <QRCodeImage value={qrUrl} size={68} />
-              </a>
-            )}
           </div>
+
+          {/* Clickable QR Code aligned on opposite side without container box */}
+          {qrUrl && (
+            <a
+              href={qrUrl}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105'
+              title='انقر للانتقال إلى الوثيقة'
+            >
+              <QRCodeImage value={qrUrl} size={68} />
+            </a>
+          )}
         </div>
-      </>
+      </div>
     );
   };
 
