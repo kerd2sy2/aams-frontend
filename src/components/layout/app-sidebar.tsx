@@ -121,18 +121,26 @@ export default function AppSidebar() {
     [pathname]
   );
 
-  // Single active accordion state: only ONE dropdown open at a time
-  const [openDropdown, setOpenDropdown] = React.useState<string | null>(() =>
-    getActiveParentTitle(groups)
-  );
+  // Accordion state: keep active dropdown open while browsing other dropdowns
+  const [openDropdowns, setOpenDropdowns] = React.useState<Record<string, boolean>>(() => {
+    const activeParent = getActiveParentTitle(groups);
+    return activeParent ? { [activeParent]: true } : {};
+  });
 
-  // When pathname changes (e.g. user clicked any link), auto-switch to ONLY the active dropdown
+  // When pathname changes (user actually navigated to a new page), switch active dropdown
   React.useEffect(() => {
     const activeParent = getActiveParentTitle(groups);
     if (activeParent) {
-      setOpenDropdown(activeParent);
+      setOpenDropdowns({ [activeParent]: true });
     }
   }, [pathname, groups, getActiveParentTitle]);
+
+  const toggleDropdown = React.useCallback((title: string, open: boolean) => {
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [title]: open,
+    }));
+  }, []);
 
   function handleLogout() {
     clearAuth();
@@ -173,7 +181,7 @@ export default function AppSidebar() {
                   const hasChildren = Boolean(item.items?.length);
 
                   if (hasChildren) {
-                    const isOpen = openDropdown === item.title;
+                    const isOpen = Boolean(openDropdowns[item.title]);
                     return (
                       <CollapsibleNavItem
                         key={item.title}
@@ -181,7 +189,7 @@ export default function AppSidebar() {
                         pathname={pathname}
                         isOpen={isOpen}
                         onOpenChange={(open) => {
-                          setOpenDropdown(open ? item.title : null);
+                          toggleDropdown(item.title, open);
                         }}
                         t={t}
                         Icon={Icon}
