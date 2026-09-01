@@ -209,7 +209,10 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
   const photoUrl = `${currentOrigin}/doc/${t.type}/${t.id}?photos=1`;
 
   return (
-    <div className='min-h-screen bg-slate-100 text-slate-950 py-4 sm:py-8' dir='rtl'>
+    <div
+      className='public-doc-wrapper min-h-screen bg-slate-100 text-slate-950 py-4 sm:py-8'
+      dir='rtl'
+    >
       <style jsx global>{`
         @media print {
           @page {
@@ -220,6 +223,7 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color-adjust: exact !important;
+            box-sizing: border-box !important;
           }
           html,
           body {
@@ -227,10 +231,20 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
             padding: 0 !important;
             background: #ffffff !important;
             width: 210mm !important;
-            height: 297mm !important;
+            height: 100% !important;
             max-height: 297mm !important;
+            overflow: hidden !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+          }
+          .public-doc-wrapper {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            min-height: 0 !important;
+            height: 100% !important;
+            max-height: 297mm !important;
+            overflow: hidden !important;
           }
           header,
           aside,
@@ -242,13 +256,13 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
             border: none !important;
             border-radius: 0 !important;
             box-shadow: none !important;
-            margin: 0 !important;
+            margin: 0 auto !important;
             padding: 0 !important;
             width: 210mm !important;
             max-width: 210mm !important;
-            min-height: 297mm !important;
-            height: 297mm !important;
-            max-height: 297mm !important;
+            height: 296mm !important;
+            max-height: 296mm !important;
+            min-height: 296mm !important;
             display: flex !important;
             flex-direction: column !important;
             justify-content: space-between !important;
@@ -256,6 +270,7 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
             page-break-after: avoid !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
+            break-after: avoid !important;
             overflow: hidden !important;
           }
         }
@@ -293,8 +308,14 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
         <div className='relative z-10 flex-1 flex flex-col justify-between'>
           <div className='flex-1 flex flex-col justify-start'>
+            {/* Top Accent Line: Right 1/4 Orange, Left 3/4 Black */}
+            <div className='flex h-2.5 w-full shrink-0' dir='rtl'>
+              <div className='h-full w-1/4 bg-[#f97316]'></div>
+              <div className='h-full w-3/4 bg-slate-950'></div>
+            </div>
+
             {/* Header */}
-            <div className='px-6 pb-2 pt-6 sm:px-10' dir='rtl'>
+            <div className='px-6 pb-2 pt-3 sm:px-10' dir='rtl'>
               <div className='flex items-center justify-between gap-4 pb-1'>
                 <div className='flex items-center gap-3 shrink-0' dir='ltr'>
                   {/* eslint-disable-next-line @next/next/no-img-element */}

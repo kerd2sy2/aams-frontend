@@ -616,40 +616,47 @@ export function InvestigationPageContent({
   // ============ DOCUMENT STYLE HELPER ============
   const DocHeader = ({ qrUrl }: { qrUrl?: string }) => {
     return (
-      <div className='px-6 pb-2 pt-6 sm:px-10' dir='rtl'>
-        <div className='flex items-center justify-between gap-4 pb-1'>
-          {/* Logo before Company Name */}
-          <div className='flex items-center gap-3 shrink-0' dir='ltr'>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src='/logo.png'
-              alt='AAMS LOGISTICS'
-              className='h-12 w-auto object-contain shrink-0'
-            />
-            <div className='flex flex-col items-stretch justify-center select-none text-center min-w-[76px]'>
-              <span className='text-[20px] font-black tracking-[0.16em] text-slate-950 font-sans leading-none pl-[0.16em] block'>
-                AAMS
-              </span>
-              <span className='text-[7.5px] font-black tracking-[0.37em] text-slate-700 font-sans leading-none mt-1 pl-[0.37em] uppercase block'>
-                LOGISTICS
-              </span>
-            </div>
-          </div>
-
-          {/* Clickable QR Code aligned on opposite side without container box */}
-          {qrUrl && (
-            <a
-              href={qrUrl}
-              target='_blank'
-              rel='noopener noreferrer'
-              className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105'
-              title='انقر للانتقال إلى الوثيقة'
-            >
-              <QRCodeImage value={qrUrl} size={68} />
-            </a>
-          )}
+      <>
+        {/* Top Accent Line: Orange on Right (1/4) + Black on Left (3/4) */}
+        <div className='flex h-2.5 w-full shrink-0' dir='rtl'>
+          <div className='h-full w-1/4 bg-[#f97316]'></div>
+          <div className='h-full w-3/4 bg-slate-950'></div>
         </div>
-      </div>
+        <div className='px-6 pb-2 pt-3 sm:px-10' dir='rtl'>
+          <div className='flex items-center justify-between gap-4 pb-1'>
+            {/* Logo before Company Name */}
+            <div className='flex items-center gap-3 shrink-0' dir='ltr'>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src='/logo.png'
+                alt='AAMS LOGISTICS'
+                className='h-12 w-auto object-contain shrink-0'
+              />
+              <div className='flex flex-col items-stretch justify-center select-none text-center min-w-[76px]'>
+                <span className='text-[20px] font-black tracking-[0.16em] text-slate-950 font-sans leading-none pl-[0.16em] block'>
+                  AAMS
+                </span>
+                <span className='text-[7.5px] font-black tracking-[0.37em] text-slate-700 font-sans leading-none mt-1 pl-[0.37em] uppercase block'>
+                  LOGISTICS
+                </span>
+              </div>
+            </div>
+
+            {/* Clickable QR Code aligned on opposite side without container box */}
+            {qrUrl && (
+              <a
+                href={qrUrl}
+                target='_blank'
+                rel='noopener noreferrer'
+                className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105'
+                title='انقر للانتقال إلى الوثيقة'
+              >
+                <QRCodeImage value={qrUrl} size={68} />
+              </a>
+            )}
+          </div>
+        </div>
+      </>
     );
   };
 
