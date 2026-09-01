@@ -60,7 +60,9 @@ function renderBoldText(text: string) {
 }
 
 // Extract employees for group reports
-export function parseDocEmployees(inv: InvestigationResponse): Array<{ name: string; national_id: string }> {
+export function parseDocEmployees(
+  inv: InvestigationResponse
+): Array<{ name: string; national_id: string }> {
   if (!inv) return [];
 
   // Check if items contain JSON serialized employee objects
@@ -104,7 +106,11 @@ export function parseDocEmployees(inv: InvestigationResponse): Array<{ name: str
 export function PublicDocView({ docId, initialType }: { docId: string; initialType?: string }) {
   const [viewingImage, setViewingImage] = useState<string | null>(null);
 
-  const { data: doc, isLoading, isError } = useQuery({
+  const {
+    data: doc,
+    isLoading,
+    isError
+  } = useQuery({
     queryKey: ['public-doc', docId],
     queryFn: () => investigationApi.getPublicById(docId),
     retry: 1
@@ -122,10 +128,15 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
   if (isLoading) {
     return (
-      <div className='min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center p-4' dir='rtl'>
+      <div
+        className='min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center p-4'
+        dir='rtl'
+      >
         <div className='bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col items-center gap-3'>
           <Loader2 className='size-8 animate-spin text-[#f97316]' />
-          <p className='text-sm font-bold text-slate-700 dark:text-slate-300'>جارٍ استرجاع بيانات الوثيقة والتحقق منها...</p>
+          <p className='text-sm font-bold text-slate-700 dark:text-slate-300'>
+            جارٍ استرجاع بيانات الوثيقة والتحقق منها...
+          </p>
         </div>
       </div>
     );
@@ -133,12 +144,17 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
   if (isError || !doc) {
     return (
-      <div className='min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center p-4' dir='rtl'>
+      <div
+        className='min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center p-4'
+        dir='rtl'
+      >
         <div className='bg-white dark:bg-slate-900 rounded-2xl p-8 max-w-md w-full shadow-xl border border-slate-200 dark:border-slate-800 text-center space-y-4'>
           <div className='size-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto'>
             <AlertTriangle className='size-8' />
           </div>
-          <h2 className='text-lg font-black text-slate-900 dark:text-slate-100'>تعذر العثور على الوثيقة</h2>
+          <h2 className='text-lg font-black text-slate-900 dark:text-slate-100'>
+            تعذر العثور على الوثيقة
+          </h2>
           <p className='text-xs text-slate-500 leading-relaxed'>
             لم يتم العثور على تقرير أو محضر مطابق لهذا الرمز. يرجى التأكد من مسح الرمز الصحيح.
           </p>
@@ -159,9 +175,14 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
   const employees = parseDocEmployees(t);
   const isGroupReport = employees.length > 1;
 
-  const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'aams-logistics.kerd2sy.com';
-  const currentPort = typeof window !== 'undefined' && window.location.port ? `:${window.location.port}` : '';
-  const currentOrigin = typeof window !== 'undefined' ? `${window.location.protocol}//${currentHost}${currentPort}` : 'https://aams-logistics.kerd2sy.com';
+  const currentHost =
+    typeof window !== 'undefined' ? window.location.hostname : 'aams-logistics.kerd2sy.com';
+  const currentPort =
+    typeof window !== 'undefined' && window.location.port ? `:${window.location.port}` : '';
+  const currentOrigin =
+    typeof window !== 'undefined'
+      ? `${window.location.protocol}//${currentHost}${currentPort}`
+      : 'https://aams-logistics.kerd2sy.com';
   const docUrl = `${currentOrigin}/doc/${t.type}/${t.id}`;
   const photoUrl = `${currentOrigin}/doc/${t.type}/${t.id}?photos=1`;
 
@@ -173,10 +194,14 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
             size: A4 portrait;
             margin: 0mm;
           }
-          header, aside, nav, .no-print {
+          header,
+          aside,
+          nav,
+          .no-print {
             display: none !important;
           }
-          body, html {
+          body,
+          html {
             background: white !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -234,7 +259,11 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
               <div className='flex items-center justify-between gap-4 pb-1'>
                 <div className='flex items-center gap-3 shrink-0' dir='ltr'>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src='/logo.png' alt='AAMS LOGISTICS' className='h-12 w-auto object-contain shrink-0' />
+                  <img
+                    src='/logo.png'
+                    alt='AAMS LOGISTICS'
+                    className='h-12 w-auto object-contain shrink-0'
+                  />
                   <div className='flex flex-col items-stretch justify-center select-none text-center min-w-[76px]'>
                     <span className='text-[20px] font-black tracking-[0.16em] text-slate-950 font-sans leading-none pl-[0.16em] block'>
                       AAMS
@@ -245,17 +274,15 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                   </div>
                 </div>
 
-                {/* Clickable QR Code aligned with logo on the other side */}
+                {/* Clickable QR Code aligned with logo on the other side without container box */}
                 <a
                   href={docUrl}
                   target='_blank'
                   rel='noopener noreferrer'
-                  className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105 group'
+                  className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105'
                   title='انقر للانتقال إلى الوثيقة'
                 >
-                  <div className='p-1 bg-white rounded-lg border border-slate-200 shadow-2xs group-hover:border-primary'>
-                    <QRCodeImage value={docUrl} size={64} />
-                  </div>
+                  <QRCodeImage value={docUrl} size={68} />
                 </a>
               </div>
             </div>
@@ -296,9 +323,13 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                     <tbody className='divide-y divide-slate-200/70'>
                       {employees.map((emp, idx) => (
                         <tr key={idx} className='hover:bg-slate-100/50 transition-colors'>
-                          <td className='p-2.5 text-center font-bold text-slate-500 font-mono'>{idx + 1}</td>
+                          <td className='p-2.5 text-center font-bold text-slate-500 font-mono'>
+                            {idx + 1}
+                          </td>
                           <td className='p-2.5 font-black text-slate-900'>{emp.name}</td>
-                          <td className='p-2.5 font-mono font-bold text-slate-700'>{emp.national_id}</td>
+                          <td className='p-2.5 font-mono font-bold text-slate-700'>
+                            {emp.national_id}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -310,16 +341,26 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                 <div className='flex items-center justify-between gap-6'>
                   <div className='space-y-1.5 text-sm'>
                     <div className='flex items-center gap-2'>
-                      <span className='text-xs text-slate-500 font-medium min-w-[75px]'>اسم الموظف:</span>
+                      <span className='text-xs text-slate-500 font-medium min-w-[75px]'>
+                        اسم الموظف:
+                      </span>
                       <span className='font-bold text-slate-950'>{t.employee_name || '—'}</span>
                     </div>
                     <div className='flex items-center gap-2'>
-                      <span className='text-xs text-slate-500 font-medium min-w-[75px]'>رقم الهوية:</span>
-                      <span className='font-mono font-bold text-slate-950 tracking-wider'>{t.national_id || '—'}</span>
+                      <span className='text-xs text-slate-500 font-medium min-w-[75px]'>
+                        رقم الهوية:
+                      </span>
+                      <span className='font-mono font-bold text-slate-950 tracking-wider'>
+                        {t.national_id || '—'}
+                      </span>
                     </div>
                     <div className='flex items-center gap-2'>
-                      <span className='text-xs text-slate-500 font-medium min-w-[75px]'>تاريخ الإنشاء:</span>
-                      <span className='font-mono font-bold text-slate-900'>{formatDate(t.created_at)}</span>
+                      <span className='text-xs text-slate-500 font-medium min-w-[75px]'>
+                        تاريخ الإنشاء:
+                      </span>
+                      <span className='font-mono font-bold text-slate-900'>
+                        {formatDate(t.created_at)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -385,7 +426,9 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                   نتيجة التحقيق
                 </h3>
                 <div className='rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 text-center'>
-                  <p className='mb-0.5 text-xs text-slate-500 font-medium'>إقرار الإدانة من الموظف:</p>
+                  <p className='mb-0.5 text-xs text-slate-500 font-medium'>
+                    إقرار الإدانة من الموظف:
+                  </p>
                   <p className='text-lg font-black text-slate-950'>
                     {t.is_guilty ? 'نعم - إقرار بالإدانة' : 'لا - إنكار الإدانة'}
                   </p>
@@ -469,7 +512,10 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                   </div>
 
                   {/* Thumbnail Previews */}
-                  <div className='flex items-center gap-1.5 overflow-hidden' onClick={(e) => e.stopPropagation()}>
+                  <div
+                    className='flex items-center gap-1.5 overflow-hidden'
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {t.images.slice(0, 3).map((img, idx) => (
                       <div
                         key={idx}
@@ -478,7 +524,11 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                         title='انقر لتكبير الصورة'
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={img} alt={`مرفق ${idx + 1}`} className='w-full h-full object-cover' />
+                        <img
+                          src={img}
+                          alt={`مرفق ${idx + 1}`}
+                          className='w-full h-full object-cover'
+                        />
                       </div>
                     ))}
                     {t.images.length > 3 && (
@@ -507,11 +557,15 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
                 <div className='flex items-end justify-between max-w-lg mx-auto pt-2 pb-2 px-4'>
                   <div className='space-y-1'>
-                    <span className='text-[10px] font-bold text-slate-400 block'>مُعد التقرير (المشرف)</span>
+                    <span className='text-[10px] font-bold text-slate-400 block'>
+                      مُعد التقرير (المشرف)
+                    </span>
                     <p className='text-sm font-black text-slate-900'>{t.supervisor_name || '—'}</p>
                   </div>
                   <div className='space-y-1 text-left' dir='ltr'>
-                    <span className='text-[10px] font-bold text-slate-400 block text-right'>التوقيع</span>
+                    <span className='text-[10px] font-bold text-slate-400 block text-right'>
+                      التوقيع
+                    </span>
                     <div className='w-40 border-b-2 border-slate-300 pb-3'></div>
                   </div>
                 </div>
@@ -527,8 +581,12 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                     <div className='w-40 border-b-2 border-slate-300 pb-3'></div>
                   </div>
                   <div className='space-y-1 text-left' dir='ltr'>
-                    <span className='text-[10px] font-bold text-slate-400 block text-right'>توقيع المشرف المسؤول</span>
-                    <p className='text-sm font-black text-slate-900 text-right'>{t.supervisor_name || '—'}</p>
+                    <span className='text-[10px] font-bold text-slate-400 block text-right'>
+                      توقيع المشرف المسؤول
+                    </span>
+                    <p className='text-sm font-black text-slate-900 text-right'>
+                      {t.supervisor_name || '—'}
+                    </p>
                     <div className='w-40 border-b-2 border-slate-300 pb-3 ml-auto'></div>
                   </div>
                 </div>
@@ -538,7 +596,9 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
             {/* Official Footer */}
             <div className='mt-auto border-t border-slate-300 px-4 py-1.5 text-center bg-slate-50/70'>
               <p className='text-[8.5px] font-bold text-slate-700 leading-tight'>
-                شركة ابرار عبد الرحمن الشمرانى للخدمات اللوجيستية - المملكة العربية السعودية - جدة - الطائف - الخبر - سجل تجارى رقم 41030552280 | رقم الهاتف: 0531112225 | الايميل: fahad@aams-logistics.com
+                شركة ابرار عبد الرحمن الشمرانى للخدمات اللوجيستية - المملكة العربية السعودية - جدة -
+                الطائف - الخبر - سجل تجارى رقم 41030552280 | رقم الهاتف: 0531112225 | الايميل:
+                fahad@aams-logistics.com
               </p>
             </div>
           </div>
@@ -547,7 +607,10 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
       {/* High-Resolution Photo Lightbox */}
       <Dialog open={!!viewingImage} onOpenChange={(open) => !open && setViewingImage(null)}>
-        <DialogContent className='max-w-4xl max-h-[90vh] p-4 flex flex-col items-center justify-center bg-slate-950/95 text-white border-slate-800' dir='rtl'>
+        <DialogContent
+          className='max-w-4xl max-h-[90vh] p-4 flex flex-col items-center justify-center bg-slate-950/95 text-white border-slate-800'
+          dir='rtl'
+        >
           <DialogHeader className='w-full flex flex-row items-center justify-between pb-2 border-b border-slate-800'>
             <DialogTitle className='text-sm font-bold text-white flex items-center gap-2'>
               <ImageIcon className='size-4 text-[#f97316]' />
@@ -574,7 +637,9 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                   onClick={() => setViewingImage(img)}
                   className={cn(
                     'size-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer',
-                    viewingImage === img ? 'border-[#f97316] scale-105 shadow-md' : 'border-transparent opacity-50 hover:opacity-100'
+                    viewingImage === img
+                      ? 'border-[#f97316] scale-105 shadow-md'
+                      : 'border-transparent opacity-50 hover:opacity-100'
                   )}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -19,7 +19,18 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { formatRiyadh } from '@/lib/aams/riyadh-time';
 import { QRCodeImage } from '@/components/aams/employee-codes';
-import { QrCode, ShieldCheck, Loader2, Image as ImageIcon, Camera, Users, User, Check, X, Plus } from 'lucide-react';
+import {
+  QrCode,
+  ShieldCheck,
+  Loader2,
+  Image as ImageIcon,
+  Camera,
+  Users,
+  User,
+  Check,
+  X,
+  Plus
+} from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Sheet,
@@ -32,11 +43,36 @@ import {
 
 // Template types
 const TEMPLATES = [
-  { key: 'supervisor_report', label: 'تقرير مشرف', icon: Icons.fileText, color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/30' },
-  { key: 'advance', label: 'سلفة', icon: Icons.dollarSign, color: 'text-green-600 bg-green-50 dark:bg-green-950/30' },
-  { key: 'internet_advance', label: 'سلفة انترنت', icon: Icons.wifi, color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/30' },
-  { key: 'absence', label: 'متابعة غياب', icon: Icons.calendar, color: 'text-rose-600 bg-rose-50 dark:bg-rose-950/30' },
-  { key: 'custody', label: 'استلام عهدة', icon: Icons.inventory, color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30' }
+  {
+    key: 'supervisor_report',
+    label: 'تقرير مشرف',
+    icon: Icons.fileText,
+    color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/30'
+  },
+  {
+    key: 'advance',
+    label: 'سلفة',
+    icon: Icons.dollarSign,
+    color: 'text-green-600 bg-green-50 dark:bg-green-950/30'
+  },
+  {
+    key: 'internet_advance',
+    label: 'سلفة انترنت',
+    icon: Icons.wifi,
+    color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/30'
+  },
+  {
+    key: 'absence',
+    label: 'متابعة غياب',
+    icon: Icons.calendar,
+    color: 'text-rose-600 bg-rose-50 dark:bg-rose-950/30'
+  },
+  {
+    key: 'custody',
+    label: 'استلام عهدة',
+    icon: Icons.inventory,
+    color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30'
+  }
 ];
 
 const TEMPLATE_LABELS: Record<string, string> = {};
@@ -48,7 +84,9 @@ function formatDate(d: string | null) {
 }
 
 // Extract employees for group reports
-export function parseDocEmployees(inv: InvestigationResponse | null | undefined): Array<{ name: string; national_id: string }> {
+export function parseDocEmployees(
+  inv: InvestigationResponse | null | undefined
+): Array<{ name: string; national_id: string }> {
   if (!inv) return [];
 
   // Check if items contain JSON serialized employee objects
@@ -129,8 +167,13 @@ function ApprovalStatus({ inv }: { inv: InvestigationResponse }) {
         : 'bg-amber-100 text-amber-700 border-amber-300';
 
   const byName =
-    status === 'approved' ? inv.approved_by_name : status === 'rejected' ? inv.rejected_by_name : '';
-  const at = status === 'approved' ? inv.approved_at : status === 'rejected' ? inv.rejected_at : null;
+    status === 'approved'
+      ? inv.approved_by_name
+      : status === 'rejected'
+        ? inv.rejected_by_name
+        : '';
+  const at =
+    status === 'approved' ? inv.approved_at : status === 'rejected' ? inv.rejected_at : null;
 
   return (
     <div className='mt-2 flex flex-wrap items-center gap-2' onClick={(e) => e.stopPropagation()}>
@@ -152,7 +195,10 @@ export interface InvestigationPageContentProps {
   viewId?: string;
 }
 
-export function InvestigationPageContent({ investigationType, viewId }: InvestigationPageContentProps) {
+export function InvestigationPageContent({
+  investigationType,
+  viewId
+}: InvestigationPageContentProps) {
   const router = useRouter();
   const { t, dir } = useLocale();
   const currentAdmin = useMemo(() => getAdminUser(), []);
@@ -317,8 +363,14 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
         return investigationApi.update(editingId, {
           ...baseData,
           employee_id: selectedEmployee?.id || (viewTarget ? viewTarget.employee_id : undefined),
-          employee_name: employeeName || selectedEmployee?.name || (viewTarget ? viewTarget.employee_name : undefined),
-          national_id: nationalId || selectedEmployee?.national_id || (viewTarget ? viewTarget.national_id : undefined),
+          employee_name:
+            employeeName ||
+            selectedEmployee?.name ||
+            (viewTarget ? viewTarget.employee_name : undefined),
+          national_id:
+            nationalId ||
+            selectedEmployee?.national_id ||
+            (viewTarget ? viewTarget.national_id : undefined)
         });
       }
 
@@ -433,14 +485,14 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
 
   const hasEmployee = isBulkMode
     ? selectedEmployees.length > 0
-    : (selectedEmployee || employeeName.trim() !== '');
+    : selectedEmployee || employeeName.trim() !== '';
 
   const hasRequiredFields =
     selectedType === 'advance' || selectedType === 'internet_advance'
       ? !!amount
       : selectedType === 'investigation'
-      ? isGuilty !== null
-      : true;
+        ? isGuilty !== null
+        : true;
 
   const canSave = hasEmployee && hasRequiredFields;
 
@@ -536,7 +588,11 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
             {/* Logo before Company Name */}
             <div className='flex items-center gap-3 shrink-0' dir='ltr'>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src='/logo.png' alt='AAMS LOGISTICS' className='h-12 w-auto object-contain shrink-0' />
+              <img
+                src='/logo.png'
+                alt='AAMS LOGISTICS'
+                className='h-12 w-auto object-contain shrink-0'
+              />
               <div className='flex flex-col items-stretch justify-center select-none text-center min-w-[76px]'>
                 <span className='text-[20px] font-black tracking-[0.16em] text-slate-950 font-sans leading-none pl-[0.16em] block'>
                   AAMS
@@ -547,18 +603,16 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
               </div>
             </div>
 
-            {/* Clickable QR Code aligned on opposite side */}
+            {/* Clickable QR Code aligned on opposite side without container box */}
             {qrUrl && (
               <a
                 href={qrUrl}
                 target='_blank'
                 rel='noopener noreferrer'
-                className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105 group'
+                className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105'
                 title='انقر للانتقال إلى الوثيقة'
               >
-                <div className='p-1 bg-white rounded-lg border border-slate-200 shadow-2xs group-hover:border-primary'>
-                  <QRCodeImage value={qrUrl} size={64} />
-                </div>
+                <QRCodeImage value={qrUrl} size={68} />
               </a>
             )}
           </div>
@@ -592,11 +646,15 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
 
           <div className='flex items-end justify-between max-w-lg mx-auto pt-3 pb-2 px-4'>
             <div className='space-y-1.5'>
-              <span className='text-[10.5px] font-bold text-slate-400 block'>مُعد التقرير (المشرف)</span>
+              <span className='text-[10.5px] font-bold text-slate-400 block'>
+                مُعد التقرير (المشرف)
+              </span>
               <p className='text-sm font-black text-slate-900'>{supName || '—'}</p>
             </div>
             <div className='space-y-1.5 text-left' dir='ltr'>
-              <span className='text-[10.5px] font-bold text-slate-400 block text-right'>التوقيع</span>
+              <span className='text-[10.5px] font-bold text-slate-400 block text-right'>
+                التوقيع
+              </span>
               <div className='w-44 border-b-2 border-slate-300 pb-4'></div>
             </div>
           </div>
@@ -615,7 +673,9 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
             <div className='w-44 border-b-2 border-slate-300 pb-3'></div>
           </div>
           <div className='space-y-1.5 text-left' dir='ltr'>
-            <span className='text-[10.5px] font-bold text-slate-400 block text-right'>توقيع المشرف المسؤول</span>
+            <span className='text-[10.5px] font-bold text-slate-400 block text-right'>
+              توقيع المشرف المسؤول
+            </span>
             <p className='text-sm font-black text-slate-900 text-right'>{supName || '—'}</p>
             <div className='w-44 border-b-2 border-slate-300 pb-3 ml-auto'></div>
           </div>
@@ -653,15 +713,14 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
           onClick={() => setViewingImage(images[0])}
         >
           <div className='flex items-center gap-3.5'>
-            <div
-              className='shrink-0'
-              title='امسح الرمز أو انقر لعرض الصور'
-            >
+            <div className='shrink-0' title='امسح الرمز أو انقر لعرض الصور'>
               <QRCodeImage value={qrUrl} size={78} />
             </div>
             <div className='space-y-1 text-right'>
               <div className='flex items-center gap-2'>
-                <span className='text-xs font-black text-slate-900'>مرفقات مصورة ({images.length} صور)</span>
+                <span className='text-xs font-black text-slate-900'>
+                  مرفقات مصورة ({images.length} صور)
+                </span>
                 <span className='text-[9.5px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full'>
                   QR المرفقات
                 </span>
@@ -676,7 +735,10 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
           </div>
 
           {/* Mini Thumbnails */}
-          <div className='flex items-center gap-1.5 overflow-hidden' onClick={(e) => e.stopPropagation()}>
+          <div
+            className='flex items-center gap-1.5 overflow-hidden'
+            onClick={(e) => e.stopPropagation()}
+          >
             {images.slice(0, 3).map((img, idx) => (
               <div
                 key={idx}
@@ -704,7 +766,10 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
 
   const PhotoLightboxDialog = ({ currentImages }: { currentImages: string[] }) => (
     <Dialog open={!!viewingImage} onOpenChange={(open) => !open && setViewingImage(null)}>
-      <DialogContent className='max-w-4xl max-h-[90vh] p-4 flex flex-col items-center justify-center bg-slate-950/95 text-white border-slate-800' dir='rtl'>
+      <DialogContent
+        className='max-w-4xl max-h-[90vh] p-4 flex flex-col items-center justify-center bg-slate-950/95 text-white border-slate-800'
+        dir='rtl'
+      >
         <DialogHeader className='w-full flex flex-row items-center justify-between pb-2 border-b border-slate-800'>
           <DialogTitle className='text-sm font-bold text-white flex items-center gap-2'>
             <ImageIcon className='size-4 text-blue-400' />
@@ -714,7 +779,11 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
         {viewingImage && (
           <div className='relative max-h-[65vh] w-full flex items-center justify-center overflow-auto my-3'>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={viewingImage} alt='مرفق بدقة عالية' className='max-h-[65vh] max-w-full object-contain rounded-lg shadow-2xl' />
+            <img
+              src={viewingImage}
+              alt='مرفق بدقة عالية'
+              className='max-h-[65vh] max-w-full object-contain rounded-lg shadow-2xl'
+            />
           </div>
         )}
         {/* Thumbnail Strip */}
@@ -727,7 +796,9 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                 onClick={() => setViewingImage(img)}
                 className={cn(
                   'size-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer',
-                  viewingImage === img ? 'border-blue-500 scale-105 shadow-md' : 'border-transparent opacity-50 hover:opacity-100'
+                  viewingImage === img
+                    ? 'border-blue-500 scale-105 shadow-md'
+                    : 'border-transparent opacity-50 hover:opacity-100'
                 )}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -741,9 +812,14 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
   );
 
   const DocFooter = () => (
-    <div className='mt-auto border-t border-slate-300 px-4 py-1.5 text-center bg-slate-50/70' dir='rtl'>
+    <div
+      className='mt-auto border-t border-slate-300 px-4 py-1.5 text-center bg-slate-50/70'
+      dir='rtl'
+    >
       <p className='text-[8.5px] font-bold text-slate-700 leading-tight'>
-        شركة ابرار عبد الرحمن الشمرانى للخدمات اللوجيستية - المملكة العربية السعودية - جدة - الطائف - الخبر - سجل تجارى رقم 41030552280 | رقم الهاتف: 0531112225 | الايميل: fahad@aams-logistics.com
+        شركة ابرار عبد الرحمن الشمرانى للخدمات اللوجيستية - المملكة العربية السعودية - جدة - الطائف
+        - الخبر - سجل تجارى رقم 41030552280 | رقم الهاتف: 0531112225 | الايميل:
+        fahad@aams-logistics.com
       </p>
     </div>
   );
@@ -754,16 +830,16 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
       <p>
         أتقدم إلى سعادتكم بهذا الطلب، راجيًا من الله عز وجل ثم منكم التكرم بالموافقة على منحي سلفة
         مالية قدرها{' '}
-        <strong className='text-base font-black'>({amount.toLocaleString()} ريال)</strong>
-        ، وذلك نظرًا لظروفي الحالية وحاجتي إلى هذه السلفة خلال الفترة الحالية.
+        <strong className='text-base font-black'>({amount.toLocaleString()} ريال)</strong>، وذلك
+        نظرًا لظروفي الحالية وحاجتي إلى هذه السلفة خلال الفترة الحالية.
       </p>
       <p>
         وأتعهد بأن يتم استقطاع قيمة السلفة من راتبي الشهري وفقًا للنظام المتبع لديكم، وأكون شاكرًا
         ومقدرًا لكم حسن تعاونكم وتفهمكم لظروفي.
       </p>
       <p>
-        كما أتقدم لكم بخالص الشكر والتقدير على ما تقدمونه دائمًا من دعم واهتمام بالموظفين، سائلاً
-        الله أن يوفقكم ويبارك لكم في جهودكم.
+        كما أتقدم لكم بخالص الشكر والتقدير على ما تقدمونه دائمًا من دعم واهتمام بالموظفين، سائلاً الله
+        أن يوفقكم ويبارك لكم في جهودكم.
       </p>
       <p>وتفضلوا بقبول فائق الاحترام والتقدير.</p>
       <div className='mt-8 space-y-6 pt-4'>
@@ -795,8 +871,8 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
     <div className='space-y-4 px-10 py-5 text-sm leading-loose text-gray-800 sm:px-14'>
       <p>
         أقر أنا <strong className='font-black'>{employeeName}</strong> باستلامي مبلغًا وقدره{' '}
-        <strong className='text-base font-black'>({amount.toLocaleString()} ريال سعودي)</strong>
-        ، وذلك بغرض تغطية تكاليف اشتراك خدمة الإنترنت.
+        <strong className='text-base font-black'>({amount.toLocaleString()} ريال سعودي)</strong>،
+        وذلك بغرض تغطية تكاليف اشتراك خدمة الإنترنت.
       </p>
       <p>
         أوافق على استرداد قيمة السلفة للشركة وفق الخيار المحدد أدناه، حيث يتم خصم المبلغ على دفعة
@@ -804,13 +880,11 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
         <strong className='text-base font-black'>({formatDeductionMonth(deductionMonth)})</strong>.
       </p>
       <p>
-        وفي حال لم تكن باقة الإنترنت مسجلة للموظف ضمن الراتب الذي تم تسليمه، فلا يتم استقطاع المبلغ
-        من الراتب.
+        وفي حال لم تكن باقة الإنترنت مسجلة للموظف ضمن الراتب الذي تم تسليمه، فلا يتم استقطاع المبلغ من
+        الراتب.
       </p>
     </div>
   );
-
-
 
   const typeLabel = TEMPLATE_LABELS[investigationType] || 'تقرير';
 
@@ -901,7 +975,10 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
               >
                 <Icons.externalLink className='size-4' /> عرض الوثيقة للعامة
               </Button>
-              <Button onClick={() => handlePrint(viewTarget || t)} className='gap-2 font-bold bg-primary text-primary-foreground shadow-md'>
+              <Button
+                onClick={() => handlePrint(viewTarget || t)}
+                className='gap-2 font-bold bg-primary text-primary-foreground shadow-md'
+              >
                 <Icons.printer className='size-4' /> طباعة
               </Button>
             </div>
@@ -926,7 +1003,10 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                         </CardDescription>
                       </div>
                     </div>
-                    <Badge variant='outline' className='text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200'>
+                    <Badge
+                      variant='outline'
+                      className='text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200'
+                    >
                       مباشر ⚡
                     </Badge>
                   </div>
@@ -935,7 +1015,9 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                   {/* Manual Employee Name & National ID fields */}
                   <div className='space-y-3 border-b border-slate-200 dark:border-slate-800 pb-3'>
                     <div className='space-y-1'>
-                      <Label className='text-xs font-bold text-slate-800 dark:text-slate-200'>اسم الموظف:</Label>
+                      <Label className='text-xs font-bold text-slate-800 dark:text-slate-200'>
+                        اسم الموظف:
+                      </Label>
                       <Input
                         value={employeeName}
                         onChange={(e) => setEmployeeName(e.target.value)}
@@ -944,7 +1026,9 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                       />
                     </div>
                     <div className='space-y-1'>
-                      <Label className='text-xs font-bold text-slate-800 dark:text-slate-200'>رقم الهوية:</Label>
+                      <Label className='text-xs font-bold text-slate-800 dark:text-slate-200'>
+                        رقم الهوية:
+                      </Label>
                       <Input
                         value={nationalId}
                         onChange={(e) => setNationalId(e.target.value)}
@@ -995,7 +1079,9 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                   {(isAdvance || isInternetAdvance) && (
                     <div className='space-y-3'>
                       <div className='space-y-1'>
-                        <Label className='text-xs font-bold text-slate-800'>مبلغ السلفة (ريال):</Label>
+                        <Label className='text-xs font-bold text-slate-800'>
+                          مبلغ السلفة (ريال):
+                        </Label>
                         <Input
                           type='number'
                           value={amount}
@@ -1005,7 +1091,9 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                         />
                       </div>
                       <div className='space-y-1'>
-                        <Label className='text-xs font-bold text-slate-800'>ملاحظات / سبب السلفة:</Label>
+                        <Label className='text-xs font-bold text-slate-800'>
+                          ملاحظات / سبب السلفة:
+                        </Label>
                         <Textarea
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
@@ -1020,18 +1108,37 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                   {isInv && (
                     <div className='space-y-3'>
                       <div className='flex items-center justify-between'>
-                        <Label className='text-xs font-bold text-slate-800'>أسئلة وأجوبة التحقيق:</Label>
-                        <Button type='button' variant='ghost' size='sm' onClick={addQA} className='text-xs text-blue-600 h-7 px-2'>
+                        <Label className='text-xs font-bold text-slate-800'>
+                          أسئلة وأجوبة التحقيق:
+                        </Label>
+                        <Button
+                          type='button'
+                          variant='ghost'
+                          size='sm'
+                          onClick={addQA}
+                          className='text-xs text-blue-600 h-7 px-2'
+                        >
                           <Icons.plus className='size-3.5 mr-1' /> إضافة سؤال
                         </Button>
                       </div>
                       <div className='space-y-2 max-h-[280px] overflow-y-auto pr-1'>
                         {questions.map((q, i) => (
-                          <div key={i} className='p-2.5 bg-slate-50 dark:bg-slate-950 rounded-lg border border-slate-200 space-y-1.5'>
+                          <div
+                            key={i}
+                            className='p-2.5 bg-slate-50 dark:bg-slate-950 rounded-lg border border-slate-200 space-y-1.5'
+                          >
                             <div className='flex items-center justify-between'>
-                              <span className='text-[11px] font-bold text-slate-600'>سؤال #{i + 1}</span>
+                              <span className='text-[11px] font-bold text-slate-600'>
+                                سؤال #{i + 1}
+                              </span>
                               {questions.length > 1 && (
-                                <Button type='button' variant='ghost' size='sm' onClick={() => removeQA(i)} className='h-5 w-5 p-0 text-red-500'>
+                                <Button
+                                  type='button'
+                                  variant='ghost'
+                                  size='sm'
+                                  onClick={() => removeQA(i)}
+                                  className='h-5 w-5 p-0 text-red-500'
+                                >
                                   <Icons.trash className='size-3' />
                                 </Button>
                               )}
@@ -1053,7 +1160,9 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                       </div>
 
                       <div className='pt-2 border-t'>
-                        <Label className='text-xs font-bold text-slate-800 block mb-2'>إقرار الإدانة:</Label>
+                        <Label className='text-xs font-bold text-slate-800 block mb-2'>
+                          إقرار الإدانة:
+                        </Label>
                         <div className='grid grid-cols-2 gap-2'>
                           <Button
                             type='button'
@@ -1080,7 +1189,13 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                     <div className='space-y-2'>
                       <div className='flex items-center justify-between'>
                         <Label className='text-xs font-bold text-slate-800'>العهد المستلمة:</Label>
-                        <Button type='button' variant='ghost' size='sm' onClick={addItem} className='text-xs text-blue-600 h-7 px-2'>
+                        <Button
+                          type='button'
+                          variant='ghost'
+                          size='sm'
+                          onClick={addItem}
+                          className='text-xs text-blue-600 h-7 px-2'
+                        >
                           <Icons.plus className='size-3.5 mr-1' /> إضافة بند
                         </Button>
                       </div>
@@ -1094,7 +1209,13 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                               className='text-xs'
                             />
                             {items.length > 1 && (
-                              <Button type='button' variant='ghost' size='sm' onClick={() => removeItem(i)} className='h-8 w-8 p-0 text-red-500 shrink-0'>
+                              <Button
+                                type='button'
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => removeItem(i)}
+                                className='h-8 w-8 p-0 text-red-500 shrink-0'
+                              >
                                 <Icons.trash className='size-3.5' />
                               </Button>
                             )}
@@ -1127,7 +1248,10 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                     {images.length > 0 ? (
                       <div className='grid grid-cols-3 gap-2 mt-2'>
                         {images.map((img, idx) => (
-                          <div key={idx} className='relative group aspect-square rounded-lg border border-slate-200 overflow-hidden bg-slate-100 shadow-2xs'>
+                          <div
+                            key={idx}
+                            className='relative group aspect-square rounded-lg border border-slate-200 overflow-hidden bg-slate-100 shadow-2xs'
+                          >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={img}
@@ -1159,7 +1283,11 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                     disabled={saving}
                     className='w-full font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md gap-2 mt-4'
                   >
-                    {saving ? <Loader2 className='size-4 animate-spin' /> : <Icons.save className='size-4' />}
+                    {saving ? (
+                      <Loader2 className='size-4 animate-spin' />
+                    ) : (
+                      <Icons.save className='size-4' />
+                    )}
                     حفظ التعديل
                   </Button>
                 </CardContent>
@@ -1176,7 +1304,11 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                 {/* Watermark Logo in center of document */}
                 <div className='absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden'>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src='/logo.png' alt='Watermark' className='w-80 h-80 object-contain opacity-[0.05] grayscale select-none' />
+                  <img
+                    src='/logo.png'
+                    alt='Watermark'
+                    className='w-80 h-80 object-contain opacity-[0.05] grayscale select-none'
+                  />
                 </div>
 
                 <div className='relative z-10 flex-1 flex flex-col justify-between'>
@@ -1209,7 +1341,10 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                             </div>
 
                             <div className='overflow-hidden rounded-xl border border-slate-200 bg-slate-50/50 shadow-2xs'>
-                              <table className='w-full text-xs text-right border-collapse' dir='rtl'>
+                              <table
+                                className='w-full text-xs text-right border-collapse'
+                                dir='rtl'
+                              >
                                 <thead>
                                   <tr className='bg-slate-100/90 border-b border-slate-200 text-slate-700 font-black'>
                                     <th className='p-2.5 w-12 text-center'>#</th>
@@ -1219,10 +1354,19 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                                 </thead>
                                 <tbody className='divide-y divide-slate-200/70'>
                                   {docEmps.map((emp, idx) => (
-                                    <tr key={idx} className='hover:bg-slate-100/50 transition-colors'>
-                                      <td className='p-2.5 text-center font-bold text-slate-500 font-mono'>{idx + 1}</td>
-                                      <td className='p-2.5 font-black text-slate-900'>{emp.name}</td>
-                                      <td className='p-2.5 font-mono font-bold text-slate-700'>{emp.national_id}</td>
+                                    <tr
+                                      key={idx}
+                                      className='hover:bg-slate-100/50 transition-colors'
+                                    >
+                                      <td className='p-2.5 text-center font-bold text-slate-500 font-mono'>
+                                        {idx + 1}
+                                      </td>
+                                      <td className='p-2.5 font-black text-slate-900'>
+                                        {emp.name}
+                                      </td>
+                                      <td className='p-2.5 font-mono font-bold text-slate-700'>
+                                        {emp.national_id}
+                                      </td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -1237,19 +1381,28 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                           <div className='flex items-center justify-between gap-6' dir='rtl'>
                             <div className='space-y-1.5 text-sm'>
                               <div className='flex items-center gap-2'>
-                                <span className='text-xs text-slate-500 font-medium min-w-[75px]'>اسم الموظف:</span>
+                                <span className='text-xs text-slate-500 font-medium min-w-[75px]'>
+                                  اسم الموظف:
+                                </span>
                                 <span className='font-bold text-slate-950'>
                                   {employeeName || selectedEmployee?.name || t.employee_name || '—'}
                                 </span>
                               </div>
                               <div className='flex items-center gap-2'>
-                                <span className='text-xs text-slate-500 font-medium min-w-[75px]'>رقم الهوية:</span>
+                                <span className='text-xs text-slate-500 font-medium min-w-[75px]'>
+                                  رقم الهوية:
+                                </span>
                                 <span className='font-mono font-bold text-slate-950 tracking-wider'>
-                                  {nationalId || selectedEmployee?.national_id || t.national_id || '—'}
+                                  {nationalId ||
+                                    selectedEmployee?.national_id ||
+                                    t.national_id ||
+                                    '—'}
                                 </span>
                               </div>
                               <div className='flex items-center gap-2'>
-                                <span className='text-xs text-slate-500 font-medium min-w-[75px]'>تاريخ الإنشاء:</span>
+                                <span className='text-xs text-slate-500 font-medium min-w-[75px]'>
+                                  تاريخ الإنشاء:
+                                </span>
                                 <span className='font-mono font-bold text-slate-900'>
                                   {formatDate(t.created_at)}
                                 </span>
@@ -1265,7 +1418,7 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                         <div className='mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-sm'>
                           <span className='text-xs text-slate-500'>مبلغ السلفة المطلوب:</span>
                           <strong className='font-black text-slate-950 font-mono'>
-                            {(amount ? parseFloat(amount) : (t.amount || 0)).toLocaleString()} ريال
+                            {(amount ? parseFloat(amount) : t.amount || 0).toLocaleString()} ريال
                           </strong>
                         </div>
                       </div>
@@ -1276,7 +1429,8 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                         <div className='mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs'>
                           <span className='text-slate-500'>فترة الغياب المسجلة:</span>
                           <span className='font-bold font-mono text-slate-900'>
-                            من {startDate || formatDate(t.start_date)} إلى {endDate || formatDate(t.end_date)}
+                            من {startDate || formatDate(t.start_date)} إلى{' '}
+                            {endDate || formatDate(t.end_date)}
                           </span>
                         </div>
                       </div>
@@ -1285,13 +1439,18 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                     {isAdvance && (
                       <div className='px-8 py-2.5 sm:px-12'>
                         <h3 className='mb-2 flex items-center gap-2 text-xs font-black text-slate-900'>
-                          <span className='inline-block h-3.5 w-1 rounded-full bg-blue-600'></span>حالة السلفة
+                          <span className='inline-block h-3.5 w-1 rounded-full bg-blue-600'></span>
+                          حالة السلفة
                         </h3>
                         <div className='rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 text-xs'>
                           {(() => {
                             const status = t.status || 'pending';
                             const label =
-                              status === 'approved' ? 'موافق عليه' : status === 'rejected' ? 'مرفوض' : 'قيد الانتظار';
+                              status === 'approved'
+                                ? 'موافق عليه'
+                                : status === 'rejected'
+                                  ? 'مرفوض'
+                                  : 'قيد الانتظار';
                             const byName =
                               status === 'approved'
                                 ? t.approved_by_name
@@ -1336,35 +1495,42 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                     {isInv && (questions.some((q) => q.trim()) || t.questions.length > 0) && (
                       <div className='px-8 py-2.5 sm:px-12'>
                         <h3 className='mb-2 flex items-center gap-2 text-xs font-black text-slate-900'>
-                          <span className='inline-block h-3.5 w-1 rounded-full bg-blue-600'></span>أسئلة وأجوبة
-                          التحقيق
+                          <span className='inline-block h-3.5 w-1 rounded-full bg-blue-600'></span>
+                          أسئلة وأجوبة التحقيق
                         </h3>
                         <div className='overflow-hidden rounded-xl border border-slate-200 bg-slate-50/40'>
-                          {(questions.some((q) => q.trim()) ? questions : t.questions).map((q, i) => (
-                            <div key={i} className={i > 0 ? 'border-t border-slate-200' : ''}>
-                              <div className='flex'>
-                                <div className='flex w-9 shrink-0 items-center justify-center border-l border-slate-200 bg-slate-100 text-xs font-bold text-slate-600 font-mono'>
-                                  {i + 1}
-                                </div>
-                                <div className='flex-1 p-3'>
-                                  <p className='mb-1 text-xs font-bold text-slate-900'>س: {q}</p>
-                                  <p className='border-r-2 border-blue-500 pr-2.5 text-xs text-slate-700 leading-relaxed'>
-                                    ج: {(answers[i] !== undefined ? answers[i] : t.answers[i]) || '—'}
-                                  </p>
+                          {(questions.some((q) => q.trim()) ? questions : t.questions).map(
+                            (q, i) => (
+                              <div key={i} className={i > 0 ? 'border-t border-slate-200' : ''}>
+                                <div className='flex'>
+                                  <div className='flex w-9 shrink-0 items-center justify-center border-l border-slate-200 bg-slate-100 text-xs font-bold text-slate-600 font-mono'>
+                                    {i + 1}
+                                  </div>
+                                  <div className='flex-1 p-3'>
+                                    <p className='mb-1 text-xs font-bold text-slate-900'>س: {q}</p>
+                                    <p className='border-r-2 border-blue-500 pr-2.5 text-xs text-slate-700 leading-relaxed'>
+                                      ج:{' '}
+                                      {(answers[i] !== undefined ? answers[i] : t.answers[i]) ||
+                                        '—'}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            )
+                          )}
                         </div>
                       </div>
                     )}
                     {isInv && (
                       <div className='px-8 py-2.5 sm:px-12'>
                         <h3 className='mb-2 flex items-center gap-2 text-xs font-black text-slate-900'>
-                          <span className='inline-block h-3.5 w-1 rounded-full bg-blue-600'></span>نتيجة التحقيق
+                          <span className='inline-block h-3.5 w-1 rounded-full bg-blue-600'></span>
+                          نتيجة التحقيق
                         </h3>
                         <div className='rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 text-center'>
-                          <p className='mb-0.5 text-xs text-slate-500 font-medium'>إقرار الإدانة من الموظف:</p>
+                          <p className='mb-0.5 text-xs text-slate-500 font-medium'>
+                            إقرار الإدانة من الموظف:
+                          </p>
                           <p className='text-lg font-black text-slate-950'>
                             {(isGuilty !== null ? isGuilty : t.is_guilty)
                               ? 'نعم - إقرار بالإدانة'
@@ -1385,13 +1551,13 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                     )}
                     {isAdvanceOnly && (amount || t.amount != null) && (
                       <AdvanceTemplate
-                        amount={amount ? parseFloat(amount) : (t.amount || 0)}
+                        amount={amount ? parseFloat(amount) : t.amount || 0}
                         employeeName={employeeName || selectedEmployee?.name || t.employee_name}
                       />
                     )}
                     {isInternetAdvance && (amount || t.amount != null) && (
                       <InternetAdvanceTemplate
-                        amount={amount ? parseFloat(amount) : (t.amount || 0)}
+                        amount={amount ? parseFloat(amount) : t.amount || 0}
                         deductionMonth={deductionMonth || t.deduction_month}
                         employeeName={employeeName || selectedEmployee?.name || t.employee_name}
                       />
@@ -1399,20 +1565,25 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                     {isInternetAdvance && (notes || t.notes) && (
                       <div className='px-10 py-3 sm:px-14'>
                         <h3 className='mb-3 flex items-center gap-2 text-sm font-black text-blue-900'>
-                          <span className='inline-block h-4 w-1 rounded-full bg-blue-600'></span>سبب السلفة
+                          <span className='inline-block h-4 w-1 rounded-full bg-blue-600'></span>سبب
+                          السلفة
                         </h3>
                         <div className='rounded-sm border border-blue-200 bg-blue-50/30 p-4 text-sm text-gray-800'>
                           {notes || t.notes}
                         </div>
                       </div>
                     )}
-                    {isCustody && ((items.some((i) => i.trim())) || t.items.length > 0) && (
+                    {isCustody && (items.some((i) => i.trim()) || t.items.length > 0) && (
                       <div className='px-10 py-3 sm:px-14'>
                         <h3 className='mb-3 flex items-center gap-2 text-sm font-black text-blue-900'>
-                          <span className='inline-block h-4 w-1 rounded-full bg-blue-600'></span>العهد المستلمة
+                          <span className='inline-block h-4 w-1 rounded-full bg-blue-600'></span>
+                          العهد المستلمة
                         </h3>
                         <div className='overflow-hidden rounded-sm border border-blue-200'>
-                          {(items.some((i) => i.trim()) ? items.filter((i) => i.trim()) : t.items).map((item, i) => (
+                          {(items.some((i) => i.trim())
+                            ? items.filter((i) => i.trim())
+                            : t.items
+                          ).map((item, i) => (
                             <div
                               key={i}
                               className={cn(
@@ -1451,7 +1622,7 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
             </div>
           </div>
         </div>
-        <PhotoLightboxDialog currentImages={images.length > 0 ? images : (t.images || [])} />
+        <PhotoLightboxDialog currentImages={images.length > 0 ? images : t.images || []} />
       </div>
     );
   }
@@ -1471,7 +1642,12 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
       <div
         className='print-area bg-white text-black'
         dir='rtl'
-        style={{ fontFamily: 'Tajawal, Cairo, sans-serif', width: '210mm', minHeight: '297mm', margin: '0 auto' }}
+        style={{
+          fontFamily: 'Tajawal, Cairo, sans-serif',
+          width: '210mm',
+          minHeight: '297mm',
+          margin: '0 auto'
+        }}
       >
         <DocHeader qrUrl={getDocumentUrl(t.type, t.id)} />
         <div className='text-center my-3'>
@@ -1510,9 +1686,13 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                     <tbody className='divide-y divide-slate-200/70'>
                       {docEmps.map((emp, idx) => (
                         <tr key={idx} className='hover:bg-slate-100/50 transition-colors'>
-                          <td className='p-2.5 text-center font-bold text-slate-500 font-mono'>{idx + 1}</td>
+                          <td className='p-2.5 text-center font-bold text-slate-500 font-mono'>
+                            {idx + 1}
+                          </td>
                           <td className='p-2.5 font-black text-slate-900'>{emp.name}</td>
-                          <td className='p-2.5 font-mono font-bold text-slate-700'>{emp.national_id}</td>
+                          <td className='p-2.5 font-mono font-bold text-slate-700'>
+                            {emp.national_id}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -1528,16 +1708,26 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                 {/* Right: Employee Info + Date stacked vertically */}
                 <div className='space-y-1.5 text-sm'>
                   <div className='flex items-center gap-2'>
-                    <span className='text-xs text-slate-500 font-medium min-w-[75px]'>اسم الموظف:</span>
+                    <span className='text-xs text-slate-500 font-medium min-w-[75px]'>
+                      اسم الموظف:
+                    </span>
                     <span className='font-bold text-slate-950'>{t.employee_name || '—'}</span>
                   </div>
                   <div className='flex items-center gap-2'>
-                    <span className='text-xs text-slate-500 font-medium min-w-[75px]'>رقم الهوية:</span>
-                    <span className='font-mono font-bold text-slate-950 tracking-wider'>{t.national_id || '—'}</span>
+                    <span className='text-xs text-slate-500 font-medium min-w-[75px]'>
+                      رقم الهوية:
+                    </span>
+                    <span className='font-mono font-bold text-slate-950 tracking-wider'>
+                      {t.national_id || '—'}
+                    </span>
                   </div>
                   <div className='flex items-center gap-2'>
-                    <span className='text-xs text-slate-500 font-medium min-w-[75px]'>تاريخ الإنشاء:</span>
-                    <span className='font-mono font-bold text-slate-900'>{formatDate(t.created_at)}</span>
+                    <span className='text-xs text-slate-500 font-medium min-w-[75px]'>
+                      تاريخ الإنشاء:
+                    </span>
+                    <span className='font-mono font-bold text-slate-900'>
+                      {formatDate(t.created_at)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1549,7 +1739,9 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
           <div className='px-8 sm:px-12'>
             <div className='mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-sm'>
               <span className='text-xs text-slate-500'>مبلغ السلفة المطلوب:</span>
-              <strong className='font-black text-slate-950 font-mono'>{t.amount.toLocaleString()} ريال</strong>
+              <strong className='font-black text-slate-950 font-mono'>
+                {t.amount.toLocaleString()} ريال
+              </strong>
             </div>
           </div>
         )}
@@ -1558,7 +1750,9 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
           <div className='px-8 sm:px-12'>
             <div className='mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs'>
               <span className='text-slate-500'>فترة الغياب المسجلة:</span>
-              <span className='font-bold font-mono text-slate-900'>من {formatDate(t.start_date)} إلى {formatDate(t.end_date)}</span>
+              <span className='font-bold font-mono text-slate-900'>
+                من {formatDate(t.start_date)} إلى {formatDate(t.end_date)}
+              </span>
             </div>
           </div>
         )}
@@ -1566,7 +1760,8 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
         {isInv && t.questions.length > 0 && (
           <div className='px-8 py-2.5 sm:px-12'>
             <h3 className='mb-2 flex items-center gap-2 text-xs font-black text-slate-900'>
-              <span className='inline-block h-3.5 w-1 rounded-full bg-blue-600'></span>أسئلة وأجوبة التحقيق
+              <span className='inline-block h-3.5 w-1 rounded-full bg-blue-600'></span>أسئلة وأجوبة
+              التحقيق
             </h3>
             <div className='overflow-hidden rounded-xl border border-slate-200 bg-slate-50/40'>
               {t.questions.map((q, i) => (
@@ -1652,11 +1847,7 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
             </div>
           </div>
         )}
-        <DocPhotoAttachments
-          images={t.images}
-          docId={t.id}
-          docType={t.type}
-        />
+        <DocPhotoAttachments images={t.images} docId={t.id} docType={t.type} />
         {t.type !== 'advance' && (
           <DocSignatures empName={t.employee_name} supName={t.supervisor_name} type={t.type} />
         )}
@@ -1718,7 +1909,10 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
               const val = e.target.value;
               setListSearch(val);
               // If scanned a full URL, attempt instant navigation
-              if ((val.includes('/investigation/') || val.includes('/doc/')) && rawList.length > 0) {
+              if (
+                (val.includes('/investigation/') || val.includes('/doc/')) &&
+                rawList.length > 0
+              ) {
                 const match = rawList.find((item) => val.includes(item.id));
                 if (match) {
                   router.push(`/dashboard/investigation/${match.type}/${match.id}`);
@@ -1783,7 +1977,11 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                               : 'bg-slate-100 text-slate-700 dark:bg-slate-800'
                           )}
                         >
-                          {isGroup ? <Users className='size-5' /> : <Icons.eye className='size-5' />}
+                          {isGroup ? (
+                            <Users className='size-5' />
+                          ) : (
+                            <Icons.eye className='size-5' />
+                          )}
                         </div>
                         <div className='min-w-0'>
                           {isGroup ? (
@@ -1800,28 +1998,35 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                                 {emps.map((e) => e.name).join(' ، ')}
                               </p>
                               <p className='text-muted-foreground text-[11px] font-mono'>
-                                الهويات: {emps.map((e) => e.national_id).filter(Boolean).join(' - ')}
+                                الهويات:{' '}
+                                {emps
+                                  .map((e) => e.national_id)
+                                  .filter(Boolean)
+                                  .join(' - ')}
                               </p>
                             </>
                           ) : (
                             <>
                               <p className='text-sm font-bold'>{inv.employee_name || '—'}</p>
-                              <p className='text-muted-foreground text-xs'>رقم الهوية: {inv.national_id || '—'}</p>
+                              <p className='text-muted-foreground text-xs'>
+                                رقم الهوية: {inv.national_id || '—'}
+                              </p>
                             </>
                           )}
-                          <p className='text-muted-foreground text-xs'>المشرف: {inv.supervisor_name || '—'}</p>
+                          <p className='text-muted-foreground text-xs'>
+                            المشرف: {inv.supervisor_name || '—'}
+                          </p>
                         </div>
                       </div>
-                      <div
-                        className='flex items-center gap-3'
-                        onClick={(e) => e.stopPropagation()}
-                      >
+                      <div className='flex items-center gap-3' onClick={(e) => e.stopPropagation()}>
                         <Badge variant='outline'>{TEMPLATE_LABELS[inv.type] || 'تقرير'}</Badge>
                         {inv.type === 'investigation' && (
                           <Badge variant='outline'>{inv.is_guilty ? 'مدان' : 'غير مدان'}</Badge>
                         )}
                         {inv.amount != null && (
-                          <span className='text-xs font-bold'>{inv.amount.toLocaleString()} ريال</span>
+                          <span className='text-xs font-bold'>
+                            {inv.amount.toLocaleString()} ريال
+                          </span>
                         )}
                         <Button
                           variant='ghost'
@@ -1855,487 +2060,508 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
         )}
       </div>
 
-        {/* Sheet Side Drawer for Creating & Editing Reports */}
-        <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-          <SheetContent
-            className='w-full sm:max-w-xl md:max-w-2xl flex flex-col p-0 overflow-hidden'
-          >
-            <SheetHeader className='p-5 pb-4 border-b bg-muted/30'>
-              <div className='flex items-center gap-3'>
-                <div className='size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0'>
-                  <Icons.fileText className='size-5' />
-                </div>
-                <div className='text-start min-w-0 flex-1'>
-                  <SheetTitle className='text-base font-bold truncate'>
-                    {editingId ? `تعديل ${typeLabel}` : `إضافة ${typeLabel} جديد`}
-                  </SheetTitle>
-                  <SheetDescription className='text-xs truncate'>
-                    {editingId
-                      ? 'تعديل وحفظ بيانات التقرير مباشرة في السجل'
-                      : 'املأ الحقول التالية لإنشاء التقرير وحفظه'}
-                  </SheetDescription>
-                </div>
+      {/* Sheet Side Drawer for Creating & Editing Reports */}
+      <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <SheetContent className='w-full sm:max-w-xl md:max-w-2xl flex flex-col p-0 overflow-hidden'>
+          <SheetHeader className='p-5 pb-4 border-b bg-muted/30'>
+            <div className='flex items-center gap-3'>
+              <div className='size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0'>
+                <Icons.fileText className='size-5' />
               </div>
-            </SheetHeader>
+              <div className='text-start min-w-0 flex-1'>
+                <SheetTitle className='text-base font-bold truncate'>
+                  {editingId ? `تعديل ${typeLabel}` : `إضافة ${typeLabel} جديد`}
+                </SheetTitle>
+                <SheetDescription className='text-xs truncate'>
+                  {editingId
+                    ? 'تعديل وحفظ بيانات التقرير مباشرة في السجل'
+                    : 'املأ الحقول التالية لإنشاء التقرير وحفظه'}
+                </SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
 
-            <div className='flex-1 overflow-y-auto p-5 space-y-5' dir={dir}>
-              {/* Mode Toggle: Single vs Bulk */}
-              {!editingId && (
-                <div className='flex items-center justify-between p-1 bg-muted/60 rounded-xl border border-border/60'>
-                  <button
-                    type='button'
-                    onClick={() => {
-                      setIsBulkMode(false);
-                      setEmployeeSearch('');
-                    }}
-                    className={cn(
-                      'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer',
-                      !isBulkMode
-                        ? 'bg-background text-foreground shadow-xs'
-                        : 'text-muted-foreground hover:text-foreground'
-                    )}
-                  >
-                    <User className='size-3.5' />
-                    موظف فردي
-                  </button>
-                  <button
-                    type='button'
-                    onClick={() => {
-                      setIsBulkMode(true);
-                      setEmployeeSearch('');
-                    }}
-                    className={cn(
-                      'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer',
-                      isBulkMode
-                        ? 'bg-background text-foreground shadow-xs border-blue-500/30'
-                        : 'text-muted-foreground hover:text-foreground'
-                    )}
-                  >
-                    <Users className='size-3.5 text-blue-600' />
-                    تقرير مجمع (عدة موظفين)
-                    {selectedEmployees.length > 0 && (
-                      <span className='bg-blue-600 text-white rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none'>
-                        {selectedEmployees.length}
-                      </span>
-                    )}
-                  </button>
+          <div className='flex-1 overflow-y-auto p-5 space-y-5' dir={dir}>
+            {/* Mode Toggle: Single vs Bulk */}
+            {!editingId && (
+              <div className='flex items-center justify-between p-1 bg-muted/60 rounded-xl border border-border/60'>
+                <button
+                  type='button'
+                  onClick={() => {
+                    setIsBulkMode(false);
+                    setEmployeeSearch('');
+                  }}
+                  className={cn(
+                    'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                    !isBulkMode
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <User className='size-3.5' />
+                  موظف فردي
+                </button>
+                <button
+                  type='button'
+                  onClick={() => {
+                    setIsBulkMode(true);
+                    setEmployeeSearch('');
+                  }}
+                  className={cn(
+                    'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                    isBulkMode
+                      ? 'bg-background text-foreground shadow-xs border-blue-500/30'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <Users className='size-3.5 text-blue-600' />
+                  تقرير مجمع (عدة موظفين)
+                  {selectedEmployees.length > 0 && (
+                    <span className='bg-blue-600 text-white rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none'>
+                      {selectedEmployees.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Employee Selector & Search */}
+            {isBulkMode ? (
+              <div className='space-y-3 rounded-xl bg-blue-50/40 dark:bg-blue-950/20 p-3.5 border border-blue-200/60 dark:border-blue-800/40'>
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center gap-1.5'>
+                    <Users className='size-4 text-blue-600' />
+                    <Label className='text-xs font-bold text-foreground'>
+                      الموظفون المشمولون بالتقرير:
+                    </Label>
+                  </div>
+                  {selectedEmployees.length > 0 && (
+                    <button
+                      type='button'
+                      onClick={clearAllSelectedEmployees}
+                      className='text-[11px] text-destructive hover:underline font-bold cursor-pointer'
+                    >
+                      مسح الكل ({selectedEmployees.length})
+                    </button>
+                  )}
                 </div>
-              )}
 
-              {/* Employee Selector & Search */}
-              {isBulkMode ? (
-                <div className='space-y-3 rounded-xl bg-blue-50/40 dark:bg-blue-950/20 p-3.5 border border-blue-200/60 dark:border-blue-800/40'>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-1.5'>
-                      <Users className='size-4 text-blue-600' />
-                      <Label className='text-xs font-bold text-foreground'>
-                        الموظفون المشمولون بالتقرير:
-                      </Label>
-                    </div>
-                    {selectedEmployees.length > 0 && (
+                {/* Search Box to Add More Employees */}
+                <div className='relative'>
+                  <Icons.search className='text-muted-foreground pointer-events-none absolute top-1/2 size-4 -translate-y-1/2 start-3' />
+                  <Input
+                    placeholder='ابحث عن موظف بالاسم أو رقم الهوية لإضافته...'
+                    value={employeeSearch}
+                    onChange={(e) => setEmployeeSearch(e.target.value)}
+                    className='ps-9 text-xs bg-background'
+                  />
+                </div>
+
+                {/* Search Dropdown in Bulk Mode */}
+                {searching && (
+                  <div className='text-muted-foreground py-1.5 text-center text-xs'>
+                    <Icons.spinner className='inline-block size-3.5 animate-spin mr-1' />
+                    جارٍ البحث...
+                  </div>
+                )}
+
+                {searchResults && searchResults.length > 0 && (
+                  <div className='rounded-lg border bg-background max-h-48 overflow-y-auto shadow-sm divide-y divide-border'>
+                    <div className='p-2 bg-muted/40 flex items-center justify-between text-[11px] text-muted-foreground font-bold'>
+                      <span>نتائج البحث ({searchResults.length}):</span>
                       <button
                         type='button'
-                        onClick={clearAllSelectedEmployees}
-                        className='text-[11px] text-destructive hover:underline font-bold cursor-pointer'
+                        onClick={selectAllFromSearchResults}
+                        className='text-blue-600 hover:underline cursor-pointer'
                       >
-                        مسح الكل ({selectedEmployees.length})
+                        + إضافة كل النتائج
                       </button>
-                    )}
-                  </div>
-
-                  {/* Search Box to Add More Employees */}
-                  <div className='relative'>
-                    <Icons.search className='text-muted-foreground pointer-events-none absolute top-1/2 size-4 -translate-y-1/2 start-3' />
-                    <Input
-                      placeholder='ابحث عن موظف بالاسم أو رقم الهوية لإضافته...'
-                      value={employeeSearch}
-                      onChange={(e) => setEmployeeSearch(e.target.value)}
-                      className='ps-9 text-xs bg-background'
-                    />
-                  </div>
-
-                  {/* Search Dropdown in Bulk Mode */}
-                  {searching && (
-                    <div className='text-muted-foreground py-1.5 text-center text-xs'>
-                      <Icons.spinner className='inline-block size-3.5 animate-spin mr-1' />
-                      جارٍ البحث...
                     </div>
-                  )}
-
-                  {searchResults && searchResults.length > 0 && (
-                    <div className='rounded-lg border bg-background max-h-48 overflow-y-auto shadow-sm divide-y divide-border'>
-                      <div className='p-2 bg-muted/40 flex items-center justify-between text-[11px] text-muted-foreground font-bold'>
-                        <span>نتائج البحث ({searchResults.length}):</span>
-                        <button
-                          type='button'
-                          onClick={selectAllFromSearchResults}
-                          className='text-blue-600 hover:underline cursor-pointer'
-                        >
-                          + إضافة كل النتائج
-                        </button>
-                      </div>
-                      {searchResults.map((emp) => {
-                        const isSelected = selectedEmployees.some((e) => e.id === emp.id);
-                        return (
-                          <button
-                            key={emp.id}
-                            type='button'
-                            onClick={() => toggleEmployeeSelection(emp)}
-                            className={cn(
-                              'flex w-full items-center justify-between p-2 text-start text-xs transition-colors cursor-pointer',
-                              isSelected ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 font-bold' : 'hover:bg-muted/50'
-                            )}
-                          >
-                            <div className='flex items-center gap-2'>
-                              <div
-                                className={cn(
-                                  'size-4 rounded flex items-center justify-center border text-[10px]',
-                                  isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300'
-                                )}
-                              >
-                                {isSelected && <Check className='size-3 stroke-[3]' />}
-                              </div>
-                              <span>{emp.name}</span>
-                            </div>
-                            <span className='text-muted-foreground font-mono text-[11px]'>{emp.national_id}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Selected Employees Chips/List */}
-                  {selectedEmployees.length > 0 ? (
-                    <div className='space-y-1.5'>
-                      <div className='flex flex-wrap gap-1.5 max-h-40 overflow-y-auto p-1 border rounded-lg bg-background/60'>
-                        {selectedEmployees.map((emp) => (
-                          <div
-                            key={emp.id}
-                            className='inline-flex items-center gap-1.5 bg-background border border-blue-200 dark:border-blue-800 rounded-lg px-2.5 py-1 text-xs shadow-2xs'
-                          >
-                            <span className='font-bold text-foreground'>{emp.name}</span>
-                            <span className='text-muted-foreground font-mono text-[10px]'>({emp.national_id})</span>
-                            <button
-                              type='button'
-                              onClick={() => removeSelectedEmployee(emp.id)}
-                              className='text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded size-4 flex items-center justify-center transition-colors cursor-pointer'
-                              title='إزالة'
-                            >
-                              <X className='size-3' />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      <p className='text-[10.5px] text-blue-700 dark:text-blue-300 font-medium px-1'>
-                        💡 سيتم حفظ التقرير وإضافته في سجل كل موظف من المحددين أعلاه بشكل رسمي ومستقل.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className='text-center py-4 px-2 border border-dashed rounded-lg text-xs text-muted-foreground bg-background/50'>
-                      <Users className='size-6 mx-auto mb-1 opacity-40 text-blue-600' />
-                      <p className='font-medium'>لم يتم اختيار موظفين بعد</p>
-                      <p className='text-[10px] opacity-70'>ابحث بالاسم أو الهوية أعلاه واضغط لإضافة الموظفين إلى التقرير المجمع</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className='space-y-2.5 rounded-xl bg-muted/30 p-3.5 border border-border/60'>
-                  <Label className='text-xs font-bold text-foreground'>الموظف / المندوب:</Label>
-                  <div className='relative'>
-                    <Icons.search className='text-muted-foreground pointer-events-none absolute top-1/2 size-4 -translate-y-1/2 start-3' />
-                    <Input
-                      placeholder='ابحث عن الموظف بالاسم أو رقم الهوية...'
-                      value={employeeSearch}
-                      onChange={(e) => {
-                        setEmployeeSearch(e.target.value);
-                        if (selectedEmployee) setSelectedEmployee(null);
-                      }}
-                      className='ps-9 text-xs'
-                    />
-                  </div>
-
-                  {/* Search Dropdown Results */}
-                  {searching && (
-                    <div className='text-muted-foreground py-2 text-center text-xs'>
-                      <Icons.spinner className='inline-block size-3.5 animate-spin mr-1' />
-                      جارٍ البحث...
-                    </div>
-                  )}
-
-                  {searchResults && searchResults.length > 0 && !selectedEmployee && (
-                    <div className='divide-y divide-border rounded-lg border bg-background max-h-36 overflow-y-auto shadow-sm'>
-                      {searchResults.map((emp) => (
+                    {searchResults.map((emp) => {
+                      const isSelected = selectedEmployees.some((e) => e.id === emp.id);
+                      return (
                         <button
                           key={emp.id}
                           type='button'
-                          onClick={() => handleSelectEmployee(emp)}
-                          className='flex w-full items-center justify-between p-2 text-start text-xs hover:bg-muted/50 transition-colors cursor-pointer'
+                          onClick={() => toggleEmployeeSelection(emp)}
+                          className={cn(
+                            'flex w-full items-center justify-between p-2 text-start text-xs transition-colors cursor-pointer',
+                            isSelected
+                              ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 font-bold'
+                              : 'hover:bg-muted/50'
+                          )}
                         >
-                          <span className='font-bold'>{emp.name}</span>
-                          <span className='text-muted-foreground font-mono'>{emp.national_id}</span>
+                          <div className='flex items-center gap-2'>
+                            <div
+                              className={cn(
+                                'size-4 rounded flex items-center justify-center border text-[10px]',
+                                isSelected
+                                  ? 'bg-blue-600 border-blue-600 text-white'
+                                  : 'border-slate-300'
+                              )}
+                            >
+                              {isSelected && <Check className='size-3 stroke-[3]' />}
+                            </div>
+                            <span>{emp.name}</span>
+                          </div>
+                          <span className='text-muted-foreground font-mono text-[11px]'>
+                            {emp.national_id}
+                          </span>
                         </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Selected Employees Chips/List */}
+                {selectedEmployees.length > 0 ? (
+                  <div className='space-y-1.5'>
+                    <div className='flex flex-wrap gap-1.5 max-h-40 overflow-y-auto p-1 border rounded-lg bg-background/60'>
+                      {selectedEmployees.map((emp) => (
+                        <div
+                          key={emp.id}
+                          className='inline-flex items-center gap-1.5 bg-background border border-blue-200 dark:border-blue-800 rounded-lg px-2.5 py-1 text-xs shadow-2xs'
+                        >
+                          <span className='font-bold text-foreground'>{emp.name}</span>
+                          <span className='text-muted-foreground font-mono text-[10px]'>
+                            ({emp.national_id})
+                          </span>
+                          <button
+                            type='button'
+                            onClick={() => removeSelectedEmployee(emp.id)}
+                            className='text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded size-4 flex items-center justify-center transition-colors cursor-pointer'
+                            title='إزالة'
+                          >
+                            <X className='size-3' />
+                          </button>
+                        </div>
                       ))}
                     </div>
-                  )}
-
-                  {/* Selected Employee Details Badge */}
-                  {selectedEmployee && (
-                    <div className='flex items-center justify-between p-2.5 rounded-lg bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 mt-2'>
-                      <div className='flex items-center gap-2'>
-                        <User className='size-4 text-blue-600' />
-                        <div>
-                          <p className='font-bold text-xs text-foreground'>{selectedEmployee.name}</p>
-                          <p className='text-[10px] text-muted-foreground font-mono'>رقم الهوية: {selectedEmployee.national_id || '—'}</p>
-                        </div>
-                      </div>
-                      <Button
-                        type='button'
-                        variant='ghost'
-                        size='sm'
-                        onClick={() => {
-                          setSelectedEmployee(null);
-                          setEmployeeName('');
-                          setNationalId('');
-                          setEmployeeSearch('');
-                        }}
-                        className='h-7 text-xs text-destructive hover:bg-destructive/10'
-                      >
-                        تغيير
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Type-Specific Fields */}
-              {(selectedType === 'supervisor_report' || selectedType === 'absence') && (
-                <div className='space-y-2'>
-                  <Label className='text-xs font-bold text-foreground'>
-                    {selectedType === 'absence' ? 'تفاصيل وإثبات الغياب:' : 'نص تقرير المشرف:'}
-                  </Label>
-                  <Textarea
-                    value={reportText}
-                    onChange={(e) => setReportText(e.target.value)}
-                    rows={6}
-                    placeholder={
-                      selectedType === 'absence'
-                        ? 'اكتب تفاصيل وإثبات الغياب...'
-                        : 'اكتب نص التقرير والملاحظات هنا...'
-                    }
-                    className='text-xs leading-relaxed'
-                  />
-                </div>
-              )}
-
-              {selectedType === 'absence' && (
-                <div className='grid grid-cols-2 gap-3'>
-                  <div className='space-y-1'>
-                    <Label className='text-xs font-bold text-foreground'>من تاريخ:</Label>
-                    <Input
-                      type='date'
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className='text-xs'
-                    />
+                    <p className='text-[10.5px] text-blue-700 dark:text-blue-300 font-medium px-1'>
+                      💡 سيتم حفظ التقرير وإضافته في سجل كل موظف من المحددين أعلاه بشكل رسمي ومستقل.
+                    </p>
                   </div>
-                  <div className='space-y-1'>
-                    <Label className='text-xs font-bold text-foreground'>إلى تاريخ:</Label>
-                    <Input
-                      type='date'
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className='text-xs'
-                    />
-                  </div>
-                </div>
-              )}
-
-              {(selectedType === 'advance' || selectedType === 'internet_advance') && (
-                <div className='space-y-3'>
-                  <div className='space-y-1'>
-                    <Label className='text-xs font-bold text-foreground'>مبلغ السلفة (ريال):</Label>
-                    <Input
-                      type='number'
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder='مثال: 500'
-                      className='text-xs font-mono font-bold'
-                    />
-                  </div>
-                  {selectedType === 'internet_advance' && (
-                    <div className='space-y-1'>
-                      <Label className='text-xs font-bold text-foreground'>شهر الاستقطاع (YYYY-MM):</Label>
-                      <Input
-                        type='month'
-                        value={deductionMonth}
-                        onChange={(e) => setDeductionMonth(e.target.value)}
-                        className='text-xs'
-                      />
-                    </div>
-                  )}
-                  <div className='space-y-1'>
-                    <Label className='text-xs font-bold text-foreground'>سبب السلفة / ملاحظات:</Label>
-                    <Textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      rows={3}
-                      placeholder='اكتب سبب السلفة...'
-                      className='text-xs'
-                    />
-                  </div>
-                </div>
-              )}
-
-              {selectedType === 'investigation' && (
-                <div className='space-y-3'>
-                  <div className='flex items-center justify-between'>
-                    <Label className='text-xs font-bold text-foreground'>أسئلة وأجوبة التحقيق:</Label>
-                    <Button
-                      type='button'
-                      variant='outline'
-                      size='sm'
-                      onClick={addQA}
-                      className='text-xs h-7 gap-1'
-                    >
-                      <Icons.plus className='size-3' /> إضافة سؤال
-                    </Button>
-                  </div>
-                  <div className='space-y-2 max-h-56 overflow-y-auto pe-1'>
-                    {questions.map((q, i) => (
-                      <div key={i} className='p-2.5 rounded-lg border bg-muted/20 space-y-1.5'>
-                        <div className='flex items-center justify-between'>
-                          <span className='text-[11px] font-bold text-muted-foreground'>سؤال #{i + 1}</span>
-                          {questions.length > 1 && (
-                            <button
-                              type='button'
-                              onClick={() => removeQA(i)}
-                              className='text-destructive text-xs hover:underline cursor-pointer'
-                            >
-                              حذف
-                            </button>
-                          )}
-                        </div>
-                        <Input
-                          value={q}
-                          onChange={(e) => updateQ(i, e.target.value)}
-                          placeholder='نص السؤال...'
-                          className='text-xs'
-                        />
-                        <Input
-                          value={answers[i] || ''}
-                          onChange={(e) => updateA(i, e.target.value)}
-                          placeholder='إجابة الموظف...'
-                          className='text-xs bg-background'
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className='pt-2 border-t'>
-                    <Label className='text-xs font-bold text-foreground block mb-2'>إقرار الإدانة:</Label>
-                    <div className='grid grid-cols-2 gap-2'>
-                      <Button
-                        type='button'
-                        variant={isGuilty === true ? 'default' : 'outline'}
-                        onClick={() => setIsGuilty(true)}
-                        className='h-8 text-xs font-bold'
-                      >
-                        مدان
-                      </Button>
-                      <Button
-                        type='button'
-                        variant={isGuilty === false ? 'default' : 'outline'}
-                        onClick={() => setIsGuilty(false)}
-                        className='h-8 text-xs font-bold'
-                      >
-                        غير مدان
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {selectedType === 'custody' && (
-                <div className='space-y-2'>
-                  <div className='flex items-center justify-between'>
-                    <Label className='text-xs font-bold text-foreground'>العهد المستلمة:</Label>
-                    <Button
-                      type='button'
-                      variant='outline'
-                      size='sm'
-                      onClick={addItem}
-                      className='text-xs h-7 gap-1'
-                    >
-                      <Icons.plus className='size-3' /> إضافة بند
-                    </Button>
-                  </div>
-                  <div className='space-y-1.5 max-h-56 overflow-y-auto pe-1'>
-                    {items.map((item, i) => (
-                      <div key={i} className='flex items-center gap-1.5'>
-                        <Input
-                          value={item}
-                          onChange={(e) => updateItem(i, e.target.value)}
-                          placeholder={`العهدة #${i + 1}`}
-                          className='text-xs'
-                        />
-                        {items.length > 1 && (
-                          <Button
-                            type='button'
-                            variant='ghost'
-                            size='sm'
-                            onClick={() => removeItem(i)}
-                            className='h-8 w-8 p-0 text-destructive shrink-0'
-                          >
-                            <Icons.trash className='size-3.5' />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Photo Attachments Uploader */}
-              <div className='space-y-2 pt-2 border-t'>
-                <div className='flex items-center justify-between'>
-                  <Label className='text-xs font-bold text-foreground flex items-center gap-1.5'>
-                    <ImageIcon className='size-3.5 text-primary' />
-                    مرفقات الصور ({images.length})
-                  </Label>
-                  <label className='cursor-pointer inline-flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 px-2.5 py-1 rounded-lg transition-colors'>
-                    <Icons.plus className='size-3.5' />
-                    إرفاق صور
-                    <input
-                      type='file'
-                      accept='image/*'
-                      multiple
-                      className='hidden'
-                      onChange={handleImageUpload}
-                    />
-                  </label>
-                </div>
-
-                {images.length > 0 && (
-                  <div className='grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1'>
-                    {images.map((img, i) => (
-                      <div key={i} className='relative group aspect-square rounded-lg overflow-hidden border'>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={img} alt={`مرفق ${i + 1}`} className='size-full object-cover' />
-                        <button
-                          type='button'
-                          onClick={() => removeImage(i)}
-                          className='absolute top-1 right-1 size-5 bg-rose-600 text-white rounded-full flex items-center justify-center opacity-90 group-hover:opacity-100 transition-opacity'
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
+                ) : (
+                  <div className='text-center py-4 px-2 border border-dashed rounded-lg text-xs text-muted-foreground bg-background/50'>
+                    <Users className='size-6 mx-auto mb-1 opacity-40 text-blue-600' />
+                    <p className='font-medium'>لم يتم اختيار موظفين بعد</p>
+                    <p className='text-[10px] opacity-70'>
+                      ابحث بالاسم أو الهوية أعلاه واضغط لإضافة الموظفين إلى التقرير المجمع
+                    </p>
                   </div>
                 )}
               </div>
+            ) : (
+              <div className='space-y-2.5 rounded-xl bg-muted/30 p-3.5 border border-border/60'>
+                <Label className='text-xs font-bold text-foreground'>الموظف / المندوب:</Label>
+                <div className='relative'>
+                  <Icons.search className='text-muted-foreground pointer-events-none absolute top-1/2 size-4 -translate-y-1/2 start-3' />
+                  <Input
+                    placeholder='ابحث عن الموظف بالاسم أو رقم الهوية...'
+                    value={employeeSearch}
+                    onChange={(e) => {
+                      setEmployeeSearch(e.target.value);
+                      if (selectedEmployee) setSelectedEmployee(null);
+                    }}
+                    className='ps-9 text-xs'
+                  />
+                </div>
 
-              {/* Extra Notes (if not advance and not supervisor_report) */}
-              {selectedType !== 'advance' && selectedType !== 'internet_advance' && selectedType !== 'supervisor_report' && (
+                {/* Search Dropdown Results */}
+                {searching && (
+                  <div className='text-muted-foreground py-2 text-center text-xs'>
+                    <Icons.spinner className='inline-block size-3.5 animate-spin mr-1' />
+                    جارٍ البحث...
+                  </div>
+                )}
+
+                {searchResults && searchResults.length > 0 && !selectedEmployee && (
+                  <div className='divide-y divide-border rounded-lg border bg-background max-h-36 overflow-y-auto shadow-sm'>
+                    {searchResults.map((emp) => (
+                      <button
+                        key={emp.id}
+                        type='button'
+                        onClick={() => handleSelectEmployee(emp)}
+                        className='flex w-full items-center justify-between p-2 text-start text-xs hover:bg-muted/50 transition-colors cursor-pointer'
+                      >
+                        <span className='font-bold'>{emp.name}</span>
+                        <span className='text-muted-foreground font-mono'>{emp.national_id}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Selected Employee Details Badge */}
+                {selectedEmployee && (
+                  <div className='flex items-center justify-between p-2.5 rounded-lg bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 mt-2'>
+                    <div className='flex items-center gap-2'>
+                      <User className='size-4 text-blue-600' />
+                      <div>
+                        <p className='font-bold text-xs text-foreground'>{selectedEmployee.name}</p>
+                        <p className='text-[10px] text-muted-foreground font-mono'>
+                          رقم الهوية: {selectedEmployee.national_id || '—'}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='sm'
+                      onClick={() => {
+                        setSelectedEmployee(null);
+                        setEmployeeName('');
+                        setNationalId('');
+                        setEmployeeSearch('');
+                      }}
+                      className='h-7 text-xs text-destructive hover:bg-destructive/10'
+                    >
+                      تغيير
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Type-Specific Fields */}
+            {(selectedType === 'supervisor_report' || selectedType === 'absence') && (
+              <div className='space-y-2'>
+                <Label className='text-xs font-bold text-foreground'>
+                  {selectedType === 'absence' ? 'تفاصيل وإثبات الغياب:' : 'نص تقرير المشرف:'}
+                </Label>
+                <Textarea
+                  value={reportText}
+                  onChange={(e) => setReportText(e.target.value)}
+                  rows={6}
+                  placeholder={
+                    selectedType === 'absence'
+                      ? 'اكتب تفاصيل وإثبات الغياب...'
+                      : 'اكتب نص التقرير والملاحظات هنا...'
+                  }
+                  className='text-xs leading-relaxed'
+                />
+              </div>
+            )}
+
+            {selectedType === 'absence' && (
+              <div className='grid grid-cols-2 gap-3'>
+                <div className='space-y-1'>
+                  <Label className='text-xs font-bold text-foreground'>من تاريخ:</Label>
+                  <Input
+                    type='date'
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className='text-xs'
+                  />
+                </div>
+                <div className='space-y-1'>
+                  <Label className='text-xs font-bold text-foreground'>إلى تاريخ:</Label>
+                  <Input
+                    type='date'
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className='text-xs'
+                  />
+                </div>
+              </div>
+            )}
+
+            {(selectedType === 'advance' || selectedType === 'internet_advance') && (
+              <div className='space-y-3'>
+                <div className='space-y-1'>
+                  <Label className='text-xs font-bold text-foreground'>مبلغ السلفة (ريال):</Label>
+                  <Input
+                    type='number'
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder='مثال: 500'
+                    className='text-xs font-mono font-bold'
+                  />
+                </div>
+                {selectedType === 'internet_advance' && (
+                  <div className='space-y-1'>
+                    <Label className='text-xs font-bold text-foreground'>
+                      شهر الاستقطاع (YYYY-MM):
+                    </Label>
+                    <Input
+                      type='month'
+                      value={deductionMonth}
+                      onChange={(e) => setDeductionMonth(e.target.value)}
+                      className='text-xs'
+                    />
+                  </div>
+                )}
+                <div className='space-y-1'>
+                  <Label className='text-xs font-bold text-foreground'>سبب السلفة / ملاحظات:</Label>
+                  <Textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={3}
+                    placeholder='اكتب سبب السلفة...'
+                    className='text-xs'
+                  />
+                </div>
+              </div>
+            )}
+
+            {selectedType === 'investigation' && (
+              <div className='space-y-3'>
+                <div className='flex items-center justify-between'>
+                  <Label className='text-xs font-bold text-foreground'>أسئلة وأجوبة التحقيق:</Label>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    onClick={addQA}
+                    className='text-xs h-7 gap-1'
+                  >
+                    <Icons.plus className='size-3' /> إضافة سؤال
+                  </Button>
+                </div>
+                <div className='space-y-2 max-h-56 overflow-y-auto pe-1'>
+                  {questions.map((q, i) => (
+                    <div key={i} className='p-2.5 rounded-lg border bg-muted/20 space-y-1.5'>
+                      <div className='flex items-center justify-between'>
+                        <span className='text-[11px] font-bold text-muted-foreground'>
+                          سؤال #{i + 1}
+                        </span>
+                        {questions.length > 1 && (
+                          <button
+                            type='button'
+                            onClick={() => removeQA(i)}
+                            className='text-destructive text-xs hover:underline cursor-pointer'
+                          >
+                            حذف
+                          </button>
+                        )}
+                      </div>
+                      <Input
+                        value={q}
+                        onChange={(e) => updateQ(i, e.target.value)}
+                        placeholder='نص السؤال...'
+                        className='text-xs'
+                      />
+                      <Input
+                        value={answers[i] || ''}
+                        onChange={(e) => updateA(i, e.target.value)}
+                        placeholder='إجابة الموظف...'
+                        className='text-xs bg-background'
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className='pt-2 border-t'>
+                  <Label className='text-xs font-bold text-foreground block mb-2'>
+                    إقرار الإدانة:
+                  </Label>
+                  <div className='grid grid-cols-2 gap-2'>
+                    <Button
+                      type='button'
+                      variant={isGuilty === true ? 'default' : 'outline'}
+                      onClick={() => setIsGuilty(true)}
+                      className='h-8 text-xs font-bold'
+                    >
+                      مدان
+                    </Button>
+                    <Button
+                      type='button'
+                      variant={isGuilty === false ? 'default' : 'outline'}
+                      onClick={() => setIsGuilty(false)}
+                      className='h-8 text-xs font-bold'
+                    >
+                      غير مدان
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedType === 'custody' && (
+              <div className='space-y-2'>
+                <div className='flex items-center justify-between'>
+                  <Label className='text-xs font-bold text-foreground'>العهد المستلمة:</Label>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    onClick={addItem}
+                    className='text-xs h-7 gap-1'
+                  >
+                    <Icons.plus className='size-3' /> إضافة بند
+                  </Button>
+                </div>
+                <div className='space-y-1.5 max-h-56 overflow-y-auto pe-1'>
+                  {items.map((item, i) => (
+                    <div key={i} className='flex items-center gap-1.5'>
+                      <Input
+                        value={item}
+                        onChange={(e) => updateItem(i, e.target.value)}
+                        placeholder={`العهدة #${i + 1}`}
+                        className='text-xs'
+                      />
+                      {items.length > 1 && (
+                        <Button
+                          type='button'
+                          variant='ghost'
+                          size='sm'
+                          onClick={() => removeItem(i)}
+                          className='h-8 w-8 p-0 text-destructive shrink-0'
+                        >
+                          <Icons.trash className='size-3.5' />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Photo Attachments Uploader */}
+            <div className='space-y-2 pt-2 border-t'>
+              <div className='flex items-center justify-between'>
+                <Label className='text-xs font-bold text-foreground flex items-center gap-1.5'>
+                  <ImageIcon className='size-3.5 text-primary' />
+                  مرفقات الصور ({images.length})
+                </Label>
+                <label className='cursor-pointer inline-flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 px-2.5 py-1 rounded-lg transition-colors'>
+                  <Icons.plus className='size-3.5' />
+                  إرفاق صور
+                  <input
+                    type='file'
+                    accept='image/*'
+                    multiple
+                    className='hidden'
+                    onChange={handleImageUpload}
+                  />
+                </label>
+              </div>
+
+              {images.length > 0 && (
+                <div className='grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1'>
+                  {images.map((img, i) => (
+                    <div
+                      key={i}
+                      className='relative group aspect-square rounded-lg overflow-hidden border'
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={img} alt={`مرفق ${i + 1}`} className='size-full object-cover' />
+                      <button
+                        type='button'
+                        onClick={() => removeImage(i)}
+                        className='absolute top-1 right-1 size-5 bg-rose-600 text-white rounded-full flex items-center justify-center opacity-90 group-hover:opacity-100 transition-opacity'
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Extra Notes (if not advance and not supervisor_report) */}
+            {selectedType !== 'advance' &&
+              selectedType !== 'internet_advance' &&
+              selectedType !== 'supervisor_report' && (
                 <div className='space-y-1 pt-2 border-t'>
                   <Label className='text-xs font-bold text-foreground'>ملاحظات إضافية:</Label>
                   <Textarea
@@ -2347,36 +2573,35 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                   />
                 </div>
               )}
-            </div>
+          </div>
 
-            <SheetFooter className='gap-2 sm:gap-0 pt-6 mt-auto flex flex-col'>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => setIsDrawerOpen(false)}
-                disabled={saving}
-                className='w-full cursor-pointer'
-              >
-                إلغاء
-              </Button>
-              <Button
-                type='button'
-                onClick={handleSubmit}
-                disabled={!canSave || saving}
-                className='w-full bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 font-bold cursor-pointer'
-              >
-                {saving
-                  ? 'جاري الحفظ...'
-                  : editingId
+          <SheetFooter className='gap-2 sm:gap-0 pt-6 mt-auto flex flex-col'>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => setIsDrawerOpen(false)}
+              disabled={saving}
+              className='w-full cursor-pointer'
+            >
+              إلغاء
+            </Button>
+            <Button
+              type='button'
+              onClick={handleSubmit}
+              disabled={!canSave || saving}
+              className='w-full bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 font-bold cursor-pointer'
+            >
+              {saving
+                ? 'جاري الحفظ...'
+                : editingId
                   ? 'تعديل التقرير'
                   : isBulkMode && selectedEmployees.length > 1
-                  ? `حفظ ${typeLabel} (${selectedEmployees.length} موظفين)`
-                  : `حفظ ${typeLabel}`}
-              </Button>
-            </SheetFooter>
-          </SheetContent>
-        </Sheet>
-      </PageContainer>
-    );
-  }
-
+                    ? `حفظ ${typeLabel} (${selectedEmployees.length} موظفين)`
+                    : `حفظ ${typeLabel}`}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    </PageContainer>
+  );
+}
