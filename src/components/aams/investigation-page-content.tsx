@@ -465,9 +465,28 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
   };
 
   const handlePrint = (inv: InvestigationResponse) => {
-    setTimeout(() => {
-      window.print();
-    }, 10);
+    const url = getDocumentUrl(inv.type || selectedType, inv.id);
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+
+    iframe.onload = () => {
+      setTimeout(() => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+        }, 3000);
+      }, 600);
+    };
   };
 
   // Add/remove Q&A
@@ -859,9 +878,18 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
             >
               <Icons.arrowLeft className='size-4' /> رجوع للسجل
             </Button>
-            <Button onClick={() => handlePrint(viewTarget)} className='gap-2 font-bold bg-primary text-primary-foreground shadow-md'>
-              <Icons.printer className='size-4' /> طباعة
-            </Button>
+            <div className='flex items-center gap-2'>
+              <Button
+                variant='outline'
+                onClick={() => window.open(getDocumentUrl(t.type, t.id), '_blank')}
+                className='gap-2 font-bold'
+              >
+                <Icons.externalLink className='size-4' /> عرض الوثيقة للعامة
+              </Button>
+              <Button onClick={() => handlePrint(viewTarget || t)} className='gap-2 font-bold bg-primary text-primary-foreground shadow-md'>
+                <Icons.printer className='size-4' /> طباعة
+              </Button>
+            </div>
           </div>
 
           <div className='grid grid-cols-1 lg:grid-cols-12 gap-6 items-start'>
@@ -1798,18 +1826,18 @@ export function InvestigationPageContent({ investigationType, viewId }: Investig
                         <Button
                           variant='ghost'
                           size='sm'
-                          onClick={() => startEditing(inv)}
+                          onClick={() => window.open(getDocumentUrl(inv.type, inv.id), '_blank')}
                           className='text-muted-foreground hover:text-blue-600 no-print size-8 p-0'
-                          title='تعديل'
+                          title='عرض الوثيقة للعامة'
                         >
-                          <Icons.edit className='size-4' />
+                          <Icons.externalLink className='size-4' />
                         </Button>
                         <Button
                           variant='ghost'
                           size='sm'
                           onClick={() => handlePrint(inv)}
                           className='text-muted-foreground hover:text-foreground no-print size-8 p-0'
-                          title='طباعة'
+                          title='طباعة التقرير'
                         >
                           <Icons.printer className='size-4' />
                         </Button>
