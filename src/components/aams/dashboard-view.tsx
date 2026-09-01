@@ -38,15 +38,30 @@ type StatConfig = {
 };
 
 const HERO_STATS: StatConfig[] = [
-  { key: 'today_employees', title: "Today's Employees", icon: Icons.employees, note: 'Working Now (Field)' },
+  {
+    key: 'today_employees',
+    title: "Today's Employees",
+    icon: Icons.employees,
+    note: 'Working Now (Field)'
+  },
   { key: 'working_employees', title: 'Working Now', icon: Icons.play, note: 'Working Now (Field)' },
-  { key: 'finished_employees', title: 'Finished Shift', icon: Icons.stop, note: 'Completed work today' }
+  {
+    key: 'finished_employees',
+    title: 'Finished Shift',
+    icon: Icons.stop,
+    note: 'Completed work today'
+  }
 ];
 
 const SECONDARY_STATS: StatConfig[] = [
   { key: 'today_orders', title: 'Total Orders', icon: Icons.chartBar, note: "Today's Orders" },
   { key: 'today_distance', title: 'Distance Traveled', icon: Icons.truck, note: 'In Kilometers' },
-  { key: 'today_fuel_cost', title: 'Fuel Cost Total', icon: Icons.droplet, note: 'In Saudi Riyal (SAR)' }
+  {
+    key: 'today_fuel_cost',
+    title: 'Fuel Cost Total',
+    icon: Icons.droplet,
+    note: 'In Saudi Riyal (SAR)'
+  }
 ];
 
 const CARD_ROUTES: Record<string, string> = {
@@ -131,16 +146,16 @@ export function DashboardView() {
             return (
               <Card key={stat.key} className='gap-3 shadow-xs'>
                 <CardHeader className='flex-row items-center justify-between space-y-0'>
-                  <CardDescription>{stat.title}</CardDescription>
+                  <CardDescription>{t(stat.title)}</CardDescription>
                   <div className='bg-muted text-primary flex size-8 items-center justify-center rounded-lg'>
                     <Icon className='size-4' />
                   </div>
                 </CardHeader>
                 <CardContent>
                   <p className='text-2xl font-semibold tabular-nums'>
-                    {isLoading ? '—' : formatStat(stat, stats)}
+                    {isLoading ? '—' : formatStat(stat, stats, locale)}
                   </p>
-                  <p className='text-muted-foreground text-xs'>{stat.note}</p>
+                  <p className='text-muted-foreground text-xs'>{t(stat.note)}</p>
                 </CardContent>
               </Card>
             );
@@ -182,15 +197,20 @@ export function DashboardView() {
                     content={<ChartTooltipContent />}
                     formatter={(value) => Number(value).toLocaleString('en-US')}
                   />
-                  <Bar dataKey='value' fill='var(--color-value)' radius={[6, 6, 0, 0]} maxBarSize={44} />
+                  <Bar
+                    dataKey='value'
+                    fill='var(--color-value)'
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={44}
+                  />
                 </BarChart>
               </ChartContainer>
             </CardContent>
           </Card>
 
           {/* Top 5 Employees Card */}
-          <div className="lg:col-span-1 h-full flex flex-col">
-            <TopEmployeesCard className="h-full" />
+          <div className='lg:col-span-1 h-full flex flex-col'>
+            <TopEmployeesCard className='h-full' />
           </div>
         </div>
 
