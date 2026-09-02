@@ -61,13 +61,17 @@ const baseConfig: NextConfig = {
 
 let configWithPlugins = baseConfig;
 
-// Conditionally enable Sentry configuration
-if (!process.env.NEXT_PUBLIC_SENTRY_DISABLED) {
+// Conditionally enable Sentry configuration only when credentials are provided
+if (
+  !process.env.NEXT_PUBLIC_SENTRY_DISABLED &&
+  Boolean(process.env.SENTRY_AUTH_TOKEN) &&
+  Boolean(process.env.NEXT_PUBLIC_SENTRY_ORG)
+) {
   configWithPlugins = withSentryConfig(configWithPlugins, {
     org: process.env.NEXT_PUBLIC_SENTRY_ORG,
     project: process.env.NEXT_PUBLIC_SENTRY_PROJECT,
-    // Only print logs for uploading source maps in CI
-    silent: !process.env.CI,
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    silent: true,
 
     // Upload a larger set of source maps for prettier stack traces (increases build time)
     widenClientFileUpload: true,
@@ -88,9 +92,8 @@ if (!process.env.NEXT_PUBLIC_SENTRY_DISABLED) {
       }
     },
 
-    // Disable source map upload when org/project are not configured
     sourcemaps: {
-      disable: !process.env.NEXT_PUBLIC_SENTRY_ORG || !process.env.NEXT_PUBLIC_SENTRY_PROJECT
+      disable: false
     }
   });
 }

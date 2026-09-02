@@ -418,78 +418,50 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
               </div>
             )}
 
-            {/* Date for Supervisor Report */}
-            {isReport && (
-              <div className='flex justify-end px-8 mb-4' dir='rtl'>
-                <span className='text-base font-bold text-slate-950'>
-                  التاريخ {formatReportDate(t.created_at)}
-                </span>
-              </div>
-            )}
-
-            {/* Employee Section: Official 2-Column Table for Supervisor Report */}
+            {/* Employee Info & Date for Supervisor Report without Table */}
             {isReport ? (
-              <div className='px-8 mb-6' dir='rtl'>
+              <div className='px-8 mb-6 text-right' dir='rtl'>
                 {isGroupReport ? (
-                  <table className='w-full border-collapse border border-slate-700 text-sm'>
-                    <thead>
-                      <tr className='bg-[#9ca3af] text-slate-950 font-black'>
-                        <th className='border border-slate-700 py-2 px-2 text-center w-12'>#</th>
-                        <th className='border border-slate-700 py-2 px-4 text-center'>
-                          اسم الموظف / المندوب
-                        </th>
-                        <th className='border border-slate-700 py-2 px-4 text-center font-mono'>
-                          رقم الهوية الوطنية / الإقامة
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {employees.map((emp, idx) => (
-                        <tr key={idx} className='bg-white'>
-                          <td className='border border-slate-700 py-2 px-2 text-center font-bold text-slate-950'>
-                            {idx + 1}
-                          </td>
-                          <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950'>
-                            {emp.name}
-                          </td>
-                          <td className='border border-slate-700 py-2 px-4 font-bold text-center font-mono text-slate-950'>
-                            {emp.national_id}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <div className='space-y-3'>
+                    <div className='space-y-1.5'>
+                      <span className='font-bold text-slate-950 text-base'>
+                        الموظفون المشمولون بالتقرير:
+                      </span>
+                      <div className='space-y-1 pr-3'>
+                        {employees.map((emp, idx) => (
+                          <div key={idx} className='text-sm sm:text-base font-bold text-slate-900'>
+                            {idx + 1}. {emp.name} - رقم الهوية:{' '}
+                            <span className='font-mono'>{emp.national_id}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className='flex items-center gap-2 text-base sm:text-lg'>
+                      <span className='font-bold text-slate-950'>التاريخ:</span>
+                      <span className='font-bold text-slate-900'>
+                        {formatReportDate(t.created_at)}
+                      </span>
+                    </div>
+                  </div>
                 ) : (
-                  <table className='w-full border-collapse border border-slate-700 text-sm'>
-                    <thead>
-                      <tr className='bg-[#9ca3af] text-slate-950 font-black'>
-                        <th className='border border-slate-700 py-2 px-4 text-center w-3/4'>
-                          التفاصيل
-                        </th>
-                        <th className='border border-slate-700 py-2 px-4 text-center w-1/4'>
-                          البيان
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className='bg-white'>
-                        <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950'>
-                          {t.employee_name || '—'}
-                        </td>
-                        <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950 bg-slate-50/20'>
-                          اسم الموظف
-                        </td>
-                      </tr>
-                      <tr className='bg-white'>
-                        <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950 font-mono'>
-                          {t.national_id || '—'}
-                        </td>
-                        <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950 bg-slate-50/20'>
-                          رقم الهوية
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <div className='space-y-2 text-base sm:text-lg'>
+                    <div className='flex items-center gap-2'>
+                      <span className='font-bold text-slate-950 min-w-[95px]'>اسم الموظف:</span>
+                      <span className='font-bold text-slate-900'>{t.employee_name || '—'}</span>
+                    </div>
+                    <div className='flex items-center gap-2'>
+                      <span className='font-bold text-slate-950 min-w-[95px]'>رقم الهوية:</span>
+                      <span className='font-bold font-mono text-slate-900 tracking-wider'>
+                        {t.national_id || '—'}
+                      </span>
+                    </div>
+                    <div className='flex items-center gap-2'>
+                      <span className='font-bold text-slate-950 min-w-[95px]'>التاريخ:</span>
+                      <span className='font-bold text-slate-900'>
+                        {formatReportDate(t.created_at)}
+                      </span>
+                    </div>
+                  </div>
                 )}
               </div>
             ) : isGroupReport ? (
