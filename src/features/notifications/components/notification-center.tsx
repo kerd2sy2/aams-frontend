@@ -33,7 +33,9 @@ export function NotificationCenter() {
   const { data: rawNotifications = [] } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => notificationApi.getAll(),
-    refetchInterval: 60000 // refresh every minute
+    refetchInterval: 5000, // refresh every 5 seconds in real-time
+    staleTime: 0,
+    refetchOnWindowFocus: true
   });
 
   const markAsReadMutation = useMutation({

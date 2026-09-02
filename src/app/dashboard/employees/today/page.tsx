@@ -38,7 +38,8 @@ export default function TodayEmployeesPage() {
   const { data, isLoading } = useOfflineQuery({
     queryKey: ['employees-today', today],
     queryFn: () => reportApi.getReports({ start_date: today, end_date: today, limit: 200 }),
-    staleTime: 1000 * 60,
+    staleTime: 5 * 1000,
+    refetchInterval: 8 * 1000,
     refetchOnMount: true,
     cacheKey: 'employees_today'
   });

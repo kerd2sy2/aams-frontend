@@ -26,7 +26,10 @@ export default function AttendancePage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['attendance', selectedDate],
-    queryFn: () => attendanceApi.getAttendance(selectedDate)
+    queryFn: () => attendanceApi.getAttendance(selectedDate),
+    staleTime: 5 * 1000,
+    refetchInterval: 10 * 1000,
+    refetchOnWindowFocus: true
   });
 
   const toggleMutation = useMutation({

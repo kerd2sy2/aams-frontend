@@ -92,7 +92,8 @@ export function DashboardView() {
   const { data: stats, isLoading } = useOfflineQuery<DashboardResponse>({
     queryKey: ['dashboard-stats'],
     queryFn: () => dashboardApi.getStats(),
-    staleTime: 15 * 1000,
+    staleTime: 5 * 1000,
+    refetchInterval: 10 * 1000,
     cacheKey: 'dashboard_stats'
   });
 

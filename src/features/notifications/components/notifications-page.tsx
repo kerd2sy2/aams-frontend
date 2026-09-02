@@ -25,7 +25,9 @@ export default function NotificationsPage() {
   const { data: rawNotifications = [] } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => notificationApi.getAll(),
-    refetchInterval: 60000
+    refetchInterval: 5000,
+    staleTime: 0,
+    refetchOnWindowFocus: true
   });
 
   const markAsReadMutation = useMutation({

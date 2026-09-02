@@ -54,7 +54,10 @@ export function useOfflineQuery<TData = unknown, TError = Error>(
       return failureCount < 2;
     },
     gcTime: (queryOptions as { gcTime?: number }).gcTime ?? 24 * 60 * 60 * 1000,
-    staleTime: (queryOptions as { staleTime?: number }).staleTime ?? 5 * 60 * 1000,
+    staleTime: (queryOptions as { staleTime?: number }).staleTime ?? 5 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchOnMount: true,
     networkMode: 'always',
     queryFn:
       queryOptions.queryFn === skipToken

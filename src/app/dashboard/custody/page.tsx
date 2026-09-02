@@ -26,10 +26,34 @@ const CATEGORIES: {
   color: string;
   bg: string;
 }[] = [
-  { key: 'fuel',        label: 'وقود',       icon: Icons.fuel,          color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800' },
-  { key: 'license',     label: 'رخصة',       icon: Icons.fileText,      color: 'text-blue-600 dark:text-blue-400',     bg: 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800' },
-  { key: 'spare_parts', label: 'قطع غيار',   icon: Icons.tool,          color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 border-purple-200 dark:bg-purple-950/30 dark:border-purple-800' },
-  { key: 'other',       label: 'مصاريف أخرى',icon: Icons.clipboardList, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800' },
+  {
+    key: 'fuel',
+    label: 'وقود',
+    icon: Icons.fuel,
+    color: 'text-amber-600 dark:text-amber-400',
+    bg: 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800'
+  },
+  {
+    key: 'license',
+    label: 'رخصة',
+    icon: Icons.fileText,
+    color: 'text-blue-600 dark:text-blue-400',
+    bg: 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800'
+  },
+  {
+    key: 'spare_parts',
+    label: 'قطع غيار',
+    icon: Icons.tool,
+    color: 'text-purple-600 dark:text-purple-400',
+    bg: 'bg-purple-50 border-purple-200 dark:bg-purple-950/30 dark:border-purple-800'
+  },
+  {
+    key: 'other',
+    label: 'مصاريف أخرى',
+    icon: Icons.clipboardList,
+    color: 'text-emerald-600 dark:text-emerald-400',
+    bg: 'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800'
+  }
 ];
 
 function money(n: number): string {
@@ -48,14 +72,29 @@ export default function CustodyPage() {
   const [branchId, setBranchId] = useState<string | null>(() => getAdminUser()?.branch_id ?? null);
   const isSuperAdmin = !getAdminUser()?.branch_id;
 
-  const meQuery = useQuery({ queryKey: ['me'], queryFn: () => authApi.me(), staleTime: 60_000 });
-  useEffect(() => { if (meQuery.data?.branch_id) setBranchId(meQuery.data.branch_id); }, [meQuery.data]);
+  const meQuery = useQuery({
+    queryKey: ['me'],
+    queryFn: () => authApi.me(),
+    staleTime: 10_000,
+    refetchOnWindowFocus: true
+  });
+  useEffect(() => {
+    if (meQuery.data?.branch_id) setBranchId(meQuery.data.branch_id);
+  }, [meQuery.data]);
 
-  const branchesQuery = useQuery({ queryKey: ['branches'], queryFn: () => branchApi.getAll(), enabled: isSuperAdmin });
+  const branchesQuery = useQuery({
+    queryKey: ['branches'],
+    queryFn: () => branchApi.getAll(),
+    enabled: isSuperAdmin,
+    staleTime: 30_000
+  });
   const custodyQuery = useQuery({
     queryKey: ['custody', branchId],
     queryFn: () => custodyApi.list(branchId ?? undefined),
     enabled: !!branchId,
+    staleTime: 5000,
+    refetchInterval: 8000,
+    refetchOnWindowFocus: true
   });
 
   const days = custodyQuery.data ?? [];
@@ -81,15 +120,28 @@ export default function CustodyPage() {
   const createDayMut = useMutation({
     mutationFn: (added: number) =>
       custodyApi.create({ date: todayStr, added_amount: added, branch_id: branchId ?? undefined }),
-    onSuccess: () => { toast.success('تم فتح عهدة اليوم'); setOpenAmount(''); invalidate(); },
-    onError:   (err) => toast.error(errMsg(err, 'فشل فتح العهدة')),
+    onSuccess: () => {
+      toast.success('تم فتح عهدة اليوم');
+      setOpenAmount('');
+      invalidate();
+    },
+    onError: (err) => toast.error(errMsg(err, 'فشل فتح العهدة'))
   });
 
   const addExtraMut = useMutation({
     mutationFn: (added: number) =>
-      custodyApi.addAmount({ custody_day_id: todayDay!.id, added_amount: added, branch_id: branchId ?? undefined }),
-    onSuccess: () => { toast.success('تمت إضافة المبلغ'); setExtraAmount(''); setShowExtra(false); invalidate(); },
-    onError:   (err) => toast.error(errMsg(err, 'فشل إضافة المبلغ')),
+      custodyApi.addAmount({
+        custody_day_id: todayDay!.id,
+        added_amount: added,
+        branch_id: branchId ?? undefined
+      }),
+    onSuccess: () => {
+      toast.success('تمت إضافة المبلغ');
+      setExtraAmount('');
+      setShowExtra(false);
+      invalidate();
+    },
+    onError: (err) => toast.error(errMsg(err, 'فشل إضافة المبلغ'))
   });
 
   const addExpMut = useMutation({
@@ -97,23 +149,26 @@ export default function CustodyPage() {
       custodyApi.addExpense(day.id, {
         category: activeCategory,
         amount: Number(expAmount),
-        recipient_name: expDetail.trim(),
+        recipient_name: expDetail.trim()
       }),
     onSuccess: () => {
       toast.success('تمت إضافة المصروف');
       setExpAmount('');
       if (!pinCategory) setExpDetail('');
-      else setExpDetail('');          // always clear detail; amount too
+      else setExpDetail(''); // always clear detail; amount too
       invalidate();
       setTimeout(() => amountRef.current?.focus(), 100);
     },
-    onError: (err) => toast.error(errMsg(err, 'فشل إضافة المصروف')),
+    onError: (err) => toast.error(errMsg(err, 'فشل إضافة المصروف'))
   });
 
   const delExpMut = useMutation({
     mutationFn: (id: string) => custodyApi.deleteExpense(id),
-    onSuccess: () => { toast.success('تم حذف المصروف'); invalidate(); },
-    onError:   (err) => toast.error(errMsg(err, 'فشل الحذف')),
+    onSuccess: () => {
+      toast.success('تم حذف المصروف');
+      invalidate();
+    },
+    onError: (err) => toast.error(errMsg(err, 'فشل الحذف'))
   });
 
   const currentBranchName = (branchesQuery.data ?? []).find((b) => b.id === branchId)?.name;
@@ -134,7 +189,6 @@ export default function CustodyPage() {
       }
     >
       <div className='space-y-5'>
-
         {/* ── Super-admin branch picker ── */}
         {isSuperAdmin && (
           <div className='flex flex-wrap items-center gap-3'>
@@ -144,13 +198,20 @@ export default function CustodyPage() {
               onChange={(e) => setBranchId(e.target.value || null)}
               className='border-input bg-background focus:ring-ring h-10 rounded-lg border px-3 text-sm font-semibold focus:outline-none focus:ring-2'
             >
-              <option value='' disabled>اختر الفرع…</option>
+              <option value='' disabled>
+                اختر الفرع…
+              </option>
               {(branchesQuery.data ?? []).map((b) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
               ))}
             </select>
             {branchId && currentBranchName && (
-              <Badge variant='outline' className='border-primary/40 bg-primary/10 text-primary font-bold'>
+              <Badge
+                variant='outline'
+                className='border-primary/40 bg-primary/10 text-primary font-bold'
+              >
                 {currentBranchName}
               </Badge>
             )}
@@ -163,12 +224,12 @@ export default function CustodyPage() {
             <Icons.wallet className='size-12 opacity-30' />
             <p className='font-semibold'>اختر الفرع أولاً</p>
           </div>
-
         ) : custodyQuery.isLoading ? (
           <div className='grid gap-4 sm:grid-cols-4'>
-            {[1,2,3,4].map((i) => <Skeleton key={i} className='h-24 rounded-2xl' />)}
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className='h-24 rounded-2xl' />
+            ))}
           </div>
-
         ) : !todayDay ? (
           /* ── Open today's day ── */
           <Card className='border-2 border-dashed'>
@@ -179,7 +240,10 @@ export default function CustodyPage() {
                 </div>
                 <div>
                   <p className='font-bold'>فتح عهدة اليوم</p>
-                  <p className='text-muted-foreground text-xs'>{todayStr} — الباقي من أمس: <span className='font-bold'>{money(carriedBalance)} ريال</span> يُرحّل تلقائياً</p>
+                  <p className='text-muted-foreground text-xs'>
+                    {todayStr} — الباقي من أمس:{' '}
+                    <span className='font-bold'>{money(carriedBalance)} ريال</span> يُرحّل تلقائياً
+                  </p>
                 </div>
               </div>
 
@@ -199,29 +263,54 @@ export default function CustodyPage() {
                   disabled={createDayMut.isPending}
                   onClick={() => {
                     const v = Number(openAmount);
-                    if (openAmount.trim() === '' || isNaN(v) || v < 0) { toast.error('يرجى إدخال مبلغ صحيح'); return; }
+                    if (openAmount.trim() === '' || isNaN(v) || v < 0) {
+                      toast.error('يرجى إدخال مبلغ صحيح');
+                      return;
+                    }
                     createDayMut.mutate(v);
                   }}
                   className='h-12 shrink-0 rounded-2xl font-bold'
                 >
-                  {createDayMut.isPending ? <Icons.spinner className='size-5 animate-spin' /> : <Icons.wallet className='size-5' />}
+                  {createDayMut.isPending ? (
+                    <Icons.spinner className='size-5 animate-spin' />
+                  ) : (
+                    <Icons.wallet className='size-5' />
+                  )}
                   فتح
                 </Button>
               </div>
             </CardContent>
           </Card>
-
         ) : (
           <>
             {/* ── Balance summary ── */}
             <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
               {[
-                { label: 'باقي أمس',    value: todayDay.opening_balance, cls: 'text-foreground' },
-                { label: 'مبلغ اليوم',  value: todayDay.added_amount,    cls: 'text-foreground' },
-                { label: 'المصاريف',    value: todayDay.total_expenses,  cls: 'text-rose-600 dark:text-rose-400' },
-                { label: 'الباقي',      value: todayDay.closing_balance, cls: todayDay.closing_balance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' },
+                { label: 'باقي أمس', value: todayDay.opening_balance, cls: 'text-foreground' },
+                { label: 'مبلغ اليوم', value: todayDay.added_amount, cls: 'text-foreground' },
+                {
+                  label: 'المصاريف',
+                  value: todayDay.total_expenses,
+                  cls: 'text-rose-600 dark:text-rose-400'
+                },
+                {
+                  label: 'الباقي',
+                  value: todayDay.closing_balance,
+                  cls:
+                    todayDay.closing_balance >= 0
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-rose-600 dark:text-rose-400'
+                }
               ].map((s) => (
-                <Card key={s.label} className={cn(s.label === 'الباقي' && (todayDay.closing_balance >= 0 ? 'border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20' : 'border-rose-200 bg-rose-50 dark:bg-rose-950/20'))}>
+                <Card
+                  key={s.label}
+                  className={cn(
+                    s.label === 'الباقي' &&
+                      (todayDay.closing_balance >= 0
+                        ? 'border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20'
+                        : 'border-rose-200 bg-rose-50 dark:bg-rose-950/20')
+                  )}
+                >
                   <CardContent className='p-4'>
                     <p className='text-muted-foreground mb-1 text-xs'>{s.label}</p>
                     <p className={cn('text-xl font-black', s.cls)}>{money(s.value)}</p>
@@ -256,12 +345,19 @@ export default function CustodyPage() {
                   disabled={addExtraMut.isPending}
                   onClick={() => {
                     const v = Number(extraAmount);
-                    if (!v || v <= 0) { toast.error('يرجى إدخال مبلغ صحيح'); return; }
+                    if (!v || v <= 0) {
+                      toast.error('يرجى إدخال مبلغ صحيح');
+                      return;
+                    }
                     addExtraMut.mutate(v);
                   }}
                   className='h-11 shrink-0 rounded-xl font-bold'
                 >
-                  {addExtraMut.isPending ? <Icons.spinner className='size-4 animate-spin' /> : 'إضافة'}
+                  {addExtraMut.isPending ? (
+                    <Icons.spinner className='size-4 animate-spin' />
+                  ) : (
+                    'إضافة'
+                  )}
                 </Button>
               </div>
             )}
@@ -300,7 +396,9 @@ export default function CustodyPage() {
                         onClick={() => setActiveCategory(cat.key)}
                         className={cn(
                           'flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-all',
-                          active ? `${cat.bg} ${cat.color} border-current` : 'bg-muted/40 text-muted-foreground border-border hover:bg-muted'
+                          active
+                            ? `${cat.bg} ${cat.color} border-current`
+                            : 'bg-muted/40 text-muted-foreground border-border hover:bg-muted'
                         )}
                       >
                         <Icon className={cn('size-4', active ? cat.color : '')} />
@@ -321,7 +419,12 @@ export default function CustodyPage() {
                     value={expAmount}
                     onChange={(e) => setExpAmount(e.target.value)}
                     className='h-11'
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('exp-detail-input')?.focus(); } }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        document.getElementById('exp-detail-input')?.focus();
+                      }
+                    }}
                   />
                   <Input
                     id='exp-detail-input'
@@ -334,7 +437,11 @@ export default function CustodyPage() {
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         const v = Number(expAmount);
-                        if (!v || v <= 0) { toast.error('يرجى إدخال مبلغ'); amountRef.current?.focus(); return; }
+                        if (!v || v <= 0) {
+                          toast.error('يرجى إدخال مبلغ');
+                          amountRef.current?.focus();
+                          return;
+                        }
                         addExpMut.mutate(todayDay);
                       }
                     }}
@@ -344,14 +451,25 @@ export default function CustodyPage() {
                     disabled={addExpMut.isPending}
                     onClick={() => {
                       const v = Number(expAmount);
-                      if (!v || v <= 0) { toast.error('يرجى إدخال مبلغ'); amountRef.current?.focus(); return; }
+                      if (!v || v <= 0) {
+                        toast.error('يرجى إدخال مبلغ');
+                        amountRef.current?.focus();
+                        return;
+                      }
                       addExpMut.mutate(todayDay);
                     }}
-                    className={cn('h-11 shrink-0 rounded-xl font-bold', activeCat.bg, activeCat.color, 'border border-current')}
+                    className={cn(
+                      'h-11 shrink-0 rounded-xl font-bold',
+                      activeCat.bg,
+                      activeCat.color,
+                      'border border-current'
+                    )}
                   >
-                    {addExpMut.isPending
-                      ? <Icons.spinner className='size-4 animate-spin' />
-                      : <Icons.add className='size-4' />}
+                    {addExpMut.isPending ? (
+                      <Icons.spinner className='size-4 animate-spin' />
+                    ) : (
+                      <Icons.add className='size-4' />
+                    )}
                     إضافة
                   </Button>
                 </div>
@@ -361,7 +479,9 @@ export default function CustodyPage() {
             {/* ── Today's expenses list ── */}
             {todayDay.expenses.length > 0 && (
               <div className='space-y-2'>
-                <p className='text-muted-foreground text-xs font-semibold'>مصاريف اليوم ({todayDay.expenses.length})</p>
+                <p className='text-muted-foreground text-xs font-semibold'>
+                  مصاريف اليوم ({todayDay.expenses.length})
+                </p>
                 <div className='space-y-2'>
                   {CATEGORIES.map((cat) => {
                     const list = todayDay.expenses.filter((e) => e.category === cat.key);
@@ -373,7 +493,9 @@ export default function CustodyPage() {
                         <div className='mb-1.5 flex items-center gap-2'>
                           <Icon className={cn('size-4', cat.color)} />
                           <span className={cn('text-xs font-bold', cat.color)}>{cat.label}</span>
-                          <Badge variant='outline' className='ml-auto font-mono text-xs'>{money(total)} ريال</Badge>
+                          <Badge variant='outline' className='ml-auto font-mono text-xs'>
+                            {money(total)} ريال
+                          </Badge>
                         </div>
                         <div className='space-y-1.5'>
                           {list.map((e) => (
@@ -384,7 +506,9 @@ export default function CustodyPage() {
                               <div className='min-w-0 flex-1'>
                                 <span className='font-bold'>{money(e.amount)}</span>
                                 {e.recipient_name && (
-                                  <span className='text-muted-foreground mr-2 text-xs'>{e.recipient_name}</span>
+                                  <span className='text-muted-foreground mr-2 text-xs'>
+                                    {e.recipient_name}
+                                  </span>
                                 )}
                               </div>
                               <button

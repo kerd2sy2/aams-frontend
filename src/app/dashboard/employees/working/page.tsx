@@ -113,7 +113,8 @@ export default function WorkingEmployeesPage() {
   const { data: employeesData, isLoading: employeesLoading } = useOfflineQuery({
     queryKey: ['employees-all'],
     queryFn: () => employeeApi.getAll({ limit: 1000 }),
-    staleTime: 30 * 1000,
+    staleTime: 5 * 1000,
+    refetchInterval: 10 * 1000,
     cacheKey: 'employees_all'
   });
 
@@ -121,7 +122,8 @@ export default function WorkingEmployeesPage() {
   const { data: reportsData, isLoading: reportsLoading } = useOfflineQuery({
     queryKey: ['active-work-sessions'],
     queryFn: () => reportApi.getReports({ limit: 1000 }),
-    staleTime: 15 * 1000,
+    staleTime: 3 * 1000,
+    refetchInterval: 6 * 1000,
     cacheKey: 'active_sessions_reports'
   });
 

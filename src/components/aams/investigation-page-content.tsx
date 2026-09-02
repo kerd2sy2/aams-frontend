@@ -300,7 +300,10 @@ export function InvestigationPageContent({
   const { data: investigations, isLoading: loadingList } = useQuery({
     queryKey: ['investigations'],
     queryFn: () => investigationApi.getAll(),
-    enabled: viewMode === 'list' || !!printTarget
+    enabled: viewMode === 'list' || !!printTarget || !!viewId,
+    staleTime: 5000,
+    refetchInterval: 8000,
+    refetchOnWindowFocus: true
   });
 
   // فتح تقرير محدد من الرابط (uuid في الـ URL)
