@@ -56,6 +56,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
   const [vehicleRegistrationImage, setVehicleRegistrationImage] = useState('');
   const [vehicleType, setVehicleType] = useState('motorcycle');
   const [shift, setShift] = useState('morning');
+  const [applicationType, setApplicationType] = useState('ninja');
   const [jobRole, setJobRole] = useState('DRIVER');
   const [iqamaExpirationDate, setIqamaExpirationDate] = useState('');
   const [selectedVehiclePlate, setSelectedVehiclePlate] = useState('');
@@ -102,6 +103,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
         application_id: employee.application_id || ''
       });
       setJobRole(employee.job_role || 'DRIVER');
+      setApplicationType(employee.application_type || 'ninja');
       setIqamaExpirationDate(
         employee.iqama_expiration_date ? employee.iqama_expiration_date.slice(0, 10) : ''
       );
@@ -131,6 +133,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
         vehicle_type: isDriver ? vehicleType : '',
         motorcycle_number: isDriver ? selectedVehiclePlate || values.motorcycle_number || '' : '',
         key_number: isDriver ? values.key_number || '' : '',
+        application_type: isDriver ? applicationType : '',
         application_id: isDriver ? values.application_id || '' : '',
         shift: isDriver ? shift : 'morning'
       });
@@ -242,8 +245,31 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
                     </div>
 
                     <div className='space-y-2'>
-                      <Label htmlFor='application_id'>التطبيق المخصص</Label>
-                      <Input id='application_id' {...register('application_id')} />
+                      <Label htmlFor='application_type'>التطبيق</Label>
+                      <select
+                        id='application_type'
+                        value={applicationType}
+                        onChange={(e) => setApplicationType(e.target.value)}
+                        className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20'
+                      >
+                        <option value='ninja'>نينجا (Ninja)</option>
+                        <option value='keeta'>كيتا (Keeta)</option>
+                        <option value='toyou'>تويو (ToYou)</option>
+                        <option value='hungerstation'>هنقرستيشن (HungerStation)</option>
+                        <option value='jahez'>جاهز (Jahez)</option>
+                        <option value='mrsool'>مرسول (Mrsool)</option>
+                        <option value='shgardi'>شقرردي (Shgardi)</option>
+                        <option value='other'>أخرى / عام</option>
+                      </select>
+                    </div>
+
+                    <div className='space-y-2'>
+                      <Label htmlFor='application_id'>معرف التطبيق (ID داخل التطبيق)</Label>
+                      <Input
+                        id='application_id'
+                        placeholder='مثال: 255865'
+                        {...register('application_id')}
+                      />
                     </div>
 
                     <div className='space-y-2'>

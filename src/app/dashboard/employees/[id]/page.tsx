@@ -129,6 +129,20 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
           ? 'عامل'
           : 'مندوب توصيل';
 
+  const formatAppName = (appType?: string) => {
+    if (!appType) return 'نينجا (Ninja)';
+    const a = appType.toLowerCase().trim();
+    if (a === 'ninja' || a === 'نينجا') return 'نينجا (Ninja)';
+    if (a === 'keeta' || a === 'كيتا') return 'كيتا (Keeta)';
+    if (a === 'toyou' || a === 'تويو') return 'تويو (ToYou)';
+    if (a === 'hungerstation' || a === 'هنقرستيشن') return 'هنقرستيشن (HungerStation)';
+    if (a === 'jahez' || a === 'جاهز') return 'جاهز (Jahez)';
+    if (a === 'mrsool' || a === 'مرسول') return 'مرسول (Mrsool)';
+    if (a === 'shgardi' || a === 'شقرردي') return 'شقرردي (Shgardi)';
+    if (a === 'other' || a === 'عام') return 'عام';
+    return appType;
+  };
+
   return (
     <PageContainer>
       <div className='space-y-6 w-full max-w-7xl mx-auto pb-10' dir='rtl'>
@@ -220,6 +234,12 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                         <Badge variant='default' className='font-bold text-xs bg-primary/90'>
                           {roleLabel}
                         </Badge>
+                        <Badge
+                          variant='outline'
+                          className='font-bold text-xs bg-primary/5 text-primary border-primary/20'
+                        >
+                          تطبيق: {formatAppName(employee.application_type || 'ninja')}
+                        </Badge>
                         {employee.branch?.name && (
                           <Badge variant='secondary' className='gap-1 text-xs font-bold'>
                             <Building2 className='size-3' />
@@ -263,6 +283,23 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                           <Phone className='size-3.5 text-primary' />
                           <span>الجوال: {employee.employee_number}</span>
                           {copiedField === 'phone' ? (
+                            <Check className='size-3 text-emerald-500' />
+                          ) : (
+                            <Copy className='size-3 text-muted-foreground opacity-70' />
+                          )}
+                        </button>
+                      )}
+
+                      {employee.application_id && (
+                        <button
+                          type='button'
+                          onClick={() => copyToClipboard(employee.application_id, 'appid')}
+                          className='inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-muted/60 hover:bg-muted text-xs font-mono font-bold transition-colors border border-border/60'
+                          title='انقر لنسخ معرف التطبيق'
+                        >
+                          <span className='size-2 rounded-full bg-primary inline-block' />
+                          <span>معرف التطبيق: {employee.application_id}</span>
+                          {copiedField === 'appid' ? (
                             <Check className='size-3 text-emerald-500' />
                           ) : (
                             <Copy className='size-3 text-muted-foreground opacity-70' />
@@ -593,9 +630,16 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                 </div>
 
                 <div className='py-2.5 flex items-center justify-between'>
-                  <span className='text-muted-foreground text-xs'>التطبيق المخصص</span>
+                  <span className='text-muted-foreground text-xs'>التطبيق</span>
                   <span className='font-bold text-foreground'>
-                    {employee.application_id || 'عام'}
+                    {formatAppName(employee.application_type || 'ninja')}
+                  </span>
+                </div>
+
+                <div className='py-2.5 flex items-center justify-between'>
+                  <span className='text-muted-foreground text-xs'>معرف التطبيق (ID)</span>
+                  <span className='font-mono font-bold text-foreground'>
+                    {employee.application_id || '—'}
                   </span>
                 </div>
 

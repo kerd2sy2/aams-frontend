@@ -47,6 +47,25 @@ interface BranchGroup {
   employees: Employee[];
 }
 
+const formatAppName = (appType?: string, appId?: string) => {
+  let name = '';
+  if (appType) {
+    const a = appType.toLowerCase().trim();
+    if (a === 'ninja' || a === 'نينجا') name = 'نينجا';
+    else if (a === 'keeta' || a === 'كيتا') name = 'كيتا';
+    else if (a === 'toyou' || a === 'تويو') name = 'تويو';
+    else if (a === 'hungerstation' || a === 'هنقرستيشن') name = 'هنقرستيشن';
+    else if (a === 'jahez' || a === 'جاهز') name = 'جاهز';
+    else if (a === 'mrsool' || a === 'مرسول') name = 'مرسول';
+    else if (a === 'shgardi' || a === 'شقرردي') name = 'شقرردي';
+    else if (a === 'other' || a === 'عام') name = 'عام';
+    else name = appType;
+  }
+  if (!name && appId) return appId;
+  if (name && appId && appId !== name) return `${name} (${appId})`;
+  return name || 'نينجا';
+};
+
 export default function EmployeesPage() {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -87,7 +106,8 @@ export default function EmployeesPage() {
     employees.forEach((emp) => {
       const branchId = emp.branch?.id || emp.branch_id || 'unassigned';
       const branchName =
-        emp.branch?.name || (branchId === 'unassigned' ? 'بدون فرع / الإدارة العامة' : 'الفرع الرئيسي');
+        emp.branch?.name ||
+        (branchId === 'unassigned' ? 'بدون فرع / الإدارة العامة' : 'الفرع الرئيسي');
 
       if (!map.has(branchId)) {
         map.set(branchId, {
@@ -117,10 +137,7 @@ export default function EmployeesPage() {
   }, [branchGroups, hasInitializedBranches]);
 
   return (
-    <PageContainer
-      pageTitle={t('Employees')}
-      pageDescription={t('All Employees')}
-    >
+    <PageContainer pageTitle={t('Employees')} pageDescription={t('All Employees')}>
       <div className='flex flex-col gap-4' dir={dir}>
         {/* شريط البحث والإحصائيات */}
         <Card className='shadow-xs'>
@@ -162,12 +179,18 @@ export default function EmployeesPage() {
               <div className='flex items-center gap-2'>
                 <Link
                   href='/dashboard/employees/cards'
-                  className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 font-bold shadow-xs border-primary/30 text-primary hover:bg-primary/10')}
+                  className={cn(
+                    buttonVariants({ variant: 'outline', size: 'sm' }),
+                    'gap-1.5 font-bold shadow-xs border-primary/30 text-primary hover:bg-primary/10'
+                  )}
                 >
                   <Icons.printer className='size-4' />
                   {t('Print ID Cards (CR80)')}
                 </Link>
-                <Link href='/dashboard/employees/new' className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5 font-bold shadow-xs')}>
+                <Link
+                  href='/dashboard/employees/new'
+                  className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5 font-bold shadow-xs')}
+                >
                   <Icons.add className='size-4' />
                   {t('Add Employee')}
                 </Link>
@@ -240,7 +263,10 @@ export default function EmployeesPage() {
                           className='font-mono font-bold text-xs gap-1.5 px-3 py-1 bg-muted/80'
                         >
                           <Users className='size-3.5 text-primary' />
-                          <span>{group.employees.length} {group.employees.length === 1 ? 'مندوب' : 'مناديب'}</span>
+                          <span>
+                            {group.employees.length}{' '}
+                            {group.employees.length === 1 ? 'مندوب' : 'مناديب'}
+                          </span>
                         </Badge>
                       </div>
                     </div>
@@ -253,7 +279,9 @@ export default function EmployeesPage() {
                         <TableHeader>
                           <TableRow className='bg-muted/30 hover:bg-muted/30'>
                             <TableHead className='text-center w-12 text-xs'>#</TableHead>
-                            <TableHead className='text-right text-xs min-w-[200px]'>الموظف</TableHead>
+                            <TableHead className='text-right text-xs min-w-[200px]'>
+                              الموظف
+                            </TableHead>
                             <TableHead className='text-center text-xs'>الوظيفة</TableHead>
                             <TableHead className='text-center text-xs'>الهوية الوطنية</TableHead>
                             <TableHead className='text-center text-xs'>رقم الدراجة</TableHead>
@@ -287,7 +315,10 @@ export default function EmployeesPage() {
                                         {emp.name}
                                       </span>
                                       {emp.employee_number && (
-                                        <span className='text-muted-foreground block text-xs font-mono' dir='ltr'>
+                                        <span
+                                          className='text-muted-foreground block text-xs font-mono'
+                                          dir='ltr'
+                                        >
                                           {emp.employee_number}
                                         </span>
                                       )}
@@ -299,10 +330,10 @@ export default function EmployeesPage() {
                                   {emp.job_role === 'SUPERVISOR'
                                     ? 'مشرف'
                                     : emp.job_role === 'MANAGEMENT'
-                                    ? 'إدارة'
-                                    : emp.job_role === 'WORKER'
-                                    ? 'عامل'
-                                    : 'مندوب'}
+                                      ? 'إدارة'
+                                      : emp.job_role === 'WORKER'
+                                        ? 'عامل'
+                                        : 'مندوب'}
                                 </TableCell>
 
                                 <TableCell className='text-center font-mono tabular-nums text-xs font-medium'>
@@ -310,7 +341,9 @@ export default function EmployeesPage() {
                                 </TableCell>
 
                                 <TableCell className='text-center font-mono tabular-nums text-xs font-bold'>
-                                  {emp.motorcycle_number || <span className='text-muted-foreground font-normal'>—</span>}
+                                  {emp.motorcycle_number || (
+                                    <span className='text-muted-foreground font-normal'>—</span>
+                                  )}
                                 </TableCell>
 
                                 <TableCell className='text-center text-muted-foreground font-mono tabular-nums text-xs'>
@@ -318,8 +351,11 @@ export default function EmployeesPage() {
                                 </TableCell>
 
                                 <TableCell className='text-center'>
-                                  <Badge variant='outline' className='font-mono text-[11px] font-bold'>
-                                    {emp.application_id || 'عام'}
+                                  <Badge
+                                    variant='outline'
+                                    className='font-mono text-[11px] font-bold bg-primary/5 border-primary/20 text-primary'
+                                  >
+                                    {formatAppName(emp.application_type, emp.application_id)}
                                   </Badge>
                                 </TableCell>
 
@@ -351,10 +387,16 @@ export default function EmployeesPage() {
                                         <Icons.whatsapp className='size-4' />
                                       </IconLink>
                                     )}
-                                    <IconLink href={`/dashboard/employees/${emp.id}/card`} label='بطاقة الموظف'>
+                                    <IconLink
+                                      href={`/dashboard/employees/${emp.id}/card`}
+                                      label='بطاقة الموظف'
+                                    >
                                       <Icons.printer className='size-4' />
                                     </IconLink>
-                                    <IconLink href={`/dashboard/employees/${emp.id}/edit`} label='تعديل'>
+                                    <IconLink
+                                      href={`/dashboard/employees/${emp.id}/edit`}
+                                      label='تعديل'
+                                    >
                                       <Icons.edit className='size-4' />
                                     </IconLink>
                                     {canDelete && (
@@ -518,16 +560,19 @@ function EmployeeMobileCard({
                   {emp.job_role === 'SUPERVISOR'
                     ? 'مشرف'
                     : emp.job_role === 'MANAGEMENT'
-                    ? 'إدارة'
-                    : emp.job_role === 'WORKER'
-                    ? 'عامل'
-                    : 'مندوب'}
+                      ? 'إدارة'
+                      : emp.job_role === 'WORKER'
+                        ? 'عامل'
+                        : 'مندوب'}
                 </Badge>
               </div>
             </div>
             <div className='flex flex-col items-end gap-1 shrink-0'>
-              <Badge variant='outline' className='text-[10px] font-bold'>
-                {emp.application_id || 'عام'}
+              <Badge
+                variant='outline'
+                className='text-[10px] font-bold bg-primary/5 border-primary/20 text-primary'
+              >
+                {formatAppName(emp.application_type, emp.application_id)}
               </Badge>
               <Badge
                 variant='secondary'
