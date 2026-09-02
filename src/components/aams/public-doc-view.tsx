@@ -353,8 +353,8 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
             {/* Header */}
             {isReport ? (
-              <div className='flex justify-end px-8 pt-4 pb-2' dir='ltr'>
-                <div className='flex items-center gap-3'>
+              <div className='flex items-center justify-between px-8 pt-4 pb-2' dir='rtl'>
+                <div className='flex items-center gap-3 shrink-0' dir='ltr'>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src='/logo.png'
@@ -370,6 +370,19 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                     </span>
                   </div>
                 </div>
+
+                {/* Clickable QR Code */}
+                {docUrl && (
+                  <a
+                    href={docUrl}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105'
+                    title='انقر للانتقال إلى الوثيقة'
+                  >
+                    <QRCodeImage value={docUrl} size={68} />
+                  </a>
+                )}
               </div>
             ) : (
               <div className='px-6 pb-2 pt-3 sm:px-10' dir='rtl'>

@@ -531,6 +531,19 @@ export function InvestigationPageContent({
   };
 
   const handlePrint = (inv: InvestigationResponse) => {
+    if (typeof window !== 'undefined' && document.getElementById('printable-doc')) {
+      const now = new Date();
+      const empName = inv.employee_name?.trim() || 'وثيقة';
+      const printTitle = `${empName} ${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`;
+      const originalTitle = document.title;
+      document.title = printTitle;
+      window.print();
+      setTimeout(() => {
+        document.title = originalTitle;
+      }, 2500);
+      return;
+    }
+
     const url = getDocumentUrl(inv.type || selectedType, inv.id);
     const now = new Date();
     const day = now.getDate();
@@ -638,8 +651,9 @@ export function InvestigationPageContent({
             <div className='h-full w-[18%] bg-[#e25b29]'></div>
             <div className='h-full w-[82%] bg-[#1a1a1a]'></div>
           </div>
-          <div className='flex justify-end px-8 pt-4 pb-2' dir='ltr'>
-            <div className='flex items-center gap-3'>
+          <div className='flex items-center justify-between px-8 pt-4 pb-2' dir='rtl'>
+            {/* Logo before Company Name */}
+            <div className='flex items-center gap-3 shrink-0' dir='ltr'>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src='/logo.png'
@@ -655,6 +669,19 @@ export function InvestigationPageContent({
                 </span>
               </div>
             </div>
+
+            {/* Clickable QR Code */}
+            {qrUrl && (
+              <a
+                href={qrUrl}
+                target='_blank'
+                rel='noopener noreferrer'
+                className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105'
+                title='انقر للانتقال إلى الوثيقة'
+              >
+                <QRCodeImage value={qrUrl} size={68} />
+              </a>
+            )}
           </div>
         </>
       );
