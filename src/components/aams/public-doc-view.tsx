@@ -319,14 +319,21 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
         id='public-printable-doc'
         className='relative bg-white text-slate-950 shadow-2xl overflow-hidden rounded-2xl border border-slate-200/80 min-h-[250mm] max-w-[210mm] mx-auto flex flex-col justify-between'
       >
-        {/* Watermark Logo */}
-        <div className='absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden'>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src='/logo.png'
-            alt='Watermark'
-            className='w-96 h-96 object-contain opacity-[0.08] select-none'
-          />
+        {/* Watermark Logo with Brand Text */}
+        <div
+          className='absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden select-none'
+          aria-hidden='true'
+        >
+          <div className='flex flex-col items-center justify-center opacity-[0.08]'>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src='/logo.png' alt='' className='w-32 h-32 object-contain' />
+            <span className='text-6xl sm:text-7xl font-black tracking-[0.16em] text-slate-950 font-sans leading-none mt-3 pl-[0.16em] block'>
+              AAMS
+            </span>
+            <span className='text-2xl sm:text-3xl font-black tracking-[0.38em] text-slate-700 font-sans leading-none mt-2 pl-[0.38em] uppercase block'>
+              LOGISTICS
+            </span>
+          </div>
         </div>
 
         <div className='relative z-10 flex-1 flex flex-col justify-between'>
