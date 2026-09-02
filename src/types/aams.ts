@@ -53,6 +53,8 @@ export interface Employee {
   iqama_expiration_date?: string | null;
   national_id_image: string;
   driving_license_image: string;
+  passport_image?: string;
+  vehicle_registration_image?: string;
   key_number: string;
   motorcycle_number: string;
   application_id: string;

@@ -11,7 +11,7 @@ interface ImageUploaderProps {
   value?: string;
   onChange: (url: string) => void;
   label: string;
-  category?: 'personal' | 'national_id' | 'license' | 'logo';
+  category?: 'personal' | 'national_id' | 'license' | 'passport' | 'registration' | 'logo';
   description?: string;
 }
 
@@ -117,9 +117,7 @@ export function ImageUploader({
       <label className='block text-sm font-semibold text-slate-700 dark:text-slate-200'>
         {label}
       </label>
-      {description && (
-        <p className='text-xs text-slate-500 dark:text-slate-400'>{description}</p>
-      )}
+      {description && <p className='text-xs text-slate-500 dark:text-slate-400'>{description}</p>}
 
       <div
         className={`relative min-h-[160px] rounded-xl border-2 transition-all duration-200 ${
@@ -195,9 +193,7 @@ export function ImageUploader({
                   <Icons.upload className='h-6 w-6 text-slate-600 dark:text-slate-300' />
                 </div>
                 <div className='space-y-1'>
-                  <span className='text-foreground text-sm font-medium'>
-                    اضغط هنا لرفع صورة
-                  </span>
+                  <span className='text-foreground text-sm font-medium'>اضغط هنا لرفع صورة</span>
                   <p className='text-xs text-slate-400 dark:text-slate-500'>
                     PNG, JPG, WEBP حتى 5MB
                   </p>
@@ -230,7 +226,9 @@ export function ImageUploader({
             </div>
 
             {value &&
-            (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('/')) ? (
+            (value.startsWith('http://') ||
+              value.startsWith('https://') ||
+              value.startsWith('/')) ? (
               <div className='group relative flex w-full flex-col items-center'>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
