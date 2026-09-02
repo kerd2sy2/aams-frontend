@@ -44,6 +44,20 @@ function formatDeductionMonth(value?: string | null) {
   return `${month}/${year}`;
 }
 
+function formatReportDate(d: string | null | undefined) {
+  if (!d) {
+    const now = new Date();
+    return `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
+  }
+  try {
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return d;
+    return `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}`;
+  } catch {
+    return d;
+  }
+}
+
 function renderBoldText(text: string) {
   if (!text) return null;
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
@@ -277,8 +291,17 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
       `}</style>
 
       {/* Floating Action Bar for Mobile & Desktop */}
-      {t.images && t.images.length > 0 && (
-        <div className='max-w-[210mm] mx-auto px-4 mb-4 flex items-center justify-end no-print'>
+      <div className='max-w-[210mm] mx-auto px-4 mb-4 flex items-center justify-between no-print'>
+        <Button
+          size='sm'
+          variant='default'
+          onClick={() => window.print()}
+          className='gap-1.5 text-xs font-bold bg-[#f97316] hover:bg-[#ea580c] text-white shadow-sm cursor-pointer'
+        >
+          <Printer className='size-3.5' />
+          طباعة التقرير
+        </Button>
+        {t.images && t.images.length > 0 && (
           <Button
             size='sm'
             variant='outline'
@@ -288,8 +311,8 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
             <ImageIcon className='size-3.5 text-blue-600' />
             عرض المرفقات ({t.images.length})
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Main Official Document Layout */}
       <div
@@ -308,54 +331,161 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
         <div className='relative z-10 flex-1 flex flex-col justify-between'>
           <div className='flex-1 flex flex-col justify-start'>
-            {/* Top Accent Line: Right 1/4 Orange, Left 3/4 Black */}
-            <div className='flex h-2.5 w-full shrink-0' dir='rtl'>
-              <div className='h-full w-1/4 bg-[#f97316]'></div>
-              <div className='h-full w-3/4 bg-slate-950'></div>
-            </div>
+            {/* Top Accent Line */}
+            {isReport ? (
+              <div className='flex h-3 w-full shrink-0 gap-1.5' dir='ltr'>
+                <div className='h-full w-[18%] bg-[#e25b29]'></div>
+                <div className='h-full w-[82%] bg-[#1a1a1a]'></div>
+              </div>
+            ) : (
+              <div className='flex h-2.5 w-full shrink-0' dir='rtl'>
+                <div className='h-full w-1/4 bg-[#f97316]'></div>
+                <div className='h-full w-3/4 bg-slate-950'></div>
+              </div>
+            )}
 
             {/* Header */}
-            <div className='px-6 pb-2 pt-3 sm:px-10' dir='rtl'>
-              <div className='flex items-center justify-between gap-4 pb-1'>
-                <div className='flex items-center gap-3 shrink-0' dir='ltr'>
+            {isReport ? (
+              <div className='flex justify-end px-8 pt-4 pb-2' dir='ltr'>
+                <div className='flex items-center gap-3'>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src='/logo.png'
                     alt='AAMS LOGISTICS'
-                    className='h-12 w-auto object-contain shrink-0'
+                    className='h-14 w-auto object-contain shrink-0'
                   />
-                  <div className='flex flex-col items-stretch justify-center select-none text-center min-w-[76px]'>
-                    <span className='text-[20px] font-black tracking-[0.16em] text-slate-950 font-sans leading-none pl-[0.16em] block'>
+                  <div className='flex flex-col items-stretch justify-center select-none text-center min-w-[80px]'>
+                    <span className='text-[22px] font-black tracking-[0.16em] text-slate-950 font-sans leading-none pl-[0.16em] block'>
                       AAMS
                     </span>
-                    <span className='text-[7.5px] font-black tracking-[0.37em] text-slate-700 font-sans leading-none mt-1 pl-[0.37em] uppercase block'>
+                    <span className='text-[8px] font-black tracking-[0.38em] text-slate-700 font-sans leading-none mt-1 pl-[0.38em] uppercase block'>
                       LOGISTICS
                     </span>
                   </div>
                 </div>
-
-                {/* Clickable QR Code aligned with logo on the other side without container box */}
-                <a
-                  href={docUrl}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105'
-                  title='انقر للانتقال إلى الوثيقة'
-                >
-                  <QRCodeImage value={docUrl} size={68} />
-                </a>
               </div>
-            </div>
+            ) : (
+              <div className='px-6 pb-2 pt-3 sm:px-10' dir='rtl'>
+                <div className='flex items-center justify-between gap-4 pb-1'>
+                  <div className='flex items-center gap-3 shrink-0' dir='ltr'>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src='/logo.png'
+                      alt='AAMS LOGISTICS'
+                      className='h-12 w-auto object-contain shrink-0'
+                    />
+                    <div className='flex flex-col items-stretch justify-center select-none text-center min-w-[76px]'>
+                      <span className='text-[20px] font-black tracking-[0.16em] text-slate-950 font-sans leading-none pl-[0.16em] block'>
+                        AAMS
+                      </span>
+                      <span className='text-[7.5px] font-black tracking-[0.37em] text-slate-700 font-sans leading-none mt-1 pl-[0.37em] uppercase block'>
+                        LOGISTICS
+                      </span>
+                    </div>
+                  </div>
 
-            {/* Document Title with Brand Logo Color Underline */}
-            <div className='text-center my-3'>
-              <h1 className='text-xl sm:text-2xl font-black tracking-wide text-slate-950 inline-block border-b-2 border-[#f97316] pb-1 px-8'>
-                {TEMPLATES[t.type] || 'تقرير رسمي'}
-              </h1>
-            </div>
+                  {/* Clickable QR Code */}
+                  <a
+                    href={docUrl}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='flex flex-col items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-105'
+                    title='انقر للانتقال إلى الوثيقة'
+                  >
+                    <QRCodeImage value={docUrl} size={68} />
+                  </a>
+                </div>
+              </div>
+            )}
 
-            {/* Employee(s) Section */}
-            {isGroupReport ? (
+            {/* Document Title */}
+            {isReport ? (
+              <div className='text-center my-4'>
+                <h1 className='text-2xl font-black tracking-wide text-slate-950'>تقرير مشرف</h1>
+              </div>
+            ) : (
+              <div className='text-center my-3'>
+                <h1 className='text-xl sm:text-2xl font-black tracking-wide text-slate-950 inline-block border-b-2 border-[#f97316] pb-1 px-8'>
+                  {TEMPLATES[t.type] || 'تقرير رسمي'}
+                </h1>
+              </div>
+            )}
+
+            {/* Date for Supervisor Report */}
+            {isReport && (
+              <div className='flex justify-end px-8 mb-4' dir='rtl'>
+                <span className='text-base font-bold text-slate-950'>
+                  التاريخ {formatReportDate(t.created_at)}
+                </span>
+              </div>
+            )}
+
+            {/* Employee Section: Official 2-Column Table for Supervisor Report */}
+            {isReport ? (
+              <div className='px-8 mb-6' dir='rtl'>
+                {isGroupReport ? (
+                  <table className='w-full border-collapse border border-slate-700 text-sm'>
+                    <thead>
+                      <tr className='bg-[#9ca3af] text-slate-950 font-black'>
+                        <th className='border border-slate-700 py-2 px-2 text-center w-12'>#</th>
+                        <th className='border border-slate-700 py-2 px-4 text-center'>
+                          اسم الموظف / المندوب
+                        </th>
+                        <th className='border border-slate-700 py-2 px-4 text-center font-mono'>
+                          رقم الهوية الوطنية / الإقامة
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {employees.map((emp, idx) => (
+                        <tr key={idx} className='bg-white'>
+                          <td className='border border-slate-700 py-2 px-2 text-center font-bold text-slate-950'>
+                            {idx + 1}
+                          </td>
+                          <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950'>
+                            {emp.name}
+                          </td>
+                          <td className='border border-slate-700 py-2 px-4 font-bold text-center font-mono text-slate-950'>
+                            {emp.national_id}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <table className='w-full border-collapse border border-slate-700 text-sm'>
+                    <thead>
+                      <tr className='bg-[#9ca3af] text-slate-950 font-black'>
+                        <th className='border border-slate-700 py-2 px-4 text-center w-3/4'>
+                          التفاصيل
+                        </th>
+                        <th className='border border-slate-700 py-2 px-4 text-center w-1/4'>
+                          البيان
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className='bg-white'>
+                        <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950'>
+                          {t.employee_name || '—'}
+                        </td>
+                        <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950 bg-slate-50/20'>
+                          اسم الموظف
+                        </td>
+                      </tr>
+                      <tr className='bg-white'>
+                        <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950 font-mono'>
+                          {t.national_id || '—'}
+                        </td>
+                        <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950 bg-slate-50/20'>
+                          رقم الهوية
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            ) : isGroupReport ? (
               <div className='px-8 py-3 sm:px-12'>
                 <div className='flex items-center justify-between mb-2'>
                   <div className='flex items-center gap-2'>
@@ -497,16 +627,22 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
             )}
 
             {/* Report Text (Supervisor Report / Absence) */}
-            {(isReport || isAbsence) && t.report_text && (
+            {isReport && t.report_text ? (
+              <div className='px-8 my-6' dir='rtl'>
+                <div className='whitespace-pre-wrap font-medium leading-[2.2] text-slate-950 text-base sm:text-lg text-right'>
+                  {renderBoldText(t.report_text)}
+                </div>
+              </div>
+            ) : isAbsence && t.report_text ? (
               <div className='px-8 py-3 sm:px-12'>
                 <div className='text-sm sm:text-base font-bold text-slate-950 mb-2'>
-                  {isAbsence ? 'تفاصيل وإثبات الغياب:' : 'نص التقرير:'}
+                  تفاصيل وإثبات الغياب:
                 </div>
                 <div className='whitespace-pre-wrap font-normal leading-relaxed text-slate-900 text-sm sm:text-base'>
                   {renderBoldText(t.report_text)}
                 </div>
               </div>
-            )}
+            ) : null}
 
             {/* Custody Items */}
             {isCustody && t.items && t.items.length > 0 && (
@@ -533,7 +669,7 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
             )}
 
             {/* Notes if any */}
-            {t.notes && !isGroupReport && (
+            {t.notes && !isGroupReport && !isReport && (
               <div className='px-8 py-2 sm:px-12'>
                 <div className='text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200'>
                   <strong className='font-bold text-slate-800 block mb-1'>ملاحظات إضافية:</strong>
@@ -546,7 +682,7 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
           {/* Bottom Photo Attachments & Signatures & Official Footer */}
           <div className='mt-auto'>
             {/* Photo Attachments with QR and Live Gallery */}
-            {t.images && t.images.length > 0 && (
+            {t.images && t.images.length > 0 && !isReport && (
               <div className='px-8 py-2.5 sm:px-12'>
                 <div
                   className='flex items-center justify-between p-3 bg-slate-50/90 border border-slate-200 rounded-xl shadow-2xs cursor-pointer transition-colors hover:bg-slate-100/80'
@@ -606,29 +742,11 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
             {/* Signatures */}
             {isReport ? (
-              <div className='pt-2 pb-2 px-8 sm:px-14'>
-                <div className='flex items-center justify-center gap-4 my-2'>
-                  <div className='h-[1px] bg-gradient-to-r from-transparent via-slate-300 to-transparent flex-1'></div>
-                  <p className='text-xs font-bold text-slate-700 italic tracking-wide'>
-                    « تم إعداد هذا التقرير لإثبات حالته تحت مسؤوليتي »
-                  </p>
-                  <div className='h-[1px] bg-gradient-to-r from-transparent via-slate-300 to-transparent flex-1'></div>
-                </div>
-
-                <div className='flex items-end justify-between max-w-lg mx-auto pt-2 pb-2 px-4'>
-                  <div className='space-y-1'>
-                    <span className='text-[10px] font-bold text-slate-400 block'>
-                      مُعد التقرير (المشرف)
-                    </span>
-                    <p className='text-sm font-black text-slate-900'>{t.supervisor_name || '—'}</p>
-                  </div>
-                  <div className='space-y-1 text-left' dir='ltr'>
-                    <span className='text-[10px] font-bold text-slate-400 block text-right'>
-                      التوقيع
-                    </span>
-                    <div className='w-40 border-b-2 border-slate-300 pb-3'></div>
-                  </div>
-                </div>
+              <div className='px-8 pt-8 pb-4 space-y-8 text-right' dir='rtl'>
+                <p className='text-base sm:text-lg font-bold text-slate-950'>
+                  التوقيع / {t.supervisor_name || '—'}
+                </p>
+                <p className='text-base sm:text-lg font-bold text-slate-950'>إجراء الإدارة /</p>
               </div>
             ) : t.type !== 'advance' ? (
               <div className='pt-2 pb-2 px-8 sm:px-14'>
@@ -654,11 +772,10 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
             ) : null}
 
             {/* Official Footer */}
-            <div className='mt-auto border-t border-slate-300 px-4 py-1.5 text-center bg-slate-50/70'>
-              <p className='text-[8.5px] font-bold text-slate-700 leading-tight'>
-                شركة ابرار عبد الرحمن الشمرانى للخدمات اللوجيستية - المملكة العربية السعودية - جدة -
-                الطائف - الخبر - سجل تجارى رقم 41030552280 | رقم الهاتف: 0531112225 | الايميل:
-                fahad@aams-logistics.com
+            <div className='mt-auto border-t border-slate-400 px-4 py-2 text-center' dir='rtl'>
+              <p className='text-[9.5px] sm:text-[10.5px] font-bold text-slate-800 leading-tight'>
+                شركة ابرار عبدالرحمن محمد الشمراني – المملكة العربية السعودية – جدة – الطائف س .ت:
+                ٧٠٤٩٢١٤٥٩١ الهاتف : ٠٥٣١١١٢٢٢٥ االيميل : Abrar@aams-logistic.com
               </p>
             </div>
           </div>

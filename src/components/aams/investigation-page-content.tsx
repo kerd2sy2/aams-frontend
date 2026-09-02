@@ -83,6 +83,20 @@ function formatDate(d: string | null) {
   return formatRiyadh(new Date(d), 'yyyy/MM/dd');
 }
 
+function formatReportDate(d: string | null | undefined) {
+  if (!d) {
+    const now = new Date();
+    return `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
+  }
+  try {
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return d;
+    return `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}`;
+  } catch {
+    return d;
+  }
+}
+
 // Extract employees for group reports
 export function parseDocEmployees(
   inv: InvestigationResponse | null | undefined
@@ -614,7 +628,38 @@ export function InvestigationPageContent({
   };
 
   // ============ DOCUMENT STYLE HELPER ============
-  const DocHeader = ({ qrUrl }: { qrUrl?: string }) => {
+  const DocHeader = ({ qrUrl, docType }: { qrUrl?: string; docType?: string }) => {
+    const isSupervisorReport = docType === 'supervisor_report';
+    if (isSupervisorReport) {
+      return (
+        <>
+          {/* Top Accent Line: Left Orange (18%), Gap, Right Black (82%) */}
+          <div className='flex h-3 w-full shrink-0 gap-1.5' dir='ltr'>
+            <div className='h-full w-[18%] bg-[#e25b29]'></div>
+            <div className='h-full w-[82%] bg-[#1a1a1a]'></div>
+          </div>
+          <div className='flex justify-end px-8 pt-4 pb-2' dir='ltr'>
+            <div className='flex items-center gap-3'>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src='/logo.png'
+                alt='AAMS LOGISTICS'
+                className='h-14 w-auto object-contain shrink-0'
+              />
+              <div className='flex flex-col items-stretch justify-center select-none text-center min-w-[80px]'>
+                <span className='text-[22px] font-black tracking-[0.16em] text-slate-950 font-sans leading-none pl-[0.16em] block'>
+                  AAMS
+                </span>
+                <span className='text-[8px] font-black tracking-[0.38em] text-slate-700 font-sans leading-none mt-1 pl-[0.38em] uppercase block'>
+                  LOGISTICS
+                </span>
+              </div>
+            </div>
+          </div>
+        </>
+      );
+    }
+
     return (
       <>
         {/* Top Accent Line: Orange on Right (1/4) + Black on Left (3/4) */}
@@ -674,29 +719,11 @@ export function InvestigationPageContent({
 
     if (supervisorOnly) {
       return (
-        <div className='pt-2 pb-2 px-8 sm:px-14' dir='rtl'>
-          <div className='flex items-center justify-center gap-4 my-2.5'>
-            <div className='h-[1px] bg-gradient-to-r from-transparent via-slate-300 to-transparent flex-1'></div>
-            <p className='text-xs font-bold text-slate-700 italic tracking-wide'>
-              « تم إعداد هذا التقرير لإثبات حالته تحت مسؤوليتي »
-            </p>
-            <div className='h-[1px] bg-gradient-to-r from-transparent via-slate-300 to-transparent flex-1'></div>
-          </div>
-
-          <div className='flex items-end justify-between max-w-lg mx-auto pt-3 pb-2 px-4'>
-            <div className='space-y-1.5'>
-              <span className='text-[10.5px] font-bold text-slate-400 block'>
-                مُعد التقرير (المشرف)
-              </span>
-              <p className='text-sm font-black text-slate-900'>{supName || '—'}</p>
-            </div>
-            <div className='space-y-1.5 text-left' dir='ltr'>
-              <span className='text-[10.5px] font-bold text-slate-400 block text-right'>
-                التوقيع
-              </span>
-              <div className='w-44 border-b-2 border-slate-300 pb-4'></div>
-            </div>
-          </div>
+        <div className='px-8 pt-8 pb-4 space-y-8 text-right' dir='rtl'>
+          <p className='text-base sm:text-lg font-bold text-slate-950'>
+            التوقيع / {supName || '—'}
+          </p>
+          <p className='text-base sm:text-lg font-bold text-slate-950'>إجراء الإدارة /</p>
         </div>
       );
     }
@@ -851,14 +878,10 @@ export function InvestigationPageContent({
   );
 
   const DocFooter = () => (
-    <div
-      className='mt-auto border-t border-slate-300 px-4 py-1.5 text-center bg-slate-50/70'
-      dir='rtl'
-    >
-      <p className='text-[8.5px] font-bold text-slate-700 leading-tight'>
-        شركة ابرار عبد الرحمن الشمرانى للخدمات اللوجيستية - المملكة العربية السعودية - جدة - الطائف
-        - الخبر - سجل تجارى رقم 41030552280 | رقم الهاتف: 0531112225 | الايميل:
-        fahad@aams-logistics.com
+    <div className='mt-auto border-t border-slate-400 px-4 py-2 text-center' dir='rtl'>
+      <p className='text-[9.5px] sm:text-[10.5px] font-bold text-slate-800 leading-tight'>
+        شركة ابرار عبدالرحمن محمد الشمراني – المملكة العربية السعودية – جدة – الطائف س .ت:
+        ٧٠٤٩٢١٤٥٩١ الهاتف : ٠٥٣١١١٢٢٢٥ االيميل : Abrar@aams-logistic.com
       </p>
     </div>
   );
@@ -1352,18 +1375,112 @@ export function InvestigationPageContent({
 
                 <div className='relative z-10 flex-1 flex flex-col justify-between'>
                   <div className='flex-1 flex flex-col justify-start'>
-                    <DocHeader qrUrl={getDocumentUrl(t.type, t.id)} />
+                    <DocHeader qrUrl={getDocumentUrl(t.type, t.id)} docType={t.type} />
 
                     {/* Document Title in the Body */}
-                    <div className='text-center my-3'>
-                      <h1 className='text-xl sm:text-2xl font-black tracking-wide text-slate-950 inline-block border-b-2 border-[#f97316] pb-1 px-8'>
-                        {TEMPLATE_LABELS[t.type] || 'محضر'}
-                      </h1>
-                    </div>
+                    {isReport ? (
+                      <div className='text-center my-4'>
+                        <h1 className='text-2xl font-black tracking-wide text-slate-950'>
+                          تقرير مشرف
+                        </h1>
+                      </div>
+                    ) : (
+                      <div className='text-center my-3'>
+                        <h1 className='text-xl sm:text-2xl font-black tracking-wide text-slate-950 inline-block border-b-2 border-[#f97316] pb-1 px-8'>
+                          {TEMPLATE_LABELS[t.type] || 'محضر'}
+                        </h1>
+                      </div>
+                    )}
 
-                    {/* Employee Info & Document QR Section */}
+                    {/* Date for Supervisor Report */}
+                    {isReport && (
+                      <div className='flex justify-end px-8 mb-4' dir='rtl'>
+                        <span className='text-base font-bold text-slate-950'>
+                          التاريخ {formatReportDate(t.created_at)}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Employee Info & Document Section */}
                     {(() => {
                       const docEmps = parseDocEmployees(t);
+
+                      if (isReport) {
+                        return (
+                          <div className='px-8 mb-6' dir='rtl'>
+                            {docEmps.length > 1 ? (
+                              <table className='w-full border-collapse border border-slate-700 text-sm'>
+                                <thead>
+                                  <tr className='bg-[#9ca3af] text-slate-950 font-black'>
+                                    <th className='border border-slate-700 py-2 px-2 text-center w-12'>
+                                      #
+                                    </th>
+                                    <th className='border border-slate-700 py-2 px-4 text-center'>
+                                      اسم الموظف / المندوب
+                                    </th>
+                                    <th className='border border-slate-700 py-2 px-4 text-center font-mono'>
+                                      رقم الهوية الوطنية / الإقامة
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {docEmps.map((emp, idx) => (
+                                    <tr key={idx} className='bg-white'>
+                                      <td className='border border-slate-700 py-2 px-2 text-center font-bold text-slate-950'>
+                                        {idx + 1}
+                                      </td>
+                                      <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950'>
+                                        {emp.name}
+                                      </td>
+                                      <td className='border border-slate-700 py-2 px-4 font-bold text-center font-mono text-slate-950'>
+                                        {emp.national_id}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            ) : (
+                              <table className='w-full border-collapse border border-slate-700 text-sm'>
+                                <thead>
+                                  <tr className='bg-[#9ca3af] text-slate-950 font-black'>
+                                    <th className='border border-slate-700 py-2 px-4 text-center w-3/4'>
+                                      التفاصيل
+                                    </th>
+                                    <th className='border border-slate-700 py-2 px-4 text-center w-1/4'>
+                                      البيان
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr className='bg-white'>
+                                    <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950'>
+                                      {employeeName ||
+                                        selectedEmployee?.name ||
+                                        t.employee_name ||
+                                        '—'}
+                                    </td>
+                                    <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950 bg-slate-50/20'>
+                                      اسم الموظف
+                                    </td>
+                                  </tr>
+                                  <tr className='bg-white'>
+                                    <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950 font-mono'>
+                                      {nationalId ||
+                                        selectedEmployee?.national_id ||
+                                        t.national_id ||
+                                        '—'}
+                                    </td>
+                                    <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950 bg-slate-50/20'>
+                                      رقم الهوية
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            )}
+                          </div>
+                        );
+                      }
+
                       if (docEmps.length > 1) {
                         return (
                           <div className='px-8 py-3 sm:px-12'>
@@ -1578,16 +1695,22 @@ export function InvestigationPageContent({
                         </div>
                       </div>
                     )}
-                    {(isReport || isAbsence) && (reportText || t.report_text) && (
+                    {isReport && (reportText || t.report_text) ? (
+                      <div className='px-8 my-6' dir='rtl'>
+                        <div className='whitespace-pre-wrap font-medium leading-[2.2] text-slate-950 text-base sm:text-lg text-right'>
+                          {renderBoldText(reportText || t.report_text)}
+                        </div>
+                      </div>
+                    ) : isAbsence && (reportText || t.report_text) ? (
                       <div className='px-8 py-3 sm:px-12'>
                         <div className='text-sm sm:text-base font-bold text-slate-950 mb-2'>
-                          {isAbsence ? 'تفاصيل وإثبات الغياب:' : 'نص التقرير:'}
+                          تفاصيل وإثبات الغياب:
                         </div>
                         <div className='whitespace-pre-wrap font-normal leading-relaxed text-slate-900 text-sm sm:text-base'>
                           {renderBoldText(reportText || t.report_text)}
                         </div>
                       </div>
-                    )}
+                    ) : null}
                     {isAdvanceOnly && (amount || t.amount != null) && (
                       <AdvanceTemplate
                         amount={amount ? parseFloat(amount) : t.amount || 0}
@@ -1688,16 +1811,100 @@ export function InvestigationPageContent({
           margin: '0 auto'
         }}
       >
-        <DocHeader qrUrl={getDocumentUrl(t.type, t.id)} />
-        <div className='text-center my-3'>
-          <h1 className='text-xl sm:text-2xl font-black tracking-wide text-slate-950 inline-block border-b-2 border-[#f97316] pb-1 px-8'>
-            {TEMPLATE_LABELS[t.type] || 'محضر'}
-          </h1>
-        </div>
+        <DocHeader qrUrl={getDocumentUrl(t.type, t.id)} docType={t.type} />
+        {isReport ? (
+          <div className='text-center my-4'>
+            <h1 className='text-2xl font-black tracking-wide text-slate-950'>تقرير مشرف</h1>
+          </div>
+        ) : (
+          <div className='text-center my-3'>
+            <h1 className='text-xl sm:text-2xl font-black tracking-wide text-slate-950 inline-block border-b-2 border-[#f97316] pb-1 px-8'>
+              {TEMPLATE_LABELS[t.type] || 'محضر'}
+            </h1>
+          </div>
+        )}
 
-        {/* Employee Info & Document QR Section */}
+        {/* Date for Supervisor Report */}
+        {isReport && (
+          <div className='flex justify-end px-8 mb-4' dir='rtl'>
+            <span className='text-base font-bold text-slate-950'>
+              التاريخ {formatReportDate(t.created_at)}
+            </span>
+          </div>
+        )}
+
+        {/* Employee Info & Document Section */}
         {(() => {
           const docEmps = parseDocEmployees(t);
+
+          if (isReport) {
+            return (
+              <div className='px-8 mb-6' dir='rtl'>
+                {docEmps.length > 1 ? (
+                  <table className='w-full border-collapse border border-slate-700 text-sm'>
+                    <thead>
+                      <tr className='bg-[#9ca3af] text-slate-950 font-black'>
+                        <th className='border border-slate-700 py-2 px-2 text-center w-12'>#</th>
+                        <th className='border border-slate-700 py-2 px-4 text-center'>
+                          اسم الموظف / المندوب
+                        </th>
+                        <th className='border border-slate-700 py-2 px-4 text-center font-mono'>
+                          رقم الهوية الوطنية / الإقامة
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {docEmps.map((emp, idx) => (
+                        <tr key={idx} className='bg-white'>
+                          <td className='border border-slate-700 py-2 px-2 text-center font-bold text-slate-950'>
+                            {idx + 1}
+                          </td>
+                          <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950'>
+                            {emp.name}
+                          </td>
+                          <td className='border border-slate-700 py-2 px-4 font-bold text-center font-mono text-slate-950'>
+                            {emp.national_id}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <table className='w-full border-collapse border border-slate-700 text-sm'>
+                    <thead>
+                      <tr className='bg-[#9ca3af] text-slate-950 font-black'>
+                        <th className='border border-slate-700 py-2 px-4 text-center w-3/4'>
+                          التفاصيل
+                        </th>
+                        <th className='border border-slate-700 py-2 px-4 text-center w-1/4'>
+                          البيان
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className='bg-white'>
+                        <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950'>
+                          {t.employee_name || '—'}
+                        </td>
+                        <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950 bg-slate-50/20'>
+                          اسم الموظف
+                        </td>
+                      </tr>
+                      <tr className='bg-white'>
+                        <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950 font-mono'>
+                          {t.national_id || '—'}
+                        </td>
+                        <td className='border border-slate-700 py-2 px-4 font-bold text-center text-slate-950 bg-slate-50/20'>
+                          رقم الهوية
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            );
+          }
+
           if (docEmps.length > 1) {
             return (
               <div className='px-8 py-3 sm:px-12'>
@@ -1744,7 +1951,6 @@ export function InvestigationPageContent({
           return (
             <div className='px-8 py-3 sm:px-12'>
               <div className='flex items-center justify-between gap-6' dir='rtl'>
-                {/* Right: Employee Info + Date stacked vertically */}
                 <div className='space-y-1.5 text-sm'>
                   <div className='flex items-center gap-2'>
                     <span className='text-xs text-slate-500 font-medium min-w-[75px]'>
@@ -1834,16 +2040,22 @@ export function InvestigationPageContent({
             </div>
           </div>
         )}
-        {(isReport || isAbsence) && t.report_text && (
+        {isReport && t.report_text ? (
+          <div className='px-8 my-6' dir='rtl'>
+            <div className='whitespace-pre-wrap font-medium leading-[2.2] text-slate-950 text-base sm:text-lg text-right'>
+              {renderBoldText(t.report_text)}
+            </div>
+          </div>
+        ) : isAbsence && t.report_text ? (
           <div className='px-8 py-3 sm:px-12'>
             <div className='text-sm sm:text-base font-bold text-slate-950 mb-2'>
-              {isAbsence ? 'تفاصيل وإثبات الغياب:' : 'نص التقرير:'}
+              تفاصيل وإثبات الغياب:
             </div>
             <div className='whitespace-pre-wrap font-normal leading-relaxed text-slate-900 text-sm sm:text-base'>
               {renderBoldText(t.report_text)}
             </div>
           </div>
-        )}
+        ) : null}
         {isAdvanceOnly && t.amount != null && (
           <AdvanceTemplate amount={t.amount} employeeName={t.employee_name} />
         )}
