@@ -140,7 +140,7 @@ export default function NewEmployeePage() {
 
   return (
     <PageContainer>
-      <div className='space-y-6 max-w-4xl mx-auto pb-10' dir='rtl'>
+      <div className='space-y-6 w-full max-w-6xl mx-auto pb-10' dir='rtl'>
         <PageHeader
           title='إضافة موظف جديد'
           description='تسجيل بيانات الموظف، الهوية، وتوليد البطاقة الذكية'

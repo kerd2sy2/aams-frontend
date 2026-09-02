@@ -156,7 +156,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
 
   return (
     <PageContainer>
-      <div className='space-y-6 max-w-4xl mx-auto pb-10' dir='rtl'>
+      <div className='space-y-6 w-full max-w-6xl mx-auto pb-10' dir='rtl'>
         <PageHeader
           category='تعديل الموظف'
           title={`تعديل بيانات ${employee?.name || ''}`}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useState, useRef } from 'react';
+import React, { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -9,36 +9,37 @@ import { employeeApi } from '@/lib/aams/services';
 import { DetailSkeleton } from '@/components/aams/skeletons';
 import { QRCodeImage } from '@/components/aams/employee-codes';
 import { toast } from 'sonner';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { cn, getWhatsAppURL } from '@/lib/utils';
+import { getWhatsAppURL } from '@/lib/utils';
 import { PageHeader } from '@/components/layout/page-header';
 import PageContainer from '@/components/layout/page-container';
 import {
   User,
-  CreditCard,
   Bike,
   Key,
-  AppWindow,
   Printer,
   Edit,
   Trash2,
   ArrowRight,
   QrCode,
-  Barcode as BarcodeIcon,
-  Calendar,
   FileCheck,
   IdCard,
   Car,
-  Hash,
   X,
-  Maximize2,
   Copy,
   Check,
   MessageCircle,
-  AlertTriangle
+  AlertTriangle,
+  Phone,
+  Building2,
+  Calendar,
+  Gauge,
+  Wrench,
+  Clock,
+  ShieldCheck,
+  ExternalLink
 } from 'lucide-react';
 
 export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -46,7 +47,7 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
   const router = useRouter();
   const queryClient = useQueryClient();
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const {
@@ -70,6 +71,13 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
       toast.error('حدث خطأ أثناء حذف الموظف');
     }
   });
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    toast.success('تم النسخ إلى الحافظة');
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   if (isLoading) {
     return (
@@ -112,21 +120,40 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
         0
     ) || 0;
 
+  const roleLabel =
+    employee.job_role === 'SUPERVISOR'
+      ? 'مشرف وردية'
+      : employee.job_role === 'MANAGEMENT'
+        ? 'إدارة'
+        : employee.job_role === 'WORKER'
+          ? 'عامل'
+          : 'مندوب توصيل';
+
   return (
     <PageContainer>
-      <div className='space-y-6 max-w-5xl mx-auto' dir='rtl'>
+      <div className='space-y-6 w-full max-w-7xl mx-auto pb-10' dir='rtl'>
+        {/* Top Header & Actions */}
         <PageHeader
-          category='تفاصيل المندوب'
+          category='لوحة التحكم / الموظفين'
           title={employee.name || 'مندوب'}
-          description={`المعرف: ${employee.employee_number || (employee.id || '').slice(0, 8)} | الهوية: ${employee.national_id || '-'}`}
+          description={`رقم الهوية: ${employee.national_id || '-'} ${employee.employee_number ? `| الجوال: ${employee.employee_number}` : ''}`}
           actions={
             <div className='flex flex-wrap items-center gap-2'>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => router.push('/dashboard/employees')}
+                className='gap-1.5'
+              >
+                <ArrowRight className='size-4' />
+                رجوع
+              </Button>
               {waUrl && (
                 <a href={waUrl} target='_blank' rel='noopener noreferrer'>
                   <Button
                     variant='outline'
                     size='sm'
-                    className='gap-1.5 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                    className='gap-1.5 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10'
                   >
                     <MessageCircle className='size-4' />
                     واتساب
@@ -140,7 +167,7 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                 </Button>
               </Link>
               <Link href={`/dashboard/employees/${id}/edit`}>
-                <Button variant='outline' size='sm' className='gap-1.5'>
+                <Button size='sm' className='gap-1.5 font-bold shadow-xs'>
                   <Edit className='size-4' />
                   تعديل
                 </Button>
@@ -149,7 +176,7 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                 variant='outline'
                 size='sm'
                 onClick={() => setDeleteModalOpen(true)}
-                className='gap-1.5 text-destructive hover:bg-destructive/10'
+                className='gap-1.5 text-destructive hover:bg-destructive/10 border-destructive/20'
               >
                 <Trash2 className='size-4' />
                 حذف
@@ -158,227 +185,440 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
           }
         />
 
-        {/* Profile Card Header */}
-        <Card className='overflow-hidden border-border'>
-          <CardContent className='p-6'>
-            <div className='flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-right'>
-              <div className='size-24 sm:size-28 rounded-2xl bg-muted overflow-hidden shrink-0 border-2 border-border shadow-sm flex items-center justify-center'>
-                {personalImg ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={personalImg}
-                    alt={employee.name}
-                    className='size-full object-cover cursor-pointer hover:scale-105 transition-transform'
-                    onClick={() => setLightbox({ src: personalImg, alt: employee.name })}
-                  />
-                ) : (
-                  <User className='size-12 text-muted-foreground' />
-                )}
-              </div>
+        {/* Main 2-Column Responsive Grid */}
+        <div className='grid grid-cols-1 lg:grid-cols-12 gap-6 items-start'>
+          {/* Main Info Column (8 cols) */}
+          <div className='lg:col-span-8 space-y-6'>
+            {/* Hero Profile Card */}
+            <Card className='overflow-hidden border-border shadow-xs'>
+              <CardContent className='p-6'>
+                <div className='flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-right'>
+                  <div
+                    className='relative size-28 sm:size-32 rounded-2xl bg-muted overflow-hidden shrink-0 border-2 border-border shadow-md flex items-center justify-center cursor-pointer group'
+                    onClick={() =>
+                      personalImg && setLightbox({ src: personalImg, alt: employee.name })
+                    }
+                  >
+                    {personalImg ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={personalImg}
+                        alt={employee.name}
+                        className='size-full object-cover transition-transform duration-300 group-hover:scale-105'
+                      />
+                    ) : (
+                      <User className='size-14 text-muted-foreground' />
+                    )}
+                  </div>
 
-              <div className='space-y-2 flex-1 min-w-0'>
-                <h2 className='text-2xl font-bold'>{employee.name}</h2>
-                <div className='flex flex-wrap items-center justify-center sm:justify-start gap-2'>
-                  <Badge variant='secondary' className='gap-1 font-bold'>
-                    <Bike className='size-3.5' />
-                    دراجة: {employee.motorcycle_number || '-'}
-                  </Badge>
-                  <Badge variant='outline' className='font-mono font-bold'>
-                    مفتاح: {employee.key_number || '-'}
-                  </Badge>
-                  <Badge className='bg-primary/10 text-primary border-primary/20 font-bold'>
-                    {employee.application_id || 'عام'}
-                  </Badge>
-                  {employee.branch?.name && (
-                    <Badge variant='secondary'>{employee.branch.name}</Badge>
-                  )}
+                  <div className='space-y-3 flex-1 min-w-0'>
+                    <div>
+                      <div className='flex flex-wrap items-center justify-center sm:justify-start gap-2.5 mb-1.5'>
+                        <h2 className='text-2xl sm:text-3xl font-black tracking-tight text-foreground'>
+                          {employee.name}
+                        </h2>
+                        <Badge variant='default' className='font-bold text-xs bg-primary/90'>
+                          {roleLabel}
+                        </Badge>
+                        {employee.branch?.name && (
+                          <Badge variant='secondary' className='gap-1 text-xs font-bold'>
+                            <Building2 className='size-3' />
+                            {employee.branch.name}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className='text-sm text-muted-foreground'>
+                        مسجل في النظام برقم المعرف:{' '}
+                        <span className='font-mono font-bold text-foreground'>
+                          {(employee.id || '').slice(0, 8)}
+                        </span>
+                      </p>
+                    </div>
+
+                    <div className='flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1'>
+                      {employee.national_id && (
+                        <button
+                          type='button'
+                          onClick={() => copyToClipboard(employee.national_id, 'nid')}
+                          className='inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-muted/60 hover:bg-muted text-xs font-mono font-bold transition-colors border border-border/60'
+                          title='انقر لنسخ رقم الهوية'
+                        >
+                          <IdCard className='size-3.5 text-primary' />
+                          <span>الهوية: {employee.national_id}</span>
+                          {copiedField === 'nid' ? (
+                            <Check className='size-3 text-emerald-500' />
+                          ) : (
+                            <Copy className='size-3 text-muted-foreground opacity-70' />
+                          )}
+                        </button>
+                      )}
+
+                      {employee.employee_number && (
+                        <button
+                          type='button'
+                          onClick={() => copyToClipboard(employee.employee_number, 'phone')}
+                          className='inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-muted/60 hover:bg-muted text-xs font-mono font-bold transition-colors border border-border/60'
+                          title='انقر لنسخ رقم الجوال'
+                        >
+                          <Phone className='size-3.5 text-primary' />
+                          <span>الجوال: {employee.employee_number}</span>
+                          {copiedField === 'phone' ? (
+                            <Check className='size-3 text-emerald-500' />
+                          ) : (
+                            <Copy className='size-3 text-muted-foreground opacity-70' />
+                          )}
+                        </button>
+                      )}
+
+                      {employee.motorcycle_number && (
+                        <Badge variant='outline' className='gap-1 font-bold text-xs py-1 px-3'>
+                          <Bike className='size-3.5 text-primary' />
+                          لوحة:{' '}
+                          <span className='font-mono font-black'>{employee.motorcycle_number}</span>
+                        </Badge>
+                      )}
+
+                      {employee.key_number && (
+                        <Badge variant='outline' className='gap-1 font-bold text-xs py-1 px-3'>
+                          <Key className='size-3.5 text-amber-500' />
+                          مفتاح: <span className='font-mono'>{employee.key_number}</span>
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                <p className='text-xs text-muted-foreground font-mono mt-1'>
-                  رقم الهوية: {employee.national_id}
-                </p>
-              </div>
-
-              {/* QR Box in Header (Code128 Barcode Removed) */}
-              <div className='bg-muted/40 rounded-xl p-3 border border-border/60 flex flex-col items-center gap-1.5 shrink-0'>
-                <div className='bg-white p-1.5 rounded-lg shadow-2xs border border-slate-200 dark:border-slate-800'>
-                  <QRCodeImage value={employee.id} size={58} />
-                </div>
-                <span className='text-[10px] text-muted-foreground font-semibold flex items-center gap-1'>
-                  <QrCode className='size-3' />
-                  QR (UUID)
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Stats Grid */}
-        <div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
-          <Card className='border-border'>
-            <CardContent className='p-4 text-center'>
-              <p className='text-xs text-muted-foreground'>إجمالي المسافة</p>
-              <p className='text-xl font-bold font-mono tabular-nums mt-1'>
-                {totalDistanceNum.toLocaleString('en-US')} كم
-              </p>
-            </CardContent>
-          </Card>
-          <Card className='border-border'>
-            <CardContent className='p-4 text-center'>
-              <p className='text-xs text-muted-foreground'>آخر مسافة زيت</p>
-              <p className='text-xl font-bold font-mono tabular-nums mt-1'>
-                {lastOilDistanceNum.toLocaleString('en-US')} كم
-              </p>
-            </CardContent>
-          </Card>
-          <Card className='border-border'>
-            <CardContent className='p-4 text-center'>
-              <p className='text-xs text-muted-foreground'>المركبة</p>
-              <p className='text-lg font-bold mt-1'>
-                {employee.vehicle_type === 'car' ? 'سيارة' : 'دراجة نارية'}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className='border-border'>
-            <CardContent className='p-4 text-center'>
-              <p className='text-xs text-muted-foreground'>الشفت</p>
-              <p className='text-lg font-bold mt-1'>{employee.shift || 'صباحي'}</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Dedicated QR Section Card (Code128 Barcode Removed) */}
-        <Card className='border-border shadow-xs'>
-          <CardHeader className='pb-3'>
-            <CardTitle className='text-base flex items-center gap-2'>
-              <QrCode className='size-4 text-primary' />
-              رمز الاستجابة السريعة للتعريف والمطابقة الرقمية (QR UUID)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className='flex items-center justify-center p-2'>
-              <div className='p-6 rounded-xl border bg-muted/20 flex flex-col items-center justify-center text-center gap-3 max-w-sm w-full'>
-                <div className='bg-white p-4 rounded-2xl shadow-xs border border-slate-200 dark:border-slate-800'>
-                  <QRCodeImage value={employee.id} size={150} />
-                </div>
-                <div className='space-y-1'>
-                  <p className='text-sm font-bold text-foreground'>
-                    رمز الاستجابة السريعة (UUID QR Code)
+            {/* Quick Stats Grid */}
+            <div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
+              <Card className='border-border shadow-2xs'>
+                <CardContent className='p-4 text-right space-y-1'>
+                  <div className='flex items-center justify-between text-muted-foreground'>
+                    <span className='text-xs font-medium'>إجمالي المسافة</span>
+                    <Gauge className='size-4 text-primary' />
+                  </div>
+                  <p className='text-xl font-black font-mono tabular-nums text-foreground'>
+                    {totalDistanceNum.toLocaleString('en-US')}{' '}
+                    <span className='text-xs font-normal text-muted-foreground'>كم</span>
                   </p>
-                  <p className='text-xs text-muted-foreground font-mono select-all'>
+                </CardContent>
+              </Card>
+
+              <Card className='border-border shadow-2xs'>
+                <CardContent className='p-4 text-right space-y-1'>
+                  <div className='flex items-center justify-between text-muted-foreground'>
+                    <span className='text-xs font-medium'>آخر غيار زيت</span>
+                    <Wrench className='size-4 text-amber-500' />
+                  </div>
+                  <p className='text-xl font-black font-mono tabular-nums text-foreground'>
+                    {lastOilDistanceNum.toLocaleString('en-US')}{' '}
+                    <span className='text-xs font-normal text-muted-foreground'>كم</span>
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className='border-border shadow-2xs'>
+                <CardContent className='p-4 text-right space-y-1'>
+                  <div className='flex items-center justify-between text-muted-foreground'>
+                    <span className='text-xs font-medium'>نوع المركبة</span>
+                    {employee.vehicle_type === 'car' ? (
+                      <Car className='size-4 text-primary' />
+                    ) : (
+                      <Bike className='size-4 text-primary' />
+                    )}
+                  </div>
+                  <p className='text-base sm:text-lg font-bold text-foreground'>
+                    {employee.vehicle_type === 'car' ? 'سيارة' : 'دراجة نارية'}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className='border-border shadow-2xs'>
+                <CardContent className='p-4 text-right space-y-1'>
+                  <div className='flex items-center justify-between text-muted-foreground'>
+                    <span className='text-xs font-medium'>شفت العمل</span>
+                    <Clock className='size-4 text-primary' />
+                  </div>
+                  <p className='text-base sm:text-lg font-bold text-foreground'>
+                    {employee.shift === 'evening'
+                      ? 'مسائي'
+                      : employee.shift === 'night'
+                        ? 'ليلي'
+                        : 'صباحي'}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Official Attached Documents Gallery */}
+            <Card className='border-border shadow-xs'>
+              <CardHeader className='pb-4 border-b border-border/40'>
+                <CardTitle className='text-lg flex items-center gap-2'>
+                  <FileCheck className='size-5 text-primary' />
+                  المستندات والوثائق الرسمية المرفقة
+                </CardTitle>
+              </CardHeader>
+              <CardContent className='pt-6'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  {/* National ID Document */}
+                  <div className='space-y-2'>
+                    <div className='flex items-center justify-between text-xs font-bold text-foreground'>
+                      <span className='flex items-center gap-1.5'>
+                        <IdCard className='size-4 text-primary' />
+                        صورة الهوية الوطنية / الإقامة
+                      </span>
+                      {nationalImg && (
+                        <span className='text-emerald-600 dark:text-emerald-400 font-medium'>
+                          مرفوع ✓
+                        </span>
+                      )}
+                    </div>
+                    {nationalImg ? (
+                      <div
+                        className='rounded-xl overflow-hidden border border-border h-44 bg-muted/20 cursor-pointer flex items-center justify-center relative group'
+                        onClick={() => setLightbox({ src: nationalImg, alt: 'الهوية الوطنية' })}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={nationalImg}
+                          alt='الهوية الوطنية'
+                          className='size-full object-contain p-2 group-hover:scale-105 transition-transform'
+                        />
+                        <div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1'>
+                          <ExternalLink className='size-4' />
+                          تكبير الصورة
+                        </div>
+                      </div>
+                    ) : (
+                      <div className='h-44 rounded-xl border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 bg-muted/5'>
+                        <IdCard className='size-8 opacity-40' />
+                        <span>لم يتم رفع صورة الهوية</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Driving License */}
+                  <div className='space-y-2'>
+                    <div className='flex items-center justify-between text-xs font-bold text-foreground'>
+                      <span className='flex items-center gap-1.5'>
+                        <FileCheck className='size-4 text-primary' />
+                        صورة رخصة القيادة
+                      </span>
+                      {licenseImg && (
+                        <span className='text-emerald-600 dark:text-emerald-400 font-medium'>
+                          مرفوع ✓
+                        </span>
+                      )}
+                    </div>
+                    {licenseImg ? (
+                      <div
+                        className='rounded-xl overflow-hidden border border-border h-44 bg-muted/20 cursor-pointer flex items-center justify-center relative group'
+                        onClick={() => setLightbox({ src: licenseImg, alt: 'رخصة القيادة' })}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={licenseImg}
+                          alt='رخصة القيادة'
+                          className='size-full object-contain p-2 group-hover:scale-105 transition-transform'
+                        />
+                        <div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1'>
+                          <ExternalLink className='size-4' />
+                          تكبير الصورة
+                        </div>
+                      </div>
+                    ) : (
+                      <div className='h-44 rounded-xl border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 bg-muted/5'>
+                        <FileCheck className='size-8 opacity-40' />
+                        <span>لم يتم رفع صورة الرخصة</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Passport Document */}
+                  <div className='space-y-2'>
+                    <div className='flex items-center justify-between text-xs font-bold text-foreground'>
+                      <span className='flex items-center gap-1.5'>
+                        <IdCard className='size-4 text-primary' />
+                        صورة جواز السفر
+                      </span>
+                      {passportImg && (
+                        <span className='text-emerald-600 dark:text-emerald-400 font-medium'>
+                          مرفوع ✓
+                        </span>
+                      )}
+                    </div>
+                    {passportImg ? (
+                      <div
+                        className='rounded-xl overflow-hidden border border-border h-44 bg-muted/20 cursor-pointer flex items-center justify-center relative group'
+                        onClick={() => setLightbox({ src: passportImg, alt: 'جواز السفر' })}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={passportImg}
+                          alt='جواز السفر'
+                          className='size-full object-contain p-2 group-hover:scale-105 transition-transform'
+                        />
+                        <div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1'>
+                          <ExternalLink className='size-4' />
+                          تكبير الصورة
+                        </div>
+                      </div>
+                    ) : (
+                      <div className='h-44 rounded-xl border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 bg-muted/5'>
+                        <IdCard className='size-8 opacity-40' />
+                        <span>لم يتم رفع صورة جواز السفر</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Vehicle Registration */}
+                  <div className='space-y-2'>
+                    <div className='flex items-center justify-between text-xs font-bold text-foreground'>
+                      <span className='flex items-center gap-1.5'>
+                        <FileCheck className='size-4 text-primary' />
+                        صورة رخصة السير (الاستمارة)
+                      </span>
+                      {vehicleRegImg && (
+                        <span className='text-emerald-600 dark:text-emerald-400 font-medium'>
+                          مرفوع ✓
+                        </span>
+                      )}
+                    </div>
+                    {vehicleRegImg ? (
+                      <div
+                        className='rounded-xl overflow-hidden border border-border h-44 bg-muted/20 cursor-pointer flex items-center justify-center relative group'
+                        onClick={() =>
+                          setLightbox({ src: vehicleRegImg, alt: 'رخصة السير (الاستمارة)' })
+                        }
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={vehicleRegImg}
+                          alt='رخصة السير (الاستمارة)'
+                          className='size-full object-contain p-2 group-hover:scale-105 transition-transform'
+                        />
+                        <div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1'>
+                          <ExternalLink className='size-4' />
+                          تكبير الصورة
+                        </div>
+                      </div>
+                    ) : (
+                      <div className='h-44 rounded-xl border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 bg-muted/5'>
+                        <FileCheck className='size-8 opacity-40' />
+                        <span>لم يتم رفع صورة رخصة السير</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Side Column (4 cols) */}
+          <div className='lg:col-span-4 space-y-6'>
+            {/* Dedicated QR & ID Card */}
+            <Card className='border-border shadow-xs'>
+              <CardHeader className='pb-3 border-b border-border/40'>
+                <CardTitle className='text-base flex items-center gap-2'>
+                  <QrCode className='size-4 text-primary' />
+                  رمز الاستجابة السريعة (UUID QR)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className='pt-5 flex flex-col items-center text-center space-y-4'>
+                <div className='bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800'>
+                  <QRCodeImage value={employee.id} size={140} />
+                </div>
+
+                <div className='w-full space-y-1 text-center'>
+                  <p className='text-xs font-bold text-foreground'>المعرف الرقمي الموحد</p>
+                  <p className='text-[11px] font-mono text-muted-foreground select-all break-all bg-muted/50 p-2 rounded-lg border border-border/50'>
                     {employee.id}
                   </p>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Documents Preview */}
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-          <Card>
-            <CardHeader className='pb-3'>
-              <CardTitle className='text-base flex items-center gap-2'>
-                <IdCard className='size-4 text-primary' />
-                صورة الهوية الوطنية / الإقامة
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {nationalImg ? (
-                <div
-                  className='rounded-xl overflow-hidden border border-border h-48 bg-muted/30 cursor-pointer flex items-center justify-center'
-                  onClick={() => setLightbox({ src: nationalImg, alt: 'الهوية الوطنية' })}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={nationalImg}
-                    alt='الهوية الوطنية'
-                    className='size-full object-contain'
-                  />
-                </div>
-              ) : (
-                <div className='h-48 rounded-xl border border-dashed border-border flex items-center justify-center text-muted-foreground text-sm'>
-                  لم يتم رفع صورة الهوية
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                <div className='w-full grid grid-cols-2 gap-2 pt-1'>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => copyToClipboard(employee.id, 'uuid')}
+                    className='gap-1.5 text-xs w-full font-bold'
+                  >
+                    {copiedField === 'uuid' ? (
+                      <>
+                        <Check className='size-3.5 text-emerald-500' />
+                        تم النسخ
+                      </>
+                    ) : (
+                      <>
+                        <Copy className='size-3.5' />
+                        نسخ المعرف
+                      </>
+                    )}
+                  </Button>
 
-          <Card>
-            <CardHeader className='pb-3'>
-              <CardTitle className='text-base flex items-center gap-2'>
-                <IdCard className='size-4 text-primary' />
-                صورة جواز السفر
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {passportImg ? (
-                <div
-                  className='rounded-xl overflow-hidden border border-border h-48 bg-muted/30 cursor-pointer flex items-center justify-center'
-                  onClick={() => setLightbox({ src: passportImg, alt: 'جواز السفر' })}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={passportImg} alt='جواز السفر' className='size-full object-contain' />
+                  <Link href={`/dashboard/employees/${id}/card`} className='w-full'>
+                    <Button
+                      variant='default'
+                      size='sm'
+                      className='gap-1.5 text-xs w-full font-bold shadow-xs'
+                    >
+                      <Printer className='size-3.5' />
+                      طباعة البطاقة
+                    </Button>
+                  </Link>
                 </div>
-              ) : (
-                <div className='h-48 rounded-xl border border-dashed border-border flex items-center justify-center text-muted-foreground text-sm'>
-                  لم يتم رفع صورة جواز السفر
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className='pb-3'>
-              <CardTitle className='text-base flex items-center gap-2'>
-                <FileCheck className='size-4 text-primary' />
-                صورة رخصة القيادة
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {licenseImg ? (
-                <div
-                  className='rounded-xl overflow-hidden border border-border h-48 bg-muted/30 cursor-pointer flex items-center justify-center'
-                  onClick={() => setLightbox({ src: licenseImg, alt: 'رخصة القيادة' })}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={licenseImg} alt='رخصة القيادة' className='size-full object-contain' />
+            {/* Employment & System Metadata */}
+            <Card className='border-border shadow-xs'>
+              <CardHeader className='pb-3 border-b border-border/40'>
+                <CardTitle className='text-base flex items-center gap-2'>
+                  <ShieldCheck className='size-4 text-primary' />
+                  بيانات التعيين والنظام
+                </CardTitle>
+              </CardHeader>
+              <CardContent className='pt-4 text-sm divide-y divide-border/40'>
+                <div className='py-2.5 flex items-center justify-between'>
+                  <span className='text-muted-foreground text-xs'>الفرع التابع له</span>
+                  <span className='font-bold text-foreground'>
+                    {employee.branch?.name || 'الفرع الرئيسي'}
+                  </span>
                 </div>
-              ) : (
-                <div className='h-48 rounded-xl border border-dashed border-border flex items-center justify-center text-muted-foreground text-sm'>
-                  لم يتم رفع صورة الرخصة
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader className='pb-3'>
-              <CardTitle className='text-base flex items-center gap-2'>
-                <FileCheck className='size-4 text-primary' />
-                صورة رخصة السير (الاستمارة)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {vehicleRegImg ? (
-                <div
-                  className='rounded-xl overflow-hidden border border-border h-48 bg-muted/30 cursor-pointer flex items-center justify-center'
-                  onClick={() => setLightbox({ src: vehicleRegImg, alt: 'رخصة السير (الاستمارة)' })}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={vehicleRegImg}
-                    alt='رخصة السير (الاستمارة)'
-                    className='size-full object-contain'
-                  />
+                <div className='py-2.5 flex items-center justify-between'>
+                  <span className='text-muted-foreground text-xs'>الوظيفة</span>
+                  <span className='font-bold text-foreground'>{roleLabel}</span>
                 </div>
-              ) : (
-                <div className='h-48 rounded-xl border border-dashed border-border flex items-center justify-center text-muted-foreground text-sm'>
-                  لم يتم رفع صورة رخصة السير (الاستمارة)
+
+                <div className='py-2.5 flex items-center justify-between'>
+                  <span className='text-muted-foreground text-xs'>التطبيق المخصص</span>
+                  <span className='font-bold text-foreground'>
+                    {employee.application_id || 'عام'}
+                  </span>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+
+                <div className='py-2.5 flex items-center justify-between'>
+                  <span className='text-muted-foreground text-xs'>تاريخ انتهاء الإقامة</span>
+                  <span className='font-mono font-bold text-foreground'>
+                    {employee.iqama_expiration_date
+                      ? employee.iqama_expiration_date.slice(0, 10)
+                      : 'غير محدد'}
+                  </span>
+                </div>
+
+                <div className='py-2.5 flex items-center justify-between'>
+                  <span className='text-muted-foreground text-xs'>تاريخ التسجيل</span>
+                  <span className='font-mono text-xs text-muted-foreground'>
+                    {employee.created_at
+                      ? new Date(employee.created_at).toLocaleDateString('ar-SA')
+                      : '-'}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Delete Confirmation Modal */}
@@ -425,7 +665,7 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
               />
               <button
                 onClick={() => setLightbox(null)}
-                className='absolute top-3 left-3 bg-black/60 text-white rounded-full p-2 hover:bg-black/80'
+                className='absolute top-3 left-3 bg-black/60 text-white rounded-full p-2 hover:bg-black/80 transition-colors'
               >
                 <X className='size-5' />
               </button>
