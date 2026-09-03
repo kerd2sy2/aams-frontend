@@ -206,6 +206,19 @@ export default function ReportsPage() {
     }
   });
 
+  const reviewMutation = useMutation({
+    mutationFn: (sessionId: string) =>
+      workApi.reviewWorkSession(sessionId, { is_reviewed: true, review_notes: '' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      toast.success('✅ تمت الموافقة على الشفت بنجاح — عدد الطلبات مُعتمد الآن');
+    },
+    onError: (err) => {
+      toast.error(getErrorMessage(err, 'فشل في الموافقة على الشفت'));
+    }
+  });
+
   const handleEditSave = () => {
     if (!editSession) return;
     const session = editSession;
@@ -244,10 +257,7 @@ export default function ReportsPage() {
       if (endDate) params.set('end_date', endDate);
       if (employeeId) params.set('employee_id', employeeId);
       if (applicationId) params.set('application_id', applicationId);
-      await downloadExcelFile(
-        `/api/v1/reports/export?${params.toString()}`,
-        'تقرير_الشفتات.xlsx'
-      );
+      await downloadExcelFile(`/api/v1/reports/export?${params.toString()}`, 'تقرير_الشفتات.xlsx');
       toast.success('تم تصدير ملف Excel بنجاح!');
     } catch {
       toast.error('حدث خطأ أثناء تصدير ملف Excel');
@@ -262,7 +272,11 @@ export default function ReportsPage() {
       pageDescription='فلترة وتصدير كشف الشفتات بصيغة Excel'
       pageHeaderAction={
         <div className='flex gap-2'>
-          <Button variant='outline' onClick={openFilterModal} className='relative gap-2 font-semibold'>
+          <Button
+            variant='outline'
+            onClick={openFilterModal}
+            className='relative gap-2 font-semibold'
+          >
             <Icons.adjustments className='size-4' />
             تصفية
             {activeFilters > 0 && (
@@ -306,7 +320,14 @@ export default function ReportsPage() {
             {/* Mobile Cards */}
             <div className='space-y-3 md:hidden'>
               {rows.map((row) => (
-                <Card key={row.id}>
+                <Card
+                  key={row.id}
+                  className={
+                    !row.is_reviewed && row.status !== 'ACTIVE'
+                      ? 'border-amber-200 dark:border-amber-900'
+                      : ''
+                  }
+                >
                   <CardContent>
                     <div className='flex items-start justify-between gap-2'>
                       <div className='min-w-0'>
@@ -322,9 +343,23 @@ export default function ReportsPage() {
                           })}
                         </p>
                       </div>
-                      <Badge variant='secondary' className='shrink-0 font-bold'>
-                        {row.working_duration}
-                      </Badge>
+                      <div className='flex flex-col items-end gap-1 shrink-0'>
+                        <Badge variant='secondary' className='font-bold'>
+                          {row.working_duration}
+                        </Badge>
+                        {row.is_reviewed ? (
+                          <Badge className='bg-emerald-100 text-emerald-700 border-emerald-300 text-[10px] dark:bg-emerald-950/30 dark:text-emerald-400'>
+                            ✓ معتمد
+                          </Badge>
+                        ) : row.status !== 'ACTIVE' ? (
+                          <Badge
+                            variant='outline'
+                            className='border-amber-400 bg-amber-50 text-amber-700 text-[10px] dark:bg-amber-950/30 dark:text-amber-400'
+                          >
+                            بانتظار الموافقة
+                          </Badge>
+                        ) : null}
+                      </div>
                     </div>
                     <div className='mt-3 grid grid-cols-2 gap-2 text-xs font-semibold'>
                       <Field
@@ -337,7 +372,11 @@ export default function ReportsPage() {
                         tone={row.end_time ? 'default' : 'amber'}
                       />
                       <Field label='المسافة' value={`${row.distance} كم`} tone='emerald' />
-                      <Field label='عدد الطلبات' value={`${row.orders_count}`} />
+                      <Field
+                        label='عدد الطلبات'
+                        value={row.is_reviewed ? `${row.orders_count}` : '—'}
+                        tone={row.is_reviewed ? 'default' : 'amber'}
+                      />
                       <Field label='الوقود' value={`${row.fuel_cost} ر.س`} tone='rose' />
                       <Field label='عداد البداية' value={`${row.start_km} كم`} />
                       <Field label='عداد النهاية' value={`${row.end_km || '-'} كم`} />
@@ -356,12 +395,24 @@ export default function ReportsPage() {
                         )}
                       </div>
                     )}
-                    <div className='mt-3 border-t pt-3'>
+                    <div className='mt-3 border-t pt-3 flex gap-2'>
+                      {!row.is_reviewed && row.status !== 'ACTIVE' && (
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={() => reviewMutation.mutate(row.id)}
+                          disabled={reviewMutation.isPending}
+                          className='h-9 flex-1 text-xs gap-1 border-emerald-400 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400'
+                        >
+                          <Icons.check className='size-3.5' />
+                          موافقة المشرف
+                        </Button>
+                      )}
                       <Button
                         variant='outline'
                         size='sm'
                         onClick={() => openEditModal(row)}
-                        className='h-9 w-full text-xs'
+                        className='h-9 flex-1 text-xs'
                       >
                         <Icons.edit className='size-3.5' />
                         تعديل الشفت
@@ -396,7 +447,14 @@ export default function ReportsPage() {
                   </TableHeader>
                   <TableBody>
                     {rows.map((row) => (
-                      <TableRow key={row.id}>
+                      <TableRow
+                        key={row.id}
+                        className={
+                          !row.is_reviewed && row.status !== 'ACTIVE'
+                            ? 'bg-amber-50/40 dark:bg-amber-950/10'
+                            : ''
+                        }
+                      >
                         <TableCell className='py-2.5 text-center font-bold'>
                           {row.employee_name}
                         </TableCell>
@@ -438,8 +496,22 @@ export default function ReportsPage() {
                         <TableCell className='py-2.5 text-center font-mono text-xs font-bold tabular-nums'>
                           {row.distance} كم
                         </TableCell>
-                        <TableCell className='py-2.5 text-center text-xs font-bold tabular-nums'>
-                          {row.orders_count}
+                        {/* الطلبات — تظهر فقط بعد موافقة المشرف */}
+                        <TableCell className='py-2.5 text-center text-xs tabular-nums'>
+                          {row.is_reviewed ? (
+                            <span className='font-bold text-emerald-600 dark:text-emerald-400'>
+                              {row.orders_count}
+                            </span>
+                          ) : row.status === 'ACTIVE' ? (
+                            <span className='text-muted-foreground'>—</span>
+                          ) : (
+                            <Badge
+                              variant='outline'
+                              className='border-amber-400 bg-amber-50 text-amber-700 text-[10px] dark:bg-amber-950/30 dark:text-amber-400'
+                            >
+                              بانتظار الموافقة
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell className='py-2.5 text-center font-mono text-xs tabular-nums'>
                           {row.fuel_cost}
@@ -451,16 +523,31 @@ export default function ReportsPage() {
                           {row.notes || '-'}
                         </TableCell>
                         <TableCell className='py-2.5 text-center'>
-                          <Button
-                            variant='ghost'
-                            size='icon-xs'
-                            onClick={() => openEditModal(row)}
-                            className='text-muted-foreground hover:text-primary hover:bg-primary/10'
-                            aria-label='تعديل الشفت'
-                            title='تعديل الشفت'
-                          >
-                            <Icons.edit className='size-3.5' />
-                          </Button>
+                          <div className='flex items-center justify-center gap-1'>
+                            {!row.is_reviewed && row.status !== 'ACTIVE' && (
+                              <Button
+                                variant='ghost'
+                                size='icon-xs'
+                                onClick={() => reviewMutation.mutate(row.id)}
+                                disabled={reviewMutation.isPending}
+                                className='text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
+                                aria-label='موافقة على الشفت'
+                                title='موافقة المشرف — اعتماد عدد الطلبات'
+                              >
+                                <Icons.check className='size-3.5' />
+                              </Button>
+                            )}
+                            <Button
+                              variant='ghost'
+                              size='icon-xs'
+                              onClick={() => openEditModal(row)}
+                              className='text-muted-foreground hover:text-primary hover:bg-primary/10'
+                              aria-label='تعديل الشفت'
+                              title='تعديل الشفت'
+                            >
+                              <Icons.edit className='size-3.5' />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -686,7 +773,11 @@ export default function ReportsPage() {
             <Button variant='outline' onClick={closeEditModal} disabled={editMutation.isPending}>
               إلغاء
             </Button>
-            <Button onClick={handleEditSave} disabled={editMutation.isPending} className='gap-2 font-bold'>
+            <Button
+              onClick={handleEditSave}
+              disabled={editMutation.isPending}
+              className='gap-2 font-bold'
+            >
               {editMutation.isPending ? (
                 <Icons.spinner className='size-4 animate-spin' />
               ) : (
