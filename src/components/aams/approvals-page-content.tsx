@@ -1,10 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { investigationApi } from '@/lib/aams/services';
-import { getAdminUser } from '@/lib/aams/auth';
+import { authApi, investigationApi } from '@/lib/aams/services';
+import { getAdminUser, setAdminUser } from '@/lib/aams/auth';
+import { hasPermission } from '@/lib/aams/permissions';
+import type { Admin } from '@/types/aams';
 import { Icons } from '@/components/icons';
 import PageContainer from '@/components/layout/page-container';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,8 +19,10 @@ const TYPE_LABEL: Record<string, string> = { advance: 'سلفة', internet_advan
 
 function statusInfo(status?: string) {
   const s = status || 'pending';
-  if (s === 'approved') return { label: 'موافق عليه', color: 'bg-emerald-100 text-emerald-700 border-emerald-300' };
-  if (s === 'rejected') return { label: 'مرفوض', color: 'bg-rose-100 text-rose-700 border-rose-300' };
+  if (s === 'approved')
+    return { label: 'موافق عليه', color: 'bg-emerald-100 text-emerald-700 border-emerald-300' };
+  if (s === 'rejected')
+    return { label: 'مرفوض', color: 'bg-rose-100 text-rose-700 border-rose-300' };
   return { label: 'قيد الانتظار', color: 'bg-amber-100 text-amber-700 border-amber-300' };
 }
 
@@ -30,14 +34,44 @@ const FILTERS = [
 ] as const;
 
 export function ApprovalsPageContent() {
-  const currentAdmin = useMemo(() => getAdminUser(), []);
-  const isAdmin = currentAdmin?.role === 'ADMIN';
+  const [currentAdmin, setCurrentAdmin] = useState<Admin | null>(() => getAdminUser());
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const cached = getAdminUser();
+    setCurrentAdmin(cached);
+
+    authApi
+      .me()
+      .then((me) => {
+        if (me) {
+          setAdminUser(me);
+          setCurrentAdmin(me);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const roleUpper = (currentAdmin?.role || '').toUpperCase();
+  const roleObjUpper = (currentAdmin?.role_obj?.name || '').toUpperCase();
+  const hasAccess =
+    roleUpper === 'ADMIN' ||
+    roleUpper === 'SUPER_ADMIN' ||
+    roleUpper === 'GENERAL_MANAGER' ||
+    roleObjUpper === 'ADMIN' ||
+    roleObjUpper === 'SUPER_ADMIN' ||
+    roleObjUpper === 'GENERAL_MANAGER' ||
+    (currentAdmin?.permissions || []).includes('*') ||
+    hasPermission('investigations.approve', currentAdmin);
+
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   const { data: investigations, isLoading } = useQuery({
     queryKey: ['investigations'],
-    queryFn: () => investigationApi.getAll()
+    queryFn: () => investigationApi.getAll(),
+    enabled: mounted && hasAccess
   });
 
   const approvalMutation = useMutation({
@@ -73,7 +107,17 @@ export function ApprovalsPageContent() {
 
   const pendingCount = approvals.filter((inv) => (inv.status || 'pending') === 'pending').length;
 
-  if (!isAdmin) {
+  if (!mounted) {
+    return (
+      <PageContainer pageTitle='الطلبات' pageDescription='محاضر الموظفين'>
+        <div className='flex min-h-[300px] items-center justify-center'>
+          <Icons.spinner className='text-primary size-8 animate-spin' />
+        </div>
+      </PageContainer>
+    );
+  }
+
+  if (!hasAccess) {
     return (
       <PageContainer pageTitle='الطلبات' pageDescription='محاضر الموظفين'>
         <Card className='py-16 text-center'>
@@ -83,7 +127,7 @@ export function ApprovalsPageContent() {
             </div>
             <h3 className='text-xl font-bold'>غير مصرح</h3>
             <p className='text-muted-foreground mt-2 text-sm'>
-              هذه الصفحة متاحة للمدير (الأدمن) فقط
+              هذه الصفحة متاحة للمدير أو لمن يمتلك صلاحية اعتماد الموافقات
             </p>
           </CardContent>
         </Card>
@@ -149,9 +193,7 @@ export function ApprovalsPageContent() {
                 <Icons.inbox className='size-10' />
               </div>
               <h3 className='text-xl font-bold'>لا توجد طلبات</h3>
-              <p className='text-muted-foreground mt-2 text-sm'>
-                لا توجد طلبات سلف في هذا التصنيف
-              </p>
+              <p className='text-muted-foreground mt-2 text-sm'>لا توجد طلبات سلف في هذا التصنيف</p>
             </CardContent>
           </Card>
         ) : (
@@ -192,8 +234,12 @@ export function ApprovalsPageContent() {
                         </div>
                         <div className='min-w-0'>
                           <p className='text-sm font-bold'>{inv.employee_name}</p>
-                          <p className='text-muted-foreground text-xs'>رقم الهوية: {inv.national_id}</p>
-                          <p className='text-muted-foreground text-xs'>المشرف: {inv.supervisor_name}</p>
+                          <p className='text-muted-foreground text-xs'>
+                            رقم الهوية: {inv.national_id}
+                          </p>
+                          <p className='text-muted-foreground text-xs'>
+                            المشرف: {inv.supervisor_name}
+                          </p>
                           <p className='text-muted-foreground font-mono text-xs'>
                             {formatRiyadh(new Date(inv.created_at), 'yyyy/MM/dd hh:mm a')}
                           </p>
@@ -202,7 +248,9 @@ export function ApprovalsPageContent() {
                       <div className='flex flex-wrap items-center gap-3'>
                         <Badge variant='outline'>{TYPE_LABEL[inv.type]}</Badge>
                         {inv.amount != null && (
-                          <span className='text-xs font-bold'>{inv.amount.toLocaleString()} ريال</span>
+                          <span className='text-xs font-bold'>
+                            {inv.amount.toLocaleString()} ريال
+                          </span>
                         )}
                         <Badge variant='outline' className={cn('border', s.color)}>
                           {s.label}

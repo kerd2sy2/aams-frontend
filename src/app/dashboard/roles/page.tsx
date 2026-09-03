@@ -4,7 +4,14 @@ import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import PageContainer from '@/components/layout/page-container';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,13 +36,20 @@ function getErrorMessage(err: unknown): string {
     response?: { data?: { error?: string; details?: string } };
     message?: string;
   };
-  return e?.response?.data?.error || e?.response?.data?.details || e?.message || 'حدث خطأ غير متوقع';
+  return (
+    e?.response?.data?.error || e?.response?.data?.details || e?.message || 'حدث خطأ غير متوقع'
+  );
 }
 
 export default function RolesPage() {
   const queryClient = useQueryClient();
   const currentAdmin = getAdminUser();
-  const canManageRoles = (currentAdmin?.role || '').toUpperCase() === 'ADMIN' || hasPermission('roles.manage', currentAdmin);
+  const roleUpper = (currentAdmin?.role || '').toUpperCase();
+  const canManageRoles =
+    roleUpper === 'ADMIN' ||
+    roleUpper === 'SUPER_ADMIN' ||
+    (currentAdmin?.permissions || []).includes('*') ||
+    hasPermission('roles.manage', currentAdmin);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -66,8 +80,12 @@ export default function RolesPage() {
   }, []);
 
   const createMutation = useMutation({
-    mutationFn: (data: { name: string; display_name: string; description?: string; permissions: string[] }) =>
-      roleApi.create(data),
+    mutationFn: (data: {
+      name: string;
+      display_name: string;
+      description?: string;
+      permissions: string[];
+    }) => roleApi.create(data),
     onSuccess: () => {
       toast.success('تم إنشاء الدور بنجاح');
       queryClient.invalidateQueries({ queryKey: ['roles'] });
@@ -78,7 +96,12 @@ export default function RolesPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: { id: string; display_name?: string; description?: string; permissions?: string[] }) =>
+    mutationFn: (data: {
+      id: string;
+      display_name?: string;
+      description?: string;
+      permissions?: string[];
+    }) =>
       roleApi.update(data.id, {
         display_name: data.display_name,
         description: data.description,
@@ -227,7 +250,9 @@ export default function RolesPage() {
               <Icons.shield className='size-5 text-emerald-500' />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold text-emerald-600 dark:text-emerald-400'>{stats.system}</div>
+              <div className='text-2xl font-bold text-emerald-600 dark:text-emerald-400'>
+                {stats.system}
+              </div>
               <p className='text-muted-foreground text-xs'>مدير عام، مشرف، محاسب، HR</p>
             </CardContent>
           </Card>
@@ -238,7 +263,9 @@ export default function RolesPage() {
               <Icons.userPlus className='size-5 text-blue-500' />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold text-blue-600 dark:text-blue-400'>{stats.custom}</div>
+              <div className='text-2xl font-bold text-blue-600 dark:text-blue-400'>
+                {stats.custom}
+              </div>
               <p className='text-muted-foreground text-xs'>تم إنشاؤها وتخصيصها يدوياً</p>
             </CardContent>
           </Card>
@@ -249,7 +276,9 @@ export default function RolesPage() {
               <Icons.clipboardCheck className='size-5 text-amber-500' />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold text-amber-600 dark:text-amber-400'>{allPermissionKeys.length}</div>
+              <div className='text-2xl font-bold text-amber-600 dark:text-amber-400'>
+                {allPermissionKeys.length}
+              </div>
               <p className='text-muted-foreground text-xs'>صلاحية موزعة على 10 أقسام</p>
             </CardContent>
           </Card>
@@ -304,8 +333,12 @@ export default function RolesPage() {
           <div className='grid gap-5 md:grid-cols-2 xl:grid-cols-3'>
             {filteredRoles.map((role) => {
               const isSuper = role.permissions?.includes('*') || role.name === 'SUPER_ADMIN';
-              const permsCount = isSuper ? allPermissionKeys.length : (role.permissions || []).length;
-              const permsPercentage = Math.round((permsCount / (allPermissionKeys.length || 1)) * 100);
+              const permsCount = isSuper
+                ? allPermissionKeys.length
+                : (role.permissions || []).length;
+              const permsPercentage = Math.round(
+                (permsCount / (allPermissionKeys.length || 1)) * 100
+              );
 
               return (
                 <Card
@@ -318,7 +351,10 @@ export default function RolesPage() {
                         <CardTitle className='text-lg font-bold'>{role.display_name}</CardTitle>
                         <span className='text-muted-foreground font-mono text-xs'>{role.name}</span>
                       </div>
-                      <Badge variant={role.is_system ? 'secondary' : 'default'} className='shrink-0 text-xs'>
+                      <Badge
+                        variant={role.is_system ? 'secondary' : 'default'}
+                        className='shrink-0 text-xs'
+                      >
                         {role.is_system ? 'أساسي' : 'مخصص'}
                       </Badge>
                     </div>
@@ -333,7 +369,9 @@ export default function RolesPage() {
                     {/* Users count & Permissions progress */}
                     <div className='rounded-lg bg-muted/50 p-3'>
                       <div className='flex items-center justify-between text-xs font-medium'>
-                        <span className='text-muted-foreground'>المستخدمين المسجلين بهذا الدور:</span>
+                        <span className='text-muted-foreground'>
+                          المستخدمين المسجلين بهذا الدور:
+                        </span>
                         <Badge variant='outline' className='font-bold'>
                           {role.users_count || 0} مستخدم
                         </Badge>
@@ -343,7 +381,9 @@ export default function RolesPage() {
                         <div className='flex items-center justify-between text-xs'>
                           <span className='text-muted-foreground'>الصلاحيات الممنوحة:</span>
                           <span className='font-semibold text-primary'>
-                            {isSuper ? 'كامل الصلاحيات (100%)' : `${permsCount} من ${allPermissionKeys.length}`}
+                            {isSuper
+                              ? 'كامل الصلاحيات (100%)'
+                              : `${permsCount} من ${allPermissionKeys.length}`}
                           </span>
                         </div>
                         <div className='mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted'>
@@ -358,7 +398,10 @@ export default function RolesPage() {
                     {/* Permissions summary tags */}
                     <div className='flex flex-wrap gap-1.5'>
                       {isSuper ? (
-                        <Badge variant='default' className='bg-emerald-600 text-[11px] hover:bg-emerald-700'>
+                        <Badge
+                          variant='default'
+                          className='bg-emerald-600 text-[11px] hover:bg-emerald-700'
+                        >
                           ⚡ وصول كامل لكافة الصلاحيات
                         </Badge>
                       ) : (
@@ -513,7 +556,9 @@ export default function RolesPage() {
                 <div className='grid gap-4 md:grid-cols-2'>
                   {PERMISSION_GROUPS.map((group) => {
                     const groupKeys = group.permissions.map((p) => p.key);
-                    const selectedInGroup = groupKeys.filter((k) => newPermissions.includes(k)).length;
+                    const selectedInGroup = groupKeys.filter((k) =>
+                      newPermissions.includes(k)
+                    ).length;
                     const isAllInGroup = selectedInGroup === groupKeys.length;
 
                     return (
@@ -522,7 +567,9 @@ export default function RolesPage() {
                           <div>
                             <CardTitle className='text-sm font-semibold'>{group.label}</CardTitle>
                             {group.description && (
-                              <CardDescription className='text-[11px]'>{group.description}</CardDescription>
+                              <CardDescription className='text-[11px]'>
+                                {group.description}
+                              </CardDescription>
                             )}
                           </div>
                           <Button
@@ -554,7 +601,9 @@ export default function RolesPage() {
                                 />
                                 <div className='space-y-0.5'>
                                   <div className='text-xs font-medium'>{perm.label}</div>
-                                  <div className='text-muted-foreground text-[11px]'>{perm.description}</div>
+                                  <div className='text-muted-foreground text-[11px]'>
+                                    {perm.description}
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -608,7 +657,12 @@ export default function RolesPage() {
 
                 <div className='space-y-2'>
                   <Label htmlFor='edit-name'>المعرف البرمجي (غير قابل للتعديل)</Label>
-                  <Input id='edit-name' value={editingRole?.name || ''} disabled className='bg-muted' />
+                  <Input
+                    id='edit-name'
+                    value={editingRole?.name || ''}
+                    disabled
+                    className='bg-muted'
+                  />
                 </div>
 
                 <div className='space-y-2 sm:col-span-2'>
@@ -655,7 +709,9 @@ export default function RolesPage() {
                 <div className='grid gap-4 md:grid-cols-2'>
                   {PERMISSION_GROUPS.map((group) => {
                     const groupKeys = group.permissions.map((p) => p.key);
-                    const selectedInGroup = groupKeys.filter((k) => editPermissions.includes(k)).length;
+                    const selectedInGroup = groupKeys.filter((k) =>
+                      editPermissions.includes(k)
+                    ).length;
                     const isAllInGroup = selectedInGroup === groupKeys.length;
 
                     return (
@@ -664,7 +720,9 @@ export default function RolesPage() {
                           <div>
                             <CardTitle className='text-sm font-semibold'>{group.label}</CardTitle>
                             {group.description && (
-                              <CardDescription className='text-[11px]'>{group.description}</CardDescription>
+                              <CardDescription className='text-[11px]'>
+                                {group.description}
+                              </CardDescription>
                             )}
                           </div>
                           <Button
@@ -696,7 +754,9 @@ export default function RolesPage() {
                                 />
                                 <div className='space-y-0.5'>
                                   <div className='text-xs font-medium'>{perm.label}</div>
-                                  <div className='text-muted-foreground text-[11px]'>{perm.description}</div>
+                                  <div className='text-muted-foreground text-[11px]'>
+                                    {perm.description}
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -722,7 +782,10 @@ export default function RolesPage() {
         </Dialog>
 
         {/* Delete Confirmation Dialog */}
-        <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <Dialog
+          open={Boolean(deleteTarget)}
+          onOpenChange={(open) => !open && setDeleteTarget(null)}
+        >
           <DialogContent className='sm:max-w-md'>
             <DialogHeader>
               <DialogTitle className='flex items-center gap-2 text-destructive'>
@@ -731,8 +794,8 @@ export default function RolesPage() {
               </DialogTitle>
               <DialogDescription>
                 هل أنت متأكد من رغبتك في حذف الدور{' '}
-                <span className='font-bold text-foreground'>{deleteTarget?.display_name}</span>؟ لا يمكن التراجع عن هذا
-                الإجراء.
+                <span className='font-bold text-foreground'>{deleteTarget?.display_name}</span>؟ لا
+                يمكن التراجع عن هذا الإجراء.
               </DialogDescription>
             </DialogHeader>
 

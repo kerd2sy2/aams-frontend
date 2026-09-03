@@ -44,7 +44,7 @@ export const navGroups: NavGroup[] = [
         title: 'Investigations',
         url: '#',
         icon: 'clipboardList',
-        permission: 'investigations.view',
+        permissions: ['investigations.view', 'investigations.create', 'investigations.approve'],
         items: [
           {
             title: 'Approvals',
