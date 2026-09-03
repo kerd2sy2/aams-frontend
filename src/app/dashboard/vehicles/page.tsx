@@ -33,6 +33,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { NativeSelect } from '@/components/ui/native-select';
+import { Switch } from '@/components/ui/switch';
 import { Icons } from '@/components/icons';
 import { vehicleApi } from '@/lib/aams/services';
 import { useOfflineQuery } from '@/hooks/use-offline-query';
@@ -57,6 +58,7 @@ export default function VehiclesPage() {
   const [keyNumber, setKeyNumber] = useState('');
   const [currentKm, setCurrentKm] = useState('');
   const [lastOilKm, setLastOilKm] = useState('');
+  const [isOdometerBroken, setIsOdometerBroken] = useState(false);
   const [vehicleStatus, setVehicleStatus] = useState('AVAILABLE');
   const [notes, setNotes] = useState('');
 
@@ -93,7 +95,9 @@ export default function VehiclesPage() {
         const br = v.brand?.toLowerCase() || '';
         const key = v.key_number?.toLowerCase() || '';
         const n = v.notes?.toLowerCase() || '';
-        return plate.includes(query) || br.includes(query) || key.includes(query) || n.includes(query);
+        return (
+          plate.includes(query) || br.includes(query) || key.includes(query) || n.includes(query)
+        );
       }
       return true;
     });
@@ -157,6 +161,7 @@ export default function VehiclesPage() {
     setKeyNumber('');
     setCurrentKm('');
     setLastOilKm('');
+    setIsOdometerBroken(false);
     setVehicleStatus('AVAILABLE');
     setNotes('');
   }
@@ -170,6 +175,7 @@ export default function VehiclesPage() {
     setKeyNumber(vehicle.key_number || '');
     setCurrentKm(String(vehicle.current_km ?? ''));
     setLastOilKm(String(vehicle.last_oil_change_km ?? ''));
+    setIsOdometerBroken(Boolean(vehicle.is_odometer_broken));
     setVehicleStatus(vehicle.status || 'AVAILABLE');
     setNotes(vehicle.notes || '');
   }
@@ -189,6 +195,7 @@ export default function VehiclesPage() {
       key_number: keyNumber.trim(),
       current_km: parseFloat(currentKm) || 0,
       last_oil_change_km: parseFloat(lastOilKm) || 0,
+      is_odometer_broken: isOdometerBroken,
       notes: notes.trim()
     });
   }
@@ -207,6 +214,7 @@ export default function VehiclesPage() {
         key_number: keyNumber.trim(),
         current_km: parseFloat(currentKm) || 0,
         last_oil_change_km: parseFloat(lastOilKm) || 0,
+        is_odometer_broken: isOdometerBroken,
         status: vehicleStatus,
         notes: notes.trim()
       }
@@ -221,7 +229,8 @@ export default function VehiclesPage() {
           <div>
             <h1 className='text-2xl font-bold tracking-tight'>إدارة الدبابات والمركبات 🛵</h1>
             <p className='text-muted-foreground text-sm mt-1'>
-              إدارة أسطول الدبابات والثوابت، تتبع عدادات الكيلومترات المشتركة وتنبيهات غيار الزيت والصيانة
+              إدارة أسطول الدبابات والثوابت، تتبع عدادات الكيلومترات المشتركة وتنبيهات غيار الزيت
+              والصيانة
             </p>
           </div>
           <Button
@@ -259,7 +268,9 @@ export default function VehiclesPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className='text-2xl font-bold text-emerald-600 tabular-nums'>{metrics.available}</p>
+              <p className='text-2xl font-bold text-emerald-600 tabular-nums'>
+                {metrics.available}
+              </p>
               <p className='text-muted-foreground text-xs mt-1'>جاهزة للاستخدام</p>
             </CardContent>
           </Card>
@@ -285,7 +296,9 @@ export default function VehiclesPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className='text-2xl font-bold text-amber-600 tabular-nums'>{metrics.maintenance}</p>
+              <p className='text-2xl font-bold text-amber-600 tabular-nums'>
+                {metrics.maintenance}
+              </p>
               <p className='text-muted-foreground text-xs mt-1'>تحت الصيانة</p>
             </CardContent>
           </Card>
@@ -361,7 +374,9 @@ export default function VehiclesPage() {
                       <TableCell colSpan={7} className='h-32 text-center'>
                         <div className='flex flex-col items-center justify-center gap-2'>
                           <Icons.spinner className='size-6 animate-spin text-primary' />
-                          <span className='text-sm text-muted-foreground'>جاري تحميل أسطول الدبابات...</span>
+                          <span className='text-sm text-muted-foreground'>
+                            جاري تحميل أسطول الدبابات...
+                          </span>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -373,7 +388,10 @@ export default function VehiclesPage() {
                     </TableRow>
                   ) : (
                     filteredVehicles.map((vehicle) => {
-                      const drivenSinceOil = Math.max(0, vehicle.current_km - vehicle.last_oil_change_km);
+                      const drivenSinceOil = Math.max(
+                        0,
+                        vehicle.current_km - vehicle.last_oil_change_km
+                      );
                       const isOilWarning = vehicle.needs_oil_change;
 
                       return (
@@ -398,7 +416,8 @@ export default function VehiclesPage() {
                           <TableCell>
                             <div>
                               <p className='font-medium text-sm text-foreground'>
-                                {vehicle.brand || (vehicle.vehicle_type === 'car' ? 'سيارة' : 'دراجة نارية')}
+                                {vehicle.brand ||
+                                  (vehicle.vehicle_type === 'car' ? 'سيارة' : 'دراجة نارية')}
                               </p>
                               {vehicle.model_year && (
                                 <p className='text-xs text-muted-foreground font-mono'>
@@ -421,26 +440,52 @@ export default function VehiclesPage() {
 
                           {/* Current Odometer */}
                           <TableCell>
-                            <div className='font-mono font-bold text-foreground'>
-                              {vehicle.current_km.toLocaleString('en-US')}{' '}
-                              <span className='text-xs font-normal text-muted-foreground'>كم</span>
-                            </div>
-                            <div className='text-[10px] text-muted-foreground font-mono'>
-                              المسافة الكلية: {vehicle.total_distance.toLocaleString('en-US')} كم
-                            </div>
+                            {vehicle.is_odometer_broken ? (
+                              <div className='space-y-1'>
+                                <Badge
+                                  variant='outline'
+                                  className='bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-xs font-bold gap-1'
+                                >
+                                  <Icons.warning className='size-3' />
+                                  العداد تالف / معفى
+                                </Badge>
+                                <p className='text-[10px] text-muted-foreground'>
+                                  معفى من التصوير والكيلومترات
+                                </p>
+                              </div>
+                            ) : (
+                              <>
+                                <div className='font-mono font-bold text-foreground'>
+                                  {vehicle.current_km.toLocaleString('en-US')}{' '}
+                                  <span className='text-xs font-normal text-muted-foreground'>
+                                    كم
+                                  </span>
+                                </div>
+                                <div className='text-[10px] text-muted-foreground font-mono'>
+                                  المسافة الكلية: {vehicle.total_distance.toLocaleString('en-US')}{' '}
+                                  كم
+                                </div>
+                              </>
+                            )}
                           </TableCell>
 
                           {/* Oil Status */}
                           <TableCell>
                             <div className='space-y-1'>
                               {isOilWarning ? (
-                                <Badge variant='destructive' className='text-[11px] font-medium gap-1'>
+                                <Badge
+                                  variant='destructive'
+                                  className='text-[11px] font-medium gap-1'
+                                >
                                   <Icons.warning className='size-3' />
                                   يجب غيار الزيت! ({drivenSinceOil.toLocaleString('en-US')} كم)
                                 </Badge>
                               ) : (
                                 <div className='flex items-center gap-1.5'>
-                                  <Badge variant='outline' className='text-xs font-mono bg-emerald-500/10 text-emerald-600 border-emerald-500/20'>
+                                  <Badge
+                                    variant='outline'
+                                    className='text-xs font-mono bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                                  >
                                     باقي {Math.round(vehicle.remaining_oil_km || 0)} كم
                                   </Badge>
                                 </div>
@@ -454,16 +499,25 @@ export default function VehiclesPage() {
                           {/* Operational Status */}
                           <TableCell>
                             {vehicle.status === 'IN_USE' ? (
-                              <Badge variant='secondary' className='bg-blue-500/10 text-blue-600 border-blue-500/20 gap-1'>
+                              <Badge
+                                variant='secondary'
+                                className='bg-blue-500/10 text-blue-600 border-blue-500/20 gap-1'
+                              >
                                 <span className='size-1.5 rounded-full bg-blue-500 animate-pulse' />
                                 قيد العمل (في شفت)
                               </Badge>
                             ) : vehicle.status === 'MAINTENANCE' ? (
-                              <Badge variant='outline' className='bg-amber-500/10 text-amber-600 border-amber-500/20'>
+                              <Badge
+                                variant='outline'
+                                className='bg-amber-500/10 text-amber-600 border-amber-500/20'
+                              >
                                 في الصيانة
                               </Badge>
                             ) : (
-                              <Badge variant='outline' className='bg-emerald-500/10 text-emerald-600 border-emerald-500/20'>
+                              <Badge
+                                variant='outline'
+                                className='bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                              >
                                 متاح للاستخدام
                               </Badge>
                             )}
@@ -500,7 +554,11 @@ export default function VehiclesPage() {
                                 size='icon'
                                 variant='ghost'
                                 onClick={() => {
-                                  if (confirm(`هل أنت متأكد من حذف الدباب رقم ${vehicle.plate_number}؟`)) {
+                                  if (
+                                    confirm(
+                                      `هل أنت متأكد من حذف الدباب رقم ${vehicle.plate_number}؟`
+                                    )
+                                  ) {
                                     deleteMutation.mutate(vehicle.id);
                                   }
                                 }}
@@ -617,6 +675,19 @@ export default function VehiclesPage() {
                 </div>
               </div>
 
+              <div className='rounded-xl border p-3.5 bg-amber-500/5 border-amber-500/25 flex items-center justify-between gap-3'>
+                <div className='space-y-0.5'>
+                  <p className='text-xs font-bold text-foreground flex items-center gap-1.5'>
+                    <Icons.warning className='size-3.5 text-amber-500' />
+                    عداد المسافات معطل / تالف
+                  </p>
+                  <p className='text-[11px] text-muted-foreground'>
+                    عند التفعيل، يُعفى المندوب من تصوير وإدخال قراءة العداد عند بدء وإنهاء الشفت
+                  </p>
+                </div>
+                <Switch checked={isOdometerBroken} onCheckedChange={setIsOdometerBroken} />
+              </div>
+
               <div className='space-y-1'>
                 <label className='text-xs font-medium'>ملاحظات</label>
                 <Input
@@ -686,10 +757,7 @@ export default function VehiclesPage() {
               <div className='grid grid-cols-2 gap-3'>
                 <div className='space-y-1'>
                   <label className='text-xs font-medium'>الماركة</label>
-                  <Input
-                    value={brand}
-                    onChange={(e) => setBrand(e.target.value)}
-                  />
+                  <Input value={brand} onChange={(e) => setBrand(e.target.value)} />
                 </div>
 
                 <div className='space-y-1'>
@@ -735,12 +803,22 @@ export default function VehiclesPage() {
                 </div>
               </div>
 
+              <div className='rounded-xl border p-3.5 bg-amber-500/5 border-amber-500/25 flex items-center justify-between gap-3'>
+                <div className='space-y-0.5'>
+                  <p className='text-xs font-bold text-foreground flex items-center gap-1.5'>
+                    <Icons.warning className='size-3.5 text-amber-500' />
+                    عداد المسافات معطل / تالف
+                  </p>
+                  <p className='text-[11px] text-muted-foreground'>
+                    عند التفعيل، يُعفى المندوب من تصوير وإدخال قراءة العداد عند بدء وإنهاء الشفت
+                  </p>
+                </div>
+                <Switch checked={isOdometerBroken} onCheckedChange={setIsOdometerBroken} />
+              </div>
+
               <div className='space-y-1'>
                 <label className='text-xs font-medium'>ملاحظات</label>
-                <Input
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
+                <Input value={notes} onChange={(e) => setNotes(e.target.value)} />
               </div>
 
               <DialogFooter className='gap-2 sm:gap-0 pt-2'>
@@ -761,7 +839,10 @@ export default function VehiclesPage() {
         </Dialog>
 
         {/* Oil Change Confirmation Modal */}
-        <Dialog open={!!oilChangingVehicle} onOpenChange={(open) => !open && setOilChangingVehicle(null)}>
+        <Dialog
+          open={!!oilChangingVehicle}
+          onOpenChange={(open) => !open && setOilChangingVehicle(null)}
+        >
           <DialogContent className='sm:max-w-[420px]' dir='rtl'>
             <DialogHeader>
               <DialogTitle className='text-lg font-bold flex items-center gap-2 text-destructive'>
@@ -769,19 +850,27 @@ export default function VehiclesPage() {
                 تسجيل غيار زيت للدباب ({oilChangingVehicle?.plate_number})
               </DialogTitle>
               <DialogDescription className='text-xs'>
-                سيتم تصفير عداد الزيت وتعيين قراءة آخر غيار زيت لتكون مساوية للعداد الحالي ({oilChangingVehicle?.current_km.toLocaleString('en-US')} كم).
+                سيتم تصفير عداد الزيت وتعيين قراءة آخر غيار زيت لتكون مساوية للعداد الحالي (
+                {oilChangingVehicle?.current_km.toLocaleString('en-US')} كم).
               </DialogDescription>
             </DialogHeader>
 
             <div className='bg-muted/40 p-4 rounded-xl border space-y-2 text-xs'>
               <div className='flex justify-between'>
                 <span className='text-muted-foreground'>العداد الحالي للدباب:</span>
-                <span className='font-mono font-bold'>{oilChangingVehicle?.current_km.toLocaleString('en-US')} كم</span>
+                <span className='font-mono font-bold'>
+                  {oilChangingVehicle?.current_km.toLocaleString('en-US')} كم
+                </span>
               </div>
               <div className='flex justify-between'>
                 <span className='text-muted-foreground'>المسافة المقطوعة منذ آخر غيار:</span>
                 <span className='font-mono font-bold text-destructive'>
-                  {Math.max(0, (oilChangingVehicle?.current_km || 0) - (oilChangingVehicle?.last_oil_change_km || 0)).toLocaleString('en-US')} كم
+                  {Math.max(
+                    0,
+                    (oilChangingVehicle?.current_km || 0) -
+                      (oilChangingVehicle?.last_oil_change_km || 0)
+                  ).toLocaleString('en-US')}{' '}
+                  كم
                 </span>
               </div>
             </div>
@@ -798,7 +887,9 @@ export default function VehiclesPage() {
               <Button
                 type='button'
                 variant='destructive'
-                onClick={() => oilChangingVehicle && oilChangeMutation.mutate(oilChangingVehicle.id)}
+                onClick={() =>
+                  oilChangingVehicle && oilChangeMutation.mutate(oilChangingVehicle.id)
+                }
                 disabled={oilChangeMutation.isPending}
                 className='gap-1.5'
               >

@@ -415,6 +415,7 @@ export interface Vehicle {
   total_distance: number;
   oil_interval_km?: number;
   status: 'AVAILABLE' | 'IN_USE' | 'MAINTENANCE' | string;
+  is_odometer_broken?: boolean;
   branch_id?: string | null;
   branch?: Branch | null;
   notes?: string;
