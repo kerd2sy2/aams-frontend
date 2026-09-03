@@ -152,7 +152,11 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
         0
     ) || 0;
 
-  const workSessions = reportsData?.data || [];
+  const workSessions: any[] = Array.isArray(reportsData?.data)
+    ? reportsData.data
+    : Array.isArray(reportsData)
+      ? reportsData
+      : [];
   const totalDeliveredOrders = workSessions.reduce(
     (acc: number, s: any) => acc + (Number(s.orders_count) || 0),
     0
