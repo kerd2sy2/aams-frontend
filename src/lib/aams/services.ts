@@ -134,6 +134,13 @@ export const employeeApi = {
     }>(`/employees/${id}/print-card`);
     return res.data;
   },
+  resetPassword: async (id: string, newPassword: string) => {
+    const res = await apiClient.post<{ success: boolean; message: string }>(
+      `/employees/${id}/reset-password`,
+      { new_password: newPassword }
+    );
+    return res.data;
+  },
   uploadImage: async (file: File, category = 'personal') => {
     const formData = new FormData();
     formData.append('file', file);

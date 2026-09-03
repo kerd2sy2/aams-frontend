@@ -39,7 +39,12 @@ import {
   Wrench,
   Clock,
   ShieldCheck,
-  ExternalLink
+  ExternalLink,
+  KeyRound,
+  Lock,
+  Eye,
+  EyeOff,
+  Sparkles
 } from 'lucide-react';
 
 export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -49,6 +54,10 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [lastResetPassword, setLastResetPassword] = useState<string | null>(null);
 
   const {
     data: employee,
@@ -58,6 +67,18 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
     queryKey: ['employee', id],
     queryFn: () => employeeApi.getById(id),
     cacheKey: `employee_${id}`
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: (newPass: string) => employeeApi.resetPassword(id, newPass),
+    onSuccess: () => {
+      toast.success('تم تحديث وتعيين كلمة مرور المندوب بنجاح!');
+      setLastResetPassword(newPassword);
+      setPasswordModalOpen(false);
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.error || 'فشل في تحديث كلمة المرور');
+    }
   });
 
   const deleteMutation = useMutation({
@@ -180,6 +201,19 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                   طباعة البطاقة
                 </Button>
               </Link>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => {
+                  setNewPassword('');
+                  setShowPassword(false);
+                  setPasswordModalOpen(true);
+                }}
+                className='gap-1.5 border-primary/30 text-primary hover:bg-primary/10'
+              >
+                <KeyRound className='size-4' />
+                تغيير كلمة المرور
+              </Button>
               <Link href={`/dashboard/employees/${id}/edit`}>
                 <Button size='sm' className='gap-1.5 font-bold shadow-xs'>
                   <Edit className='size-4' />
@@ -662,8 +696,172 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                 </div>
               </CardContent>
             </Card>
+
+            {/* Security & Password Card */}
+            <Card className='border-border shadow-xs'>
+              <CardHeader className='pb-3 border-b border-border/40'>
+                <CardTitle className='text-base flex items-center gap-2'>
+                  <KeyRound className='size-4 text-amber-500' />
+                  أمان الحساب وكلمة المرور
+                </CardTitle>
+              </CardHeader>
+              <CardContent className='pt-4 text-sm space-y-3'>
+                <p className='text-xs text-muted-foreground leading-relaxed'>
+                  يمكن للمشرف تعيين كلمة مرور جديدة للمندوب لتسجيل الدخول إلى تطبيق الهاتف.
+                </p>
+
+                {lastResetPassword && (
+                  <div className='p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-between gap-2'>
+                    <div>
+                      <div className='text-xs text-emerald-600 dark:text-emerald-400 font-bold'>
+                        كلمة المرور المعينة حديثاً:
+                      </div>
+                      <div className='font-mono font-bold text-sm tracking-wider'>
+                        {lastResetPassword}
+                      </div>
+                    </div>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      onClick={() => copyToClipboard(lastResetPassword, 'last_pass')}
+                      className='h-8 px-2 text-xs'
+                    >
+                      {copiedField === 'last_pass' ? (
+                        <Check className='size-3.5 text-emerald-500' />
+                      ) : (
+                        <Copy className='size-3.5' />
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => {
+                    setNewPassword('');
+                    setShowPassword(false);
+                    setPasswordModalOpen(true);
+                  }}
+                  className='w-full gap-2 font-bold border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10'
+                >
+                  <Lock className='size-4' />
+                  تعيين كلمة مرور جديدة
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
+
+        {/* Password Reset Modal */}
+        {passwordModalOpen && (
+          <div className='fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4'>
+            <Card className='max-w-md w-full p-6 space-y-5 shadow-2xl border-border'>
+              <div className='flex items-center justify-between border-b border-border/40 pb-3'>
+                <div className='flex items-center gap-2.5 text-primary'>
+                  <div className='size-9 rounded-xl bg-primary/10 flex items-center justify-center'>
+                    <KeyRound className='size-5 text-primary' />
+                  </div>
+                  <div>
+                    <h3 className='text-base font-bold text-foreground'>تعيين كلمة مرور للمندوب</h3>
+                    <p className='text-xs text-muted-foreground'>{employee.name}</p>
+                  </div>
+                </div>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='size-8 rounded-full'
+                  onClick={() => setPasswordModalOpen(false)}
+                >
+                  <X className='size-4' />
+                </Button>
+              </div>
+
+              <div className='space-y-3'>
+                <div className='space-y-1.5'>
+                  <label className='text-xs font-bold text-foreground'>كلمة المرور الجديدة</label>
+                  <div className='relative'>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder='أدخل كلمة المرور الجديدة (4 أرقام / أحرف على الأقل)...'
+                      className='w-full h-10 px-3 pr-9 pl-10 rounded-xl border border-border bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/40'
+                      dir='ltr'
+                    />
+                    <button
+                      type='button'
+                      onClick={() => setShowPassword(!showPassword)}
+                      className='absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground'
+                    >
+                      {showPassword ? <EyeOff className='size-4' /> : <Eye className='size-4' />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quick Generator Helpers */}
+                <div className='flex flex-wrap items-center gap-1.5 pt-1'>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    className='text-xs h-7 gap-1 bg-muted/50'
+                    onClick={() => {
+                      if (employee.national_id && employee.national_id.length >= 6) {
+                        const last6 = employee.national_id.slice(-6);
+                        setNewPassword(last6);
+                        setShowPassword(true);
+                        toast.info(`تم تعيين آخر 6 أرقام من الهوية (${last6})`);
+                      } else {
+                        toast.error('رقم الهوية غير مكتمل');
+                      }
+                    }}
+                  >
+                    <Sparkles className='size-3 text-primary' />
+                    آخر 6 أرقام من الهوية
+                  </Button>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    className='text-xs h-7 gap-1 bg-muted/50'
+                    onClick={() => {
+                      const rnd = Math.floor(100000 + Math.random() * 900000).toString();
+                      setNewPassword(rnd);
+                      setShowPassword(true);
+                      toast.info(`تم توليد كلمة مرور عشوائية (${rnd})`);
+                    }}
+                  >
+                    <Sparkles className='size-3 text-amber-500' />
+                    توليد 6 أرقام عشوائية
+                  </Button>
+                </div>
+              </div>
+
+              <div className='flex items-center justify-end gap-2 pt-2 border-t border-border/40'>
+                <Button
+                  variant='outline'
+                  onClick={() => setPasswordModalOpen(false)}
+                  disabled={resetPasswordMutation.isPending}
+                >
+                  إلغاء
+                </Button>
+                <Button
+                  variant='default'
+                  disabled={
+                    !newPassword.trim() ||
+                    newPassword.trim().length < 4 ||
+                    resetPasswordMutation.isPending
+                  }
+                  onClick={() => resetPasswordMutation.mutate(newPassword.trim())}
+                  className='gap-1.5 font-bold shadow-xs'
+                >
+                  {resetPasswordMutation.isPending ? 'جاري الحفظ...' : 'تحديث كلمة المرور'}
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
 
         {/* Delete Confirmation Modal */}
         {deleteModalOpen && (
