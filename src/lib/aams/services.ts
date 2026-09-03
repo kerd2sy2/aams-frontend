@@ -35,7 +35,9 @@ import type {
   PermissionGroup,
   ArchivedItem,
   ArchiveResponse,
-  ArchiveType
+  ArchiveType,
+  OTPRequest,
+  OTPListResponse
 } from '@/types/aams';
 
 // Auth API
@@ -1043,6 +1045,23 @@ export const archiveApi = {
     const res = await apiClient.delete<{ message: string }>('/archive/permanent-bulk', {
       data: { type, ids }
     });
+    return res.data;
+  }
+};
+
+// OTP Verification API (رموز التحقق وتوثيق الأجهزة)
+export const otpApi = {
+  getOTPList: async (params?: {
+    status?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const res = await apiClient.get<OTPListResponse>('/otp-requests', { params });
+    return res.data;
+  },
+  cancel: async (id: string) => {
+    const res = await apiClient.post<{ message: string }>(`/otp-requests/${id}/cancel`);
     return res.data;
   }
 };

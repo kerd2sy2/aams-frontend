@@ -606,3 +606,34 @@ export interface ArchiveResponse {
   limit: number;
   total_pages: number;
 }
+
+// ------------------------------------------------------------------
+// OTP Verification Types (رموز التحقق وتوثيق الأجهزة)
+// ------------------------------------------------------------------
+export interface OTPRequest {
+  id: string;
+  employee_id: string;
+  employee?: {
+    id: string;
+    name: string;
+    national_id: string;
+    personal_image?: string;
+    motorcycle_number?: string;
+    branch?: { id: string; name: string };
+  };
+  national_id: string;
+  employee_name: string;
+  otp_code: string;
+  device_info?: string;
+  device_uuid?: string;
+  status: 'PENDING' | 'VERIFIED' | 'EXPIRED' | 'CANCELLED';
+  expires_at: string;
+  verified_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OTPListResponse {
+  data: OTPRequest[];
+  total: number;
+}

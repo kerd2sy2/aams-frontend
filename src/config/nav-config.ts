@@ -34,7 +34,8 @@ export const navGroups: NavGroup[] = [
             url: '/dashboard/employees/finished',
             permission: 'work.view'
           },
-          { title: "Today's Shifts", url: '/dashboard/employees/today', permission: 'work.view' }
+          { title: "Today's Shifts", url: '/dashboard/employees/today', permission: 'work.view' },
+          { title: 'OTP Verifications', url: '/dashboard/otp', permission: 'work.view' }
         ]
       },
 

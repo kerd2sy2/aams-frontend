@@ -18,6 +18,7 @@ const ar: Record<string, string> = {
   'Finished Today': 'أنهوا دوامهم',
   Finished: 'أنهوا دوامهم',
   "Today's Shifts": 'مناديب اليوم',
+  'OTP Verifications': 'رموز التحقق OTP',
   Today: 'اليوم',
   Work: 'الدوام',
   'Work Sessions': 'جلسات العمل والورديات',
