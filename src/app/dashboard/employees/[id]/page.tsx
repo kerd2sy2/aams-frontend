@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useOfflineQuery } from '@/hooks/use-offline-query';
-import { employeeApi } from '@/lib/aams/services';
+import { employeeApi, reportApi } from '@/lib/aams/services';
 import { DetailSkeleton } from '@/components/aams/skeletons';
 import { QRCodeImage } from '@/components/aams/employee-codes';
 import { toast } from 'sonner';
@@ -44,7 +44,12 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Sparkles
+  Sparkles,
+  PackageCheck,
+  CheckCircle2,
+  History,
+  TrendingUp,
+  ShoppingBag
 } from 'lucide-react';
 
 export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -67,6 +72,12 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
     queryKey: ['employee', id],
     queryFn: () => employeeApi.getById(id),
     cacheKey: `employee_${id}`
+  });
+
+  const { data: reportsData, isLoading: isReportsLoading } = useOfflineQuery({
+    queryKey: ['employee-reports', id],
+    queryFn: () => reportApi.getReports({ employee_id: id, limit: 100 }),
+    cacheKey: `employee_reports_${id}`
   });
 
   const resetPasswordMutation = useMutation({
@@ -140,6 +151,17 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
         (employee as any).distance_since_oil ??
         0
     ) || 0;
+
+  const workSessions = reportsData?.data || [];
+  const totalDeliveredOrders = workSessions.reduce(
+    (acc: number, s: any) => acc + (Number(s.orders_count) || 0),
+    0
+  );
+  const totalApprovedOrders = workSessions
+    .filter((s: any) => s.is_reviewed)
+    .reduce((acc: number, s: any) => acc + (Number(s.orders_count) || 0), 0);
+  const totalPendingOrders = Math.max(0, totalDeliveredOrders - totalApprovedOrders);
+  const totalCompletedShifts = workSessions.filter((s: any) => s.status === 'COMPLETED').length;
 
   const roleLabel =
     employee.job_role === 'SUPERVISOR'
@@ -361,10 +383,45 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
               </CardContent>
             </Card>
 
-            {/* Quick Stats Grid */}
-            <div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
+            {/* Quick Stats Grid with Delivered Orders */}
+            <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3'>
+              {/* Total Orders */}
+              <Card className='border-border shadow-2xs border-primary/20 bg-primary/5'>
+                <CardContent className='p-3.5 text-right space-y-1'>
+                  <div className='flex items-center justify-between text-muted-foreground'>
+                    <span className='text-xs font-bold text-primary'>إجمالي الطلبات</span>
+                    <PackageCheck className='size-4 text-primary' />
+                  </div>
+                  <p className='text-2xl font-black font-mono tabular-nums text-primary'>
+                    {totalDeliveredOrders.toLocaleString('en-US')}
+                  </p>
+                  <p className='text-[10px] text-muted-foreground'>
+                    معتمد:{' '}
+                    <span className='font-bold text-emerald-600 dark:text-emerald-400'>
+                      {totalApprovedOrders}
+                    </span>
+                    {totalPendingOrders > 0 && ` | مراجعة: ${totalPendingOrders}`}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Total Shifts */}
               <Card className='border-border shadow-2xs'>
-                <CardContent className='p-4 text-right space-y-1'>
+                <CardContent className='p-3.5 text-right space-y-1'>
+                  <div className='flex items-center justify-between text-muted-foreground'>
+                    <span className='text-xs font-medium'>عدد الشفتات</span>
+                    <History className='size-4 text-primary' />
+                  </div>
+                  <p className='text-xl font-black font-mono tabular-nums text-foreground'>
+                    {totalCompletedShifts.toLocaleString('en-US')}
+                  </p>
+                  <p className='text-[10px] text-muted-foreground'>شفت عمل مكتمل</p>
+                </CardContent>
+              </Card>
+
+              {/* Total Distance */}
+              <Card className='border-border shadow-2xs'>
+                <CardContent className='p-3.5 text-right space-y-1'>
                   <div className='flex items-center justify-between text-muted-foreground'>
                     <span className='text-xs font-medium'>إجمالي المسافة</span>
                     <Gauge className='size-4 text-primary' />
@@ -373,11 +430,13 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                     {totalDistanceNum.toLocaleString('en-US')}{' '}
                     <span className='text-xs font-normal text-muted-foreground'>كم</span>
                   </p>
+                  <p className='text-[10px] text-muted-foreground'>قراءة العداد</p>
                 </CardContent>
               </Card>
 
+              {/* Last Oil */}
               <Card className='border-border shadow-2xs'>
-                <CardContent className='p-4 text-right space-y-1'>
+                <CardContent className='p-3.5 text-right space-y-1'>
                   <div className='flex items-center justify-between text-muted-foreground'>
                     <span className='text-xs font-medium'>آخر غيار زيت</span>
                     <Wrench className='size-4 text-amber-500' />
@@ -386,11 +445,13 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                     {lastOilDistanceNum.toLocaleString('en-US')}{' '}
                     <span className='text-xs font-normal text-muted-foreground'>كم</span>
                   </p>
+                  <p className='text-[10px] text-muted-foreground'>مسافة الزيت</p>
                 </CardContent>
               </Card>
 
+              {/* Vehicle Type */}
               <Card className='border-border shadow-2xs'>
-                <CardContent className='p-4 text-right space-y-1'>
+                <CardContent className='p-3.5 text-right space-y-1'>
                   <div className='flex items-center justify-between text-muted-foreground'>
                     <span className='text-xs font-medium'>نوع المركبة</span>
                     {employee.vehicle_type === 'car' ? (
@@ -399,25 +460,28 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                       <Bike className='size-4 text-primary' />
                     )}
                   </div>
-                  <p className='text-base sm:text-lg font-bold text-foreground'>
+                  <p className='text-sm sm:text-base font-bold text-foreground'>
                     {employee.vehicle_type === 'car' ? 'سيارة' : 'دراجة نارية'}
                   </p>
+                  <p className='text-[10px] text-muted-foreground'>وسيلة التوصيل</p>
                 </CardContent>
               </Card>
 
+              {/* Shift */}
               <Card className='border-border shadow-2xs'>
-                <CardContent className='p-4 text-right space-y-1'>
+                <CardContent className='p-3.5 text-right space-y-1'>
                   <div className='flex items-center justify-between text-muted-foreground'>
                     <span className='text-xs font-medium'>شفت العمل</span>
                     <Clock className='size-4 text-primary' />
                   </div>
-                  <p className='text-base sm:text-lg font-bold text-foreground'>
+                  <p className='text-sm sm:text-base font-bold text-foreground'>
                     {employee.shift === 'evening'
                       ? 'مسائي'
                       : employee.shift === 'night'
                         ? 'ليلي'
                         : 'صباحي'}
                   </p>
+                  <p className='text-[10px] text-muted-foreground'>فترة الدوام</p>
                 </CardContent>
               </Card>
             </div>
@@ -582,6 +646,169 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                     )}
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Delivered Orders & Work Sessions History */}
+            <Card className='border-border shadow-xs'>
+              <CardHeader className='pb-4 border-b border-border/40 flex flex-row items-center justify-between'>
+                <CardTitle className='text-lg flex items-center gap-2'>
+                  <PackageCheck className='size-5 text-primary' />
+                  سجل الشفتات والطلبات المحققة ({workSessions.length})
+                </CardTitle>
+                <div className='flex items-center gap-2'>
+                  <Badge
+                    variant='outline'
+                    className='bg-primary/10 text-primary border-primary/20 font-bold'
+                  >
+                    إجمالي الطلبات: {totalDeliveredOrders}
+                  </Badge>
+                  <Badge
+                    variant='outline'
+                    className='bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 font-bold'
+                  >
+                    معتمد: {totalApprovedOrders}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className='pt-4'>
+                {isReportsLoading ? (
+                  <div className='py-8 text-center text-muted-foreground text-sm space-y-2'>
+                    <div className='size-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto' />
+                    <p>جاري تحميل سجل الشفتات والطلبات...</p>
+                  </div>
+                ) : workSessions.length === 0 ? (
+                  <div className='py-12 text-center text-muted-foreground text-sm space-y-2 bg-muted/5 rounded-2xl border border-dashed border-border'>
+                    <ShoppingBag className='size-10 mx-auto text-muted-foreground opacity-30' />
+                    <p className='font-bold text-foreground'>
+                      لا توجد شفتات أو طلبات مسجلة لهذا الموظف حتى الآن
+                    </p>
+                    <p className='text-xs text-muted-foreground'>
+                      تظهر الطلبات فور قيام المندوب ببدء وإنهاء شفت العمل عبر تطبيق الهاتف
+                    </p>
+                  </div>
+                ) : (
+                  <div className='space-y-3'>
+                    {workSessions.map((session: any) => {
+                      const startDate = session.start_time
+                        ? new Date(session.start_time).toLocaleDateString('ar-SA', {
+                            weekday: 'short',
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })
+                        : '—';
+                      const startTime = session.start_time
+                        ? new Date(session.start_time).toLocaleTimeString('ar-SA', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : '';
+                      const endTime = session.end_time
+                        ? new Date(session.end_time).toLocaleTimeString('ar-SA', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : 'مستمر...';
+
+                      const orders = Number(session.orders_count) || 0;
+                      const dist = Number(session.distance) || 0;
+                      const isReviewed = Boolean(session.is_reviewed);
+
+                      return (
+                        <div
+                          key={session.id}
+                          className='p-4 rounded-xl border border-border bg-card/50 hover:bg-muted/30 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3'
+                        >
+                          <div className='space-y-1'>
+                            <div className='flex flex-wrap items-center gap-2'>
+                              <span className='font-bold text-sm text-foreground'>{startDate}</span>
+                              <span className='text-xs font-mono text-muted-foreground'>
+                                ({startTime} - {endTime})
+                              </span>
+                              {session.status === 'ACTIVE' ? (
+                                <Badge
+                                  variant='destructive'
+                                  className='text-[10px] animate-pulse font-bold'
+                                >
+                                  شفت نشط الآن
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant='outline'
+                                  className={
+                                    isReviewed
+                                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px] font-bold'
+                                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-[10px] font-bold'
+                                  }
+                                >
+                                  {isReviewed ? 'معتمد ✓' : 'قيد المراجعة'}
+                                </Badge>
+                              )}
+                            </div>
+
+                            <div className='flex flex-wrap items-center gap-3 text-xs text-muted-foreground pt-1'>
+                              {session.motorcycle_number && (
+                                <span className='flex items-center gap-1'>
+                                  <Bike className='size-3.5 text-primary' />
+                                  لوحة:{' '}
+                                  <span className='font-mono font-bold text-foreground'>
+                                    {session.motorcycle_number}
+                                  </span>
+                                </span>
+                              )}
+                              <span>
+                                المسافة:{' '}
+                                <span className='font-mono font-bold text-foreground'>
+                                  {dist} كم
+                                </span>
+                              </span>
+                              {session.fuel_cost > 0 && (
+                                <span>
+                                  الوقود:{' '}
+                                  <span className='font-mono font-bold text-foreground'>
+                                    {session.fuel_cost} ر.س
+                                  </span>
+                                </span>
+                              )}
+                              {session.notes ? (
+                                <span className='text-[11px] text-muted-foreground truncate max-w-xs'>
+                                  ملاحظة: {session.notes}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+
+                          <div className='flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40'>
+                            <div className='text-right sm:text-left'>
+                              <div className='text-[10px] text-muted-foreground font-medium'>
+                                الطلبات المنجزة
+                              </div>
+                              <div className='text-xl font-black font-mono text-primary flex items-center gap-1'>
+                                <PackageCheck className='size-4 text-primary' />
+                                {orders}{' '}
+                                <span className='text-xs font-normal text-muted-foreground'>
+                                  طلب
+                                </span>
+                              </div>
+                            </div>
+
+                            <Link href={`/dashboard/work`}>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                className='h-8 px-2.5 text-xs gap-1 font-bold'
+                              >
+                                <ExternalLink className='size-3.5' />
+                                مراجعة الشفت
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
