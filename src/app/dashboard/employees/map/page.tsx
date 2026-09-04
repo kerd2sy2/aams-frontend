@@ -61,15 +61,12 @@ export default function DelegateMapPage() {
   const withGpsCount = employees.filter((e) => e.latitude && e.longitude).length;
 
   return (
-    <PageContainer
-      pageTitle='خريطة تتبع المناديب المباشرة'
-      pageDescription='متابعة مواقع المناديب والشفتات لحظياً على خريطة الطائف والمملكة بدقة عالية'
-    >
+    <PageContainer>
       <div className='space-y-4 w-full h-full flex flex-col' dir='rtl'>
         {/* Page Header */}
         <PageHeader
           category='لوحة التحكم / المناديب'
-          title='خريطة تتبع المناديب المباشرة 🗺️'
+          title='خريطة تتبع المناديب المباشرة'
           description='متابعة مواقع المناديب والشفتات لحظياً على خريطة الطائف والمملكة بدقة عالية'
           actions={
             <div className='flex items-center gap-2'>

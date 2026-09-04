@@ -212,6 +212,8 @@ export default function DelegateMap({
           ? getWhatsAppURL(phoneDisplay, `السلام عليكم يا ${emp.name}`)
           : '';
 
+        const avatarSrc = emp.personal_image || '';
+
         // Custom DivIcon for the marker with high-contrast Avatar & Photo
         const markerHtml = `
           <div class="delegate-marker-container" style="position: relative; width: 52px; height: 64px; display: flex; flex-direction: column; align-items: center;">
@@ -321,14 +323,14 @@ export default function DelegateMap({
                 emp.motorcycle_number
                   ? `<div style="display: flex; align-items: center; justify-content: space-between;">
                       <span style="color: #64748b;">المركبة / اللوحة:</span>
-                      <span style="font-weight: 800; color: #0284c7;">🏍 ${emp.motorcycle_number}</span>
+                      <span style="font-weight: 800; color: #0284c7;">${emp.motorcycle_number}</span>
                     </div>`
                   : ''
               }
               <div style="display: flex; align-items: center; justify-content: space-between;">
                 <span style="color: #64748b;">الإحداثيات الدقيقة:</span>
                 <a href="${googleMapsUrl}" target="_blank" style="font-family: monospace; font-size: 11px; color: #0284c7; text-decoration: underline; font-weight: 700;" dir="ltr">
-                  ${lat.toFixed(5)}, ${lng.toFixed(5)} ↗
+                  ${lat.toFixed(5)}, ${lng.toFixed(5)}
                 </a>
               </div>
               ${
@@ -336,7 +338,7 @@ export default function DelegateMap({
                   ? `
                 <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 6px 8px; margin-top: 4px; display: flex; flex-direction: column; gap: 3px;">
                   <span style="font-size: 11px; font-weight: 800; color: #dc2626; display: flex; align-items: center; gap: 4px;">
-                    ⚠️ رصد مخالفة أمنية:
+                    رصد مخالفة أمنية:
                   </span>
                   ${emp.is_vpn ? `<span style="font-size: 11px; color: #b91c1c; font-weight: 600;">• المندوب يستخدم تطبيق VPN</span>` : ''}
                   ${emp.is_mock_location ? `<span style="font-size: 11px; color: #b91c1c; font-weight: 600;">• استخدام تطبيق موقع وهمي (Fake GPS)</span>` : ''}
@@ -357,7 +359,7 @@ export default function DelegateMap({
             <div style="display: flex; gap: 6px; padding-top: 4px; border-top: 1px solid #f1f5f9;">
               <a href="${googleMapsUrl}" target="_blank" style="flex: 1.2; text-decoration: none;">
                 <button style="width: 100%; height: 32px; background: #ea580c; color: white; border: none; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 3px;">
-                  📍 خرائط جوجل
+                  خرائط جوجل
                 </button>
               </a>
               ${
@@ -470,12 +472,12 @@ export default function DelegateMap({
               className={cn(
                 'h-7 text-xs px-2.5 font-bold',
                 filterShift === 'ACTIVE'
-                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
                   : 'text-emerald-600 dark:text-emerald-400'
               )}
               onClick={() => setFilterShift('ACTIVE')}
             >
-              🟢 في الشفت ({stats.activeShift})
+              في الشفت ({stats.activeShift})
             </Button>
             {stats.suspiciousCount > 0 && (
               <Button
@@ -489,7 +491,7 @@ export default function DelegateMap({
                 )}
                 onClick={() => setFilterShift('SUSPICIOUS')}
               >
-                ⚠️ VPN / موقع وهمي ({stats.suspiciousCount})
+                VPN / موقع وهمي ({stats.suspiciousCount})
               </Button>
             )}
             {stats.outOfZoneCount > 0 && (
@@ -504,7 +506,7 @@ export default function DelegateMap({
                 )}
                 onClick={() => setFilterShift('OUT_OF_ZONE')}
               >
-                🚩 خارج الطائف ({stats.outOfZoneCount})
+                خارج الطائف ({stats.outOfZoneCount})
               </Button>
             )}
             <Button
