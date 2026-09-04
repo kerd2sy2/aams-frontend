@@ -4,6 +4,7 @@ import { apiClient } from './axios';
 import type {
   Admin,
   Employee,
+  EmployeeLocation,
   WorkSession,
   DashboardResponse,
   PaginatedResponse,
@@ -140,6 +141,13 @@ export const employeeApi = {
       { new_password: newPassword }
     );
     return res.data;
+  },
+  getLocations: async (branchId?: string) => {
+    const res = await apiClient.get<{ success: boolean; data: EmployeeLocation[]; total: number }>(
+      '/employees/locations',
+      { params: branchId ? { branch_id: branchId } : undefined }
+    );
+    return res.data.data || [];
   },
   uploadImage: async (file: File, category = 'personal') => {
     const formData = new FormData();

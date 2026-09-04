@@ -39,7 +39,7 @@ import { employeeApi } from '@/lib/aams/services';
 import { useOfflineQuery } from '@/hooks/use-offline-query';
 import { useLocale } from '@/components/layout/locale-provider';
 import type { Employee, PaginatedResponse } from '@/types/aams';
-import { Building2, Users } from 'lucide-react';
+import { Building2, Users, MapPin } from 'lucide-react';
 
 interface BranchGroup {
   id: string;
@@ -177,6 +177,16 @@ export default function EmployeesPage() {
               </div>
 
               <div className='flex items-center gap-2'>
+                <Link
+                  href='/dashboard/employees/map'
+                  className={cn(
+                    buttonVariants({ variant: 'default', size: 'sm' }),
+                    'gap-1.5 font-bold shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white'
+                  )}
+                >
+                  <MapPin className='size-4' />
+                  خريطة المناديب (الطائف)
+                </Link>
                 <Link
                   href='/dashboard/employees/cards'
                   className={cn(

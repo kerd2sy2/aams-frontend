@@ -72,6 +72,27 @@ export interface Employee {
   updated_at: string;
 }
 
+export interface EmployeeLocation {
+  id: string;
+  name: string;
+  job_role: string;
+  employee_number: string;
+  phone?: string;
+  personal_image?: string;
+  national_id: string;
+  key_number?: string;
+  motorcycle_number?: string;
+  application_type?: string;
+  shift?: string;
+  branch_id?: string | null;
+  branch_name?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  last_location_at?: string | null;
+  is_shift_active: boolean;
+  active_session_id?: string | null;
+}
+
 export interface WorkSession {
   id: string;
   employee_id: string;
