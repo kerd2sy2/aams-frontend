@@ -63,10 +63,10 @@ export default function EndWorkPage() {
 
   const endMutation = useOfflineMutation({
     successMessage: selectedEmployee
-      ? `تم إنهاء شفت العمل بنجاح للموظف ${selectedEmployee.name}`
-      : 'تم إنهاء شفت العمل بنجاح',
+      ? `تم إنهاء ومصادقة شفت العمل بنجاح للموظف ${selectedEmployee.name}`
+      : 'تم إنهاء ومصادقة شفت العمل بنجاح',
     queueMessage: selectedEmployee
-      ? `تم حفظ إنهاء شفت العمل محلياً للموظف ${selectedEmployee.name} — ستتم المزامنة عند عودة الاتصال`
+      ? `تم حفظ إنهاء ومصادقة شفت العمل محلياً للموظف ${selectedEmployee.name} — ستتم المزامنة عند عودة الاتصال`
       : 'تم الحفظ محلياً — ستتم المزامنة عند عودة الاتصال',
     onSuccess: () => {
       clearOfflineMemoryCache();
@@ -78,6 +78,9 @@ export default function EndWorkPage() {
       queryClient.invalidateQueries({ queryKey: ['vehicles-list'] });
       queryClient.invalidateQueries({ queryKey: ['employees-working'] });
       queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
+      queryClient.invalidateQueries({ queryKey: ['odometer-audits'] });
+      queryClient.invalidateQueries({ queryKey: ['work-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
       resetForm();
     },
     onError: (msg) => toast.error(msg || 'فشل إنهاء الشفت')
@@ -185,7 +188,9 @@ export default function EndWorkPage() {
       fuel_cost: parseFloat(fuelCost) || 0,
       application_id: applicationId || undefined,
       application_type: applicationType || undefined,
-      notes: notes || undefined
+      notes: notes || undefined,
+      is_reviewed: true,
+      review_notes: 'تم تسجيل وإنهاء ومصادقة الدوام مباشرة عبر لوحة تحكم المشرف'
     };
 
     await endMutation.execute(() => workApi.endWork(payload), {
@@ -461,16 +466,26 @@ export default function EndWorkPage() {
                   />
                 </div>
 
+                {/* Direct Supervisor Certification Notice */}
+                <div className='flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-semibold text-emerald-700 dark:text-emerald-300'>
+                  <Icons.check className='size-4 shrink-0 text-emerald-600 dark:text-emerald-400' />
+                  <span>
+                    {t(
+                      'مصادقة معتمدة فورياً: إنهاء الدوام من لوحة تحكم المشرف يُعتمد ويُصدّق مباشرة دون الحاجة لمراجعة لاحقة.'
+                    )}
+                  </span>
+                </div>
+
                 {/* Submit */}
                 <LoadingButton
                   type='submit'
                   loading={endMutation.isLoading}
-                  loadingLabel={t('جاري إنهاء الشفت...')}
+                  loadingLabel={t('جاري إنهاء ومصادقة الشفت...')}
                   size='lg'
                   className='h-12 w-full text-base font-bold'
                 >
-                  <Icons.stop className='size-5' />
-                  {t('تأكيد وإنهاء الشفت')}
+                  <Icons.check className='size-5' />
+                  {t('تأكيد وإنهاء الشفت (مصادق فورياً)')}
                 </LoadingButton>
               </CardContent>
             </Card>

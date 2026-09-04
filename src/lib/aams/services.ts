@@ -191,6 +191,8 @@ export const workApi = {
     application_id?: string;
     application_type?: string;
     notes?: string;
+    is_reviewed?: boolean;
+    review_notes?: string;
   }) => {
     const res = await apiClient.post<WorkSession>('/work/end', data);
     return res.data;
