@@ -91,6 +91,10 @@ export interface EmployeeLocation {
   last_location_at?: string | null;
   is_shift_active: boolean;
   active_session_id?: string | null;
+  is_vpn?: boolean;
+  is_mock_location?: boolean;
+  out_of_zone?: boolean;
+  distance_from_taif_km?: number | null;
 }
 
 export interface WorkSession {

@@ -54,7 +54,9 @@ export default function DelegateMap({
   const markersGroupRef = useRef<any>(null);
 
   const [search, setSearch] = useState('');
-  const [filterShift, setFilterShift] = useState<'ALL' | 'ACTIVE' | 'OFFLINE'>('ALL');
+  const [filterShift, setFilterShift] = useState<
+    'ALL' | 'ACTIVE' | 'OFFLINE' | 'SUSPICIOUS' | 'OUT_OF_ZONE'
+  >('ALL');
   const [filterHasGps, setFilterHasGps] = useState<'ALL' | 'WITH_GPS'>('ALL');
   const [selectedEmpId, setSelectedEmpId] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -67,11 +69,17 @@ export default function DelegateMap({
       if (selectedBranchId && emp.branch_id !== selectedBranchId) {
         return false;
       }
-      // Shift filter
+      // Shift & Security filter
       if (filterShift === 'ACTIVE' && !emp.is_shift_active) {
         return false;
       }
       if (filterShift === 'OFFLINE' && emp.is_shift_active) {
+        return false;
+      }
+      if (filterShift === 'SUSPICIOUS' && !(emp.is_vpn || emp.is_mock_location)) {
+        return false;
+      }
+      if (filterShift === 'OUT_OF_ZONE' && !emp.out_of_zone) {
         return false;
       }
       // GPS filter
@@ -101,7 +109,10 @@ export default function DelegateMap({
     const activeWithGps = employees.filter(
       (e) => e.is_shift_active && e.latitude && e.longitude
     ).length;
-    return { total, withGps, activeShift, activeWithGps };
+    const suspiciousCount = employees.filter((e) => e.is_vpn || e.is_mock_location).length;
+    const outOfZoneCount = employees.filter((e) => e.out_of_zone).length;
+
+    return { total, withGps, activeShift, activeWithGps, suspiciousCount, outOfZoneCount };
   }, [employees]);
 
   // Auto-refresh timer
@@ -180,10 +191,21 @@ export default function DelegateMap({
         validCoords.push([lat, lng]);
 
         const isActive = emp.is_shift_active;
-        const ringColor = isActive ? '#10b981' : '#64748b';
-        const badgeBg = isActive ? '#ecfdf5' : '#f1f5f9';
-        const badgeText = isActive ? '#059669' : '#475569';
-        const statusLabel = isActive ? 'شفت نشط' : 'خارج الشفت';
+        const isSuspicious = emp.is_vpn || emp.is_mock_location || emp.out_of_zone;
+
+        let ringColor = isActive ? '#10b981' : '#64748b';
+        let badgeBg = isActive ? '#ecfdf5' : '#f1f5f9';
+        let badgeText = isActive ? '#059669' : '#475569';
+        let statusLabel = isActive ? 'شفت نشط' : 'خارج الشفت';
+
+        if (isSuspicious) {
+          ringColor = '#ef4444'; // Red for fraud/warning
+          badgeBg = '#fef2f2';
+          badgeText = '#b91c1c';
+          if (emp.is_vpn) statusLabel = 'VPN مشتبه به';
+          else if (emp.is_mock_location) statusLabel = 'موقع وهمي';
+          else if (emp.out_of_zone) statusLabel = 'خارج الطائف';
+        }
 
         const phoneDisplay = emp.phone || emp.employee_number || '';
         const waUrl = phoneDisplay
@@ -199,9 +221,9 @@ export default function DelegateMap({
               width: 42px;
               height: 42px;
               border-radius: 50%;
-              background: ${isActive ? '#10b981' : '#475569'};
+              background: ${ringColor};
               padding: 2.5px;
-              box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+              box-shadow: 0 4px 14px ${isSuspicious ? 'rgba(239, 68, 68, 0.45)' : 'rgba(0,0,0,0.28)'};
               display: flex;
               align-items: center;
               justify-content: center;
@@ -221,26 +243,32 @@ export default function DelegateMap({
                 ${
                   avatarSrc
                     ? `<img src="${avatarSrc}" alt="${emp.name}" style="width:100%; height:100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=10b981&color=fff';" />`
-                    : `<div style="font-size: 15px; font-weight: 800; color: #10b981;">${emp.name.slice(0, 1)}</div>`
+                    : `<div style="font-size: 15px; font-weight: 800; color: ${ringColor};">${emp.name.slice(0, 1)}</div>`
                 }
               </div>
               <span style="
                 position: absolute;
                 bottom: -2px;
                 right: -2px;
-                width: 13px;
-                height: 13px;
+                width: ${isSuspicious ? '16px' : '13px'};
+                height: ${isSuspicious ? '16px' : '13px'};
                 border-radius: 50%;
                 background: ${ringColor};
                 border: 2px solid #ffffff;
-              "></span>
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 9px;
+                color: #ffffff;
+                font-weight: 900;
+              ">${isSuspicious ? '!' : ''}</span>
             </div>
             <div style="
               width: 0;
               height: 0;
               border-left: 6px solid transparent;
               border-right: 6px solid transparent;
-              border-top: 7px solid ${isActive ? '#10b981' : '#475569'};
+              border-top: 7px solid ${ringColor};
               margin-top: -1px;
             "></div>
           </div>
@@ -303,6 +331,19 @@ export default function DelegateMap({
                       <span style="color: #64748b;">التطبيق:</span>
                       <span style="font-weight: 700; color: #ea580c;">${emp.application_type}</span>
                     </div>`
+                  : ''
+              }
+              ${
+                isSuspicious
+                  ? `
+                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 6px 8px; margin-top: 4px; display: flex; flex-direction: column; gap: 3px;">
+                  <span style="font-size: 11px; font-weight: 800; color: #dc2626; display: flex; align-items: center; gap: 4px;">
+                    ⚠️ رصد مخالفة أمنية:
+                  </span>
+                  ${emp.is_vpn ? `<span style="font-size: 11px; color: #b91c1c; font-weight: 600;">• المندوب يستخدم تطبيق VPN</span>` : ''}
+                  ${emp.is_mock_location ? `<span style="font-size: 11px; color: #b91c1c; font-weight: 600;">• استخدام تطبيق موقع وهمي (Fake GPS)</span>` : ''}
+                  ${emp.out_of_zone ? `<span style="font-size: 11px; color: #b91c1c; font-weight: 600;">• خارج نطاق الطائف (${emp.distance_from_taif_km ? emp.distance_from_taif_km + ' كم' : 'أكثر من 45 كم'})</span>` : ''}
+                </div>`
                   : ''
               }
               ${
@@ -429,6 +470,36 @@ export default function DelegateMap({
             >
               🟢 في الشفت ({stats.activeShift})
             </Button>
+            {stats.suspiciousCount > 0 && (
+              <Button
+                variant={filterShift === 'SUSPICIOUS' ? 'default' : 'ghost'}
+                size='sm'
+                className={cn(
+                  'h-7 text-xs px-2.5 font-bold',
+                  filterShift === 'SUSPICIOUS'
+                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                    : 'text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40'
+                )}
+                onClick={() => setFilterShift('SUSPICIOUS')}
+              >
+                ⚠️ VPN / موقع وهمي ({stats.suspiciousCount})
+              </Button>
+            )}
+            {stats.outOfZoneCount > 0 && (
+              <Button
+                variant={filterShift === 'OUT_OF_ZONE' ? 'default' : 'ghost'}
+                size='sm'
+                className={cn(
+                  'h-7 text-xs px-2.5 font-bold',
+                  filterShift === 'OUT_OF_ZONE'
+                    ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                    : 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40'
+                )}
+                onClick={() => setFilterShift('OUT_OF_ZONE')}
+              >
+                🚩 خارج الطائف ({stats.outOfZoneCount})
+              </Button>
+            )}
             <Button
               variant={filterShift === 'OFFLINE' ? 'default' : 'ghost'}
               size='sm'
