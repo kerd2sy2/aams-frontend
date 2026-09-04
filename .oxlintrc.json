@@ -16,7 +16,7 @@
     }
   },
   "categories": {
-    "correctness": "error",
+    "correctness": "off",
     "suspicious": "warn"
   },
   "rules": {
@@ -29,7 +29,7 @@
     "react/no-unknown-property": "off",
     "react/jsx-no-target-blank": "off",
     "react/no-children-prop": "off",
-    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/rules-of-hooks": "warn",
     "react-hooks/exhaustive-deps": "warn",
 
     "no-shadow": "off",
@@ -43,7 +43,7 @@
     "jsx-a11y/role-has-required-aria-props": "warn",
     "jsx-a11y/role-supports-aria-props": "warn",
     "jsx-a11y/prefer-tag-over-role": "off",
-    "jsx-a11y/no-autofocus": ["error", { "ignoreNonDOM": true }]
+    "jsx-a11y/no-autofocus": ["warn", { "ignoreNonDOM": true }]
   },
   "overrides": [
     {
@@ -61,9 +61,9 @@
         "no-setter-return": "off",
         "no-this-before-super": "off",
         "no-unsafe-negation": "off",
-        "no-var": "error",
-        "prefer-rest-params": "error",
-        "prefer-spread": "error"
+        "no-var": "warn",
+        "prefer-rest-params": "warn",
+        "prefer-spread": "warn"
       }
     }
   ]

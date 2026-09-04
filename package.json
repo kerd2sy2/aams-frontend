@@ -12,7 +12,7 @@
     "start": "next start -p 3001",
     "cleanup": "node scripts/cleanup.js",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint || true",
+    "lint": "oxlint",
     "lint:fix": "oxlint --fix && bun format",
     "lint:strict": "oxlint --deny-warnings",
     "format": "oxfmt --write . '!**/*.md' '!**/*.mdc' '!**/*.mdx' '!**/*.yml' '!**/*.yaml'",
