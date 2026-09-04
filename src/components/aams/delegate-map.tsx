@@ -32,6 +32,40 @@ import {
 const TAIF_CENTER: [number, number] = [21.2854, 40.4222];
 const DEFAULT_ZOOM = 12;
 
+/**
+ * Resolves avatar URLs to the correct backend host or generates a fallback avatar.
+ */
+export function getSafeAvatarUrl(imagePath?: string | null, name?: string): string {
+  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'AAMS')}&background=0284c7&color=ffffff&bold=true&size=128&rounded=true`;
+  if (!imagePath || typeof imagePath !== 'string' || imagePath.trim() === '') {
+    return fallback;
+  }
+
+  const clean = imagePath.trim();
+  if (clean.startsWith('http://') || clean.startsWith('https://') || clean.startsWith('data:')) {
+    return clean;
+  }
+
+  const normalized = clean.startsWith('/') ? clean : `/${clean}`;
+  const backendUrl =
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1\/?$/, '');
+
+  if (backendUrl) {
+    return `${backendUrl.replace(/\/$/, '')}${normalized}`;
+  }
+
+  if (typeof window !== 'undefined') {
+    const isLocal =
+      window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isLocal) {
+      return `http://${window.location.hostname}:8081${normalized}`;
+    }
+  }
+
+  return `https://aams-backend-fxy7.onrender.com${normalized}`;
+}
+
 interface DelegateMapProps {
   employees: EmployeeLocation[];
   branches?: Branch[];
@@ -212,11 +246,12 @@ export default function DelegateMap({
           ? getWhatsAppURL(phoneDisplay, `السلام عليكم يا ${emp.name}`)
           : '';
 
-        const avatarSrc = emp.personal_image || '';
+        const safeAvatar = getSafeAvatarUrl(emp.personal_image, emp.name);
+        const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=0284c7&color=ffffff&bold=true&size=128&rounded=true`;
 
         // Custom DivIcon for the marker with high-contrast Avatar & Photo
         const markerHtml = `
-          <div class="delegate-marker-container" style="position: relative; width: 52px; height: 64px; display: flex; flex-direction: column; align-items: center;">
+          <div class="delegate-marker-container" style="position: relative; width: 54px; height: 66px; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25));">
             <div style="
               width: 48px;
               height: 48px;
@@ -240,11 +275,12 @@ export default function DelegateMap({
                 align-items: center;
                 justify-content: center;
               ">
-                ${
-                  avatarSrc
-                    ? `<img src="${avatarSrc}" alt="${emp.name}" style="width:100%; height:100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=10b981&color=fff';" />`
-                    : `<div style="font-size: 17px; font-weight: 900; color: ${ringColor};">${emp.name.slice(0, 1)}</div>`
-                }
+                <img
+                  src="${safeAvatar}"
+                  alt="${emp.name}"
+                  style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%;"
+                  onerror="this.onerror=null; this.src='${fallbackAvatar}';"
+                />
               </div>
               <span style="
                 position: absolute;
@@ -277,9 +313,9 @@ export default function DelegateMap({
         const customIcon = L.divIcon({
           html: markerHtml,
           className: 'custom-delegate-icon',
-          iconSize: [52, 64],
-          iconAnchor: [26, 62],
-          popupAnchor: [0, -62]
+          iconSize: [54, 66],
+          iconAnchor: [27, 64],
+          popupAnchor: [0, -64]
         });
 
         const marker = L.marker([lat, lng], { icon: customIcon });
@@ -291,7 +327,12 @@ export default function DelegateMap({
           <div dir="rtl" style="font-family: inherit; width: 280px; padding: 4px; text-align: right;">
             <div style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 8px;">
               <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; border: 2.5px solid ${ringColor}; flex-shrink: 0; background: #f8fafc; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                <img src="${avatarSrc || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}`}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}';" />
+                <img
+                  src="${safeAvatar}"
+                  alt="${emp.name}"
+                  style="width: 100%; height: 100%; object-fit: cover; display: block;"
+                  onerror="this.onerror=null; this.src='${fallbackAvatar}';"
+                />
               </div>
               <div style="min-width: 0; flex: 1;">
                 <h4 style="margin: 0; font-size: 14px; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -305,6 +346,7 @@ export default function DelegateMap({
                 </div>
               </div>
             </div>
+
 
             <div style="font-size: 12px; color: #475569; display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px;">
               ${
@@ -616,16 +658,17 @@ export default function DelegateMap({
                   title={hasGps ? 'انقر للتركيز على المندوب في الخريطة' : 'لم يسجل موقع GPS بعد'}
                 >
                   <div className='relative size-6 rounded-full overflow-hidden border bg-muted flex items-center justify-center text-[10px]'>
-                    {emp.personal_image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={emp.personal_image}
-                        alt={emp.name}
-                        className='size-full object-cover'
-                      />
-                    ) : (
-                      emp.name.slice(0, 1)
-                    )}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={getSafeAvatarUrl(emp.personal_image, emp.name)}
+                      alt={emp.name}
+                      className='size-full object-cover'
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.onerror = null;
+                        target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=0284c7&color=ffffff&bold=true&size=64&rounded=true`;
+                      }}
+                    />
                     <span
                       className={cn(
                         'absolute bottom-0 right-0 size-1.5 rounded-full border border-background',
@@ -645,6 +688,13 @@ export default function DelegateMap({
           </div>
         )}
       </div>
+
+      <style jsx global>{`
+        .leaflet-div-icon.custom-delegate-icon {
+          background: transparent !important;
+          border: none !important;
+        }
+      `}</style>
     </div>
   );
 }

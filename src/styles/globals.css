@@ -639,3 +639,9 @@
     -webkit-text-fill-color: currentColor;
   }
 }
+
+/* Leaflet Custom Marker Avatar styling */
+.leaflet-div-icon.custom-delegate-icon {
+  background: transparent !important;
+  border: none !important;
+}
