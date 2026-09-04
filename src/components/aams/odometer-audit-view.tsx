@@ -48,9 +48,9 @@ import {
 export default function OdometerAuditView() {
   const queryClient = useQueryClient();
 
-  // Filters State
+  // Filters State - Default to 'pending' to load uncertified requests first and immediately
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'reviewed'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'reviewed'>('pending');
   const [editedOnly, setEditedOnly] = useState(false);
   const [dateFilter, setDateFilter] = useState<'today' | '7days' | 'month' | 'all'>('all');
 
@@ -73,13 +73,13 @@ export default function OdometerAuditView() {
   const [editEndKM, setEditEndKM] = useState<number>(0);
   const [editFuelCost, setEditFuelCost] = useState<number>(0);
 
-  // Fetch all sessions
+  // Fetch sessions - prioritized by pending status
   const {
     data: reportsData,
     isLoading,
     refetch
   } = useQuery({
-    queryKey: ['odometer-audits', dateFilter],
+    queryKey: ['odometer-audits', dateFilter, statusFilter],
     queryFn: async () => {
       let startDate: string | undefined;
       let endDate: string | undefined;
@@ -102,7 +102,9 @@ export default function OdometerAuditView() {
       const res = await reportApi.getReports({
         start_date: startDate,
         end_date: endDate,
-        limit: 200
+        is_reviewed:
+          statusFilter === 'pending' ? false : statusFilter === 'reviewed' ? true : undefined,
+        limit: statusFilter === 'pending' ? 100 : 50
       });
       return res?.data || [];
     }
@@ -165,7 +167,7 @@ export default function OdometerAuditView() {
 
   // Filtered sessions
   const filteredSessions = useMemo(() => {
-    return sessions.filter((s) => {
+    const list = sessions.filter((s) => {
       // Search match
       if (search.trim()) {
         const q = search.toLowerCase();
@@ -185,6 +187,13 @@ export default function OdometerAuditView() {
       if (editedOnly && !s.is_edited_by_supervisor) return false;
 
       return true;
+    });
+
+    // Sort uncertified (pending review) first, then by start time descending
+    return list.sort((a, b) => {
+      if (!a.is_reviewed && b.is_reviewed) return -1;
+      if (a.is_reviewed && !b.is_reviewed) return 1;
+      return new Date(b.start_time).getTime() - new Date(a.start_time).getTime();
     });
   }, [sessions, search, statusFilter, editedOnly]);
 
@@ -339,19 +348,23 @@ export default function OdometerAuditView() {
             {/* Status Filter */}
             <div className='flex items-center gap-1 bg-muted/60 p-1 rounded-lg'>
               <Button
+                variant={statusFilter === 'pending' ? 'default' : 'ghost'}
+                size='xs'
+                onClick={() => setStatusFilter('pending')}
+                className={
+                  statusFilter === 'pending'
+                    ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                    : 'text-amber-500 hover:text-amber-600'
+                }
+              >
+                بانتظار المصادقة (الأولوية)
+              </Button>
+              <Button
                 variant={statusFilter === 'all' ? 'default' : 'ghost'}
                 size='xs'
                 onClick={() => setStatusFilter('all')}
               >
                 الكل
-              </Button>
-              <Button
-                variant={statusFilter === 'pending' ? 'default' : 'ghost'}
-                size='xs'
-                onClick={() => setStatusFilter('pending')}
-                className='text-amber-500 hover:text-amber-600'
-              >
-                بانتظار المصادقة
               </Button>
               <Button
                 variant={statusFilter === 'reviewed' ? 'default' : 'ghost'}
