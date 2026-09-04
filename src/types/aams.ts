@@ -48,6 +48,7 @@ export interface Employee {
   name: string;
   job_role: string;
   employee_number: string;
+  phone?: string;
   personal_image: string;
   national_id: string;
   iqama_expiration_date?: string | null;

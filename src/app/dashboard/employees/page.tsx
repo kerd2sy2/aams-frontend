@@ -293,10 +293,8 @@ export default function EmployeesPage() {
                         </TableHeader>
                         <TableBody>
                           {group.employees.map((emp, idx) => {
-                            const waUrl = getWhatsAppURL(
-                              emp.employee_number,
-                              `السلام عليكم ${emp.name} `
-                            );
+                            const phoneNum = emp.phone || emp.employee_number || '';
+                            const waUrl = getWhatsAppURL(phoneNum, `السلام عليكم ${emp.name} `);
                             return (
                               <TableRow
                                 key={emp.id}
@@ -314,12 +312,12 @@ export default function EmployeesPage() {
                                       <span className='block font-bold text-sm text-foreground group-hover:text-primary transition-colors'>
                                         {emp.name}
                                       </span>
-                                      {emp.employee_number && (
+                                      {phoneNum && (
                                         <span
                                           className='text-muted-foreground block text-xs font-mono'
                                           dir='ltr'
                                         >
-                                          {emp.employee_number}
+                                          {phoneNum}
                                         </span>
                                       )}
                                     </div>
@@ -539,7 +537,8 @@ function EmployeeMobileCard({
   canDelete: boolean;
 }) {
   const router = useRouter();
-  const waUrl = getWhatsAppURL(emp.employee_number, `السلام عليكم يا ${emp.name} `);
+  const phoneNum = emp.phone || emp.employee_number || '';
+  const waUrl = getWhatsAppURL(phoneNum, `السلام عليكم يا ${emp.name} `);
 
   return (
     <Card
@@ -589,6 +588,11 @@ function EmployeeMobileCard({
           </div>
           <div className='mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground'>
             <span className='font-mono tabular-nums'>{emp.national_id}</span>
+            {phoneNum && (
+              <span className='font-mono tabular-nums text-foreground/90' dir='ltr'>
+                📱 {phoneNum}
+              </span>
+            )}
             {emp.motorcycle_number && (
               <span className='font-mono tabular-nums font-semibold text-foreground'>
                 🏍 {emp.motorcycle_number}

@@ -97,7 +97,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
       reset({
         name: employee.name,
         national_id: employee.national_id,
-        employee_number: employee.employee_number || '',
+        employee_number: employee.phone || employee.employee_number || '',
         key_number: employee.key_number || '',
         motorcycle_number: employee.motorcycle_number || '',
         application_id: employee.application_id || ''
@@ -123,6 +123,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
       setSaving(true);
       await employeeApi.update(id, {
         ...values,
+        phone: values.employee_number || '',
         job_role: jobRole,
         iqama_expiration_date: iqamaExpirationDate || undefined,
         personal_image: personalImage,

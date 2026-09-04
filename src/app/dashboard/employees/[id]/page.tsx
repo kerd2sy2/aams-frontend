@@ -138,7 +138,8 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
   const passportImg = employee.passport_image || '';
   const vehicleRegImg = employee.vehicle_registration_image || '';
 
-  const waUrl = employee.employee_number ? getWhatsAppURL(employee.employee_number) : null;
+  const empPhone = employee.phone || employee.employee_number || '';
+  const waUrl = empPhone ? getWhatsAppURL(empPhone) : null;
 
   const totalDistanceNum =
     Number(
@@ -197,7 +198,7 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
         <PageHeader
           category='لوحة التحكم / الموظفين'
           title={employee.name || 'مندوب'}
-          description={`رقم الهوية: ${employee.national_id || '-'} ${employee.employee_number ? `| الجوال: ${employee.employee_number}` : ''}`}
+          description={`رقم الهوية: ${employee.national_id || '-'} ${empPhone ? `| الجوال: ${empPhone}` : ''}`}
           actions={
             <div className='flex flex-wrap items-center gap-2'>
               <Button
@@ -333,15 +334,15 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                         </button>
                       )}
 
-                      {employee.employee_number && (
+                      {empPhone && (
                         <button
                           type='button'
-                          onClick={() => copyToClipboard(employee.employee_number, 'phone')}
+                          onClick={() => copyToClipboard(empPhone, 'phone')}
                           className='inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-muted/60 hover:bg-muted text-xs font-mono font-bold transition-colors border border-border/60'
                           title='انقر لنسخ رقم الجوال'
                         >
                           <Phone className='size-3.5 text-primary' />
-                          <span>الجوال: {employee.employee_number}</span>
+                          <span>الجوال: {empPhone}</span>
                           {copiedField === 'phone' ? (
                             <Check className='size-3 text-emerald-500' />
                           ) : (

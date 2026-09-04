@@ -114,6 +114,7 @@ export default function NewEmployeePage() {
         job_role: jobRole,
         iqama_expiration_date: iqamaExpirationDate || undefined,
         employee_number: employeeNumber,
+        phone: employeeNumber,
         personal_image: personalImage,
         national_id_image: nationalIdImage,
         driving_license_image: isDriver ? drivingLicenseImage : '',
