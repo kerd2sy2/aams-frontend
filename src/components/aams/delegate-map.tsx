@@ -212,18 +212,16 @@ export default function DelegateMap({
           ? getWhatsAppURL(phoneDisplay, `السلام عليكم يا ${emp.name}`)
           : '';
 
-        const avatarSrc = emp.personal_image || '';
-
-        // Custom DivIcon for the marker
+        // Custom DivIcon for the marker with high-contrast Avatar & Photo
         const markerHtml = `
-          <div class="delegate-marker-container" style="position: relative; width: 46px; height: 58px; display: flex; flex-direction: column; align-items: center;">
+          <div class="delegate-marker-container" style="position: relative; width: 52px; height: 64px; display: flex; flex-direction: column; align-items: center;">
             <div style="
-              width: 42px;
-              height: 42px;
+              width: 48px;
+              height: 48px;
               border-radius: 50%;
               background: ${ringColor};
               padding: 2.5px;
-              box-shadow: 0 4px 14px ${isSuspicious ? 'rgba(239, 68, 68, 0.45)' : 'rgba(0,0,0,0.28)'};
+              box-shadow: 0 4px 16px ${isSuspicious ? 'rgba(239, 68, 68, 0.55)' : 'rgba(0,0,0,0.32)'};
               display: flex;
               align-items: center;
               justify-content: center;
@@ -243,22 +241,22 @@ export default function DelegateMap({
                 ${
                   avatarSrc
                     ? `<img src="${avatarSrc}" alt="${emp.name}" style="width:100%; height:100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=10b981&color=fff';" />`
-                    : `<div style="font-size: 15px; font-weight: 800; color: ${ringColor};">${emp.name.slice(0, 1)}</div>`
+                    : `<div style="font-size: 17px; font-weight: 900; color: ${ringColor};">${emp.name.slice(0, 1)}</div>`
                 }
               </div>
               <span style="
                 position: absolute;
                 bottom: -2px;
                 right: -2px;
-                width: ${isSuspicious ? '16px' : '13px'};
-                height: ${isSuspicious ? '16px' : '13px'};
+                width: ${isSuspicious ? '18px' : '15px'};
+                height: ${isSuspicious ? '18px' : '15px'};
                 border-radius: 50%;
                 background: ${ringColor};
-                border: 2px solid #ffffff;
+                border: 2.5px solid #ffffff;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 9px;
+                font-size: 10px;
                 color: #ffffff;
                 font-weight: 900;
               ">${isSuspicious ? '!' : ''}</span>
@@ -266,9 +264,9 @@ export default function DelegateMap({
             <div style="
               width: 0;
               height: 0;
-              border-left: 6px solid transparent;
-              border-right: 6px solid transparent;
-              border-top: 7px solid ${ringColor};
+              border-left: 7px solid transparent;
+              border-right: 7px solid transparent;
+              border-top: 8px solid ${ringColor};
               margin-top: -1px;
             "></div>
           </div>
@@ -277,18 +275,20 @@ export default function DelegateMap({
         const customIcon = L.divIcon({
           html: markerHtml,
           className: 'custom-delegate-icon',
-          iconSize: [46, 58],
-          iconAnchor: [23, 56],
-          popupAnchor: [0, -56]
+          iconSize: [52, 64],
+          iconAnchor: [26, 62],
+          popupAnchor: [0, -62]
         });
 
         const marker = L.marker([lat, lng], { icon: customIcon });
 
+        const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
         // Build interactive Popup HTML
         const popupContent = `
-          <div dir="rtl" style="font-family: inherit; width: 260px; padding: 4px; text-align: right;">
+          <div dir="rtl" style="font-family: inherit; width: 280px; padding: 4px; text-align: right;">
             <div style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 8px;">
-              <div style="width: 44px; height: 44px; border-radius: 12px; overflow: hidden; border: 1.5px solid ${ringColor}; flex-shrink: 0; background: #f8fafc;">
+              <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; border: 2.5px solid ${ringColor}; flex-shrink: 0; background: #f8fafc; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <img src="${avatarSrc || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}`}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}';" />
               </div>
               <div style="min-width: 0; flex: 1;">
@@ -325,14 +325,12 @@ export default function DelegateMap({
                     </div>`
                   : ''
               }
-              ${
-                emp.application_type
-                  ? `<div style="display: flex; align-items: center; justify-content: space-between;">
-                      <span style="color: #64748b;">التطبيق:</span>
-                      <span style="font-weight: 700; color: #ea580c;">${emp.application_type}</span>
-                    </div>`
-                  : ''
-              }
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="color: #64748b;">الإحداثيات الدقيقة:</span>
+                <a href="${googleMapsUrl}" target="_blank" style="font-family: monospace; font-size: 11px; color: #0284c7; text-decoration: underline; font-weight: 700;" dir="ltr">
+                  ${lat.toFixed(5)}, ${lng.toFixed(5)} ↗
+                </a>
+              </div>
               ${
                 isSuspicious
                   ? `
@@ -357,23 +355,28 @@ export default function DelegateMap({
             </div>
 
             <div style="display: flex; gap: 6px; padding-top: 4px; border-top: 1px solid #f1f5f9;">
+              <a href="${googleMapsUrl}" target="_blank" style="flex: 1.2; text-decoration: none;">
+                <button style="width: 100%; height: 32px; background: #ea580c; color: white; border: none; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 3px;">
+                  📍 خرائط جوجل
+                </button>
+              </a>
               ${
                 phoneDisplay
                   ? `
                 <a href="tel:${phoneDisplay}" style="flex: 1; text-decoration: none;">
-                  <button style="width: 100%; height: 32px; background: #0284c7; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  <button style="width: 100%; height: 32px; background: #0284c7; color: white; border: none; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                     اتصال
                   </button>
                 </a>
                 <a href="${waUrl}" target="_blank" style="flex: 1; text-decoration: none;">
-                  <button style="width: 100%; height: 32px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  <button style="width: 100%; height: 32px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                     واتساب
                   </button>
                 </a>`
                   : ''
               }
               <a href="/dashboard/employees/${emp.id}" style="text-decoration: none;">
-                <button style="height: 32px; padding: 0 10px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                <button style="height: 32px; padding: 0 8px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
                   الملف
                 </button>
               </a>
@@ -382,12 +385,16 @@ export default function DelegateMap({
         `;
 
         marker.bindPopup(popupContent, {
-          maxWidth: 280,
+          maxWidth: 300,
           className: 'delegate-leaflet-popup'
         });
 
+        // Upon click on marker -> Smoothly fly to street-level zoom and open popup
         marker.on('click', () => {
           setSelectedEmpId(emp.id);
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.flyTo([lat, lng], 18, { duration: 1.0 });
+          }
         });
 
         markersGroup.addLayer(marker);
