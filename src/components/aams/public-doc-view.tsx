@@ -20,7 +20,9 @@ import {
   ShieldCheck,
   Building2,
   Phone,
-  Mail
+  Mail,
+  User,
+  Calendar
 } from 'lucide-react';
 
 const TEMPLATES: Record<string, string> = {
@@ -433,46 +435,80 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
             {/* Employee Info & Date for Supervisor Report without Table */}
             {isReport ? (
-              <div className='px-8 mb-6 text-right' dir='rtl'>
+              <div className='px-8 my-3 text-right' dir='rtl'>
                 {isGroupReport ? (
-                  <div className='space-y-3'>
-                    <div className='space-y-1.5'>
-                      <span className='font-bold text-slate-950 text-base'>
-                        الموظفون المشمولون بالتقرير:
-                      </span>
-                      <div className='space-y-1 pr-3'>
+                  <div className='space-y-3 bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 shadow-2xs'>
+                    <div className='space-y-2'>
+                      <div className='flex items-center gap-2'>
+                        <Users className='size-4 text-blue-600' />
+                        <span className='font-black text-slate-950 text-sm'>
+                          الموظفون المشمولون بالتقرير ({employees.length}):
+                        </span>
+                      </div>
+                      <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 pr-1'>
                         {employees.map((emp, idx) => (
-                          <div key={idx} className='text-sm sm:text-base font-bold text-slate-900'>
-                            {idx + 1}. {emp.name} - رقم الهوية:{' '}
-                            <span className='font-mono'>{emp.national_id}</span>
+                          <div
+                            key={idx}
+                            className='flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200/70 text-xs font-bold'
+                          >
+                            <span className='text-slate-950'>
+                              {idx + 1}. {emp.name}
+                            </span>
+                            <span className='font-mono text-slate-600'>{emp.national_id}</span>
                           </div>
                         ))}
                       </div>
                     </div>
-                    <div className='flex items-center gap-2 text-base sm:text-lg'>
-                      <span className='font-bold text-slate-950'>التاريخ:</span>
-                      <span className='font-bold text-slate-900'>
+                    <div className='flex items-center gap-2 pt-2 border-t border-slate-200 text-xs font-bold text-slate-700'>
+                      <Calendar className='size-3.5 text-emerald-600' />
+                      <span>التاريخ:</span>
+                      <span className='font-mono font-black text-slate-900'>
                         {formatReportDate(t.created_at)}
                       </span>
                     </div>
                   </div>
                 ) : (
-                  <div className='space-y-2 text-base sm:text-lg'>
-                    <div className='flex items-center gap-2'>
-                      <span className='font-bold text-slate-950 min-w-[95px]'>اسم الموظف:</span>
-                      <span className='font-bold text-slate-900'>{t.employee_name || '—'}</span>
+                  <div className='grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs'>
+                    <div className='flex items-center gap-3 p-2.5 bg-white rounded-xl border border-slate-200/70 shadow-2xs'>
+                      <div className='size-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold'>
+                        <User className='size-4' />
+                      </div>
+                      <div className='min-w-0 flex-1'>
+                        <span className='text-[11px] font-bold text-slate-500 block leading-tight'>
+                          اسم الموظف
+                        </span>
+                        <p className='text-sm sm:text-base font-black text-slate-950 truncate leading-snug'>
+                          {t.employee_name || '—'}
+                        </p>
+                      </div>
                     </div>
-                    <div className='flex items-center gap-2'>
-                      <span className='font-bold text-slate-950 min-w-[95px]'>رقم الهوية:</span>
-                      <span className='font-bold font-mono text-slate-900 tracking-wider'>
-                        {t.national_id || '—'}
-                      </span>
+
+                    <div className='flex items-center gap-3 p-2.5 bg-white rounded-xl border border-slate-200/70 shadow-2xs'>
+                      <div className='size-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 font-bold'>
+                        <ShieldCheck className='size-4' />
+                      </div>
+                      <div className='min-w-0 flex-1'>
+                        <span className='text-[11px] font-bold text-slate-500 block leading-tight'>
+                          رقم الهوية
+                        </span>
+                        <p className='text-sm sm:text-base font-black font-mono tracking-wider text-slate-950 leading-snug'>
+                          {t.national_id || '—'}
+                        </p>
+                      </div>
                     </div>
-                    <div className='flex items-center gap-2'>
-                      <span className='font-bold text-slate-950 min-w-[95px]'>التاريخ:</span>
-                      <span className='font-bold text-slate-900'>
-                        {formatReportDate(t.created_at)}
-                      </span>
+
+                    <div className='flex items-center gap-3 p-2.5 bg-white rounded-xl border border-slate-200/70 shadow-2xs'>
+                      <div className='size-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 font-bold'>
+                        <Calendar className='size-4' />
+                      </div>
+                      <div className='min-w-0 flex-1'>
+                        <span className='text-[11px] font-bold text-slate-500 block leading-tight'>
+                          التاريخ
+                        </span>
+                        <p className='text-sm sm:text-base font-black font-mono text-slate-950 leading-snug'>
+                          {formatReportDate(t.created_at)}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -620,8 +656,14 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
             {/* Report Text (Supervisor Report / Absence) */}
             {isReport && t.report_text ? (
-              <div className='px-8 my-6' dir='rtl'>
-                <div className='whitespace-pre-wrap font-medium leading-[2.2] text-slate-950 text-base sm:text-lg text-right'>
+              <div className='px-8 my-4' dir='rtl'>
+                <div className='flex items-center gap-2 mb-2.5'>
+                  <span className='inline-block w-2.5 h-2.5 rounded-full bg-[#e25b29]'></span>
+                  <h2 className='text-base sm:text-lg font-black text-slate-950'>
+                    موضوع ونص التقرير:
+                  </h2>
+                </div>
+                <div className='whitespace-pre-wrap font-medium leading-[2.2] text-slate-950 text-base sm:text-lg text-right bg-slate-50/70 border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-2xs'>
                   {renderBoldText(t.report_text)}
                 </div>
               </div>
@@ -734,11 +776,33 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
             {/* Signatures */}
             {isReport ? (
-              <div className='px-8 pt-8 pb-4 space-y-8 text-right' dir='rtl'>
-                <p className='text-base sm:text-lg font-bold text-slate-950'>
-                  التوقيع / {t.supervisor_name || '—'}
-                </p>
-                <p className='text-base sm:text-lg font-bold text-slate-950'>إجراء الإدارة /</p>
+              <div className='px-8 pt-6 pb-4' dir='rtl'>
+                <div className='flex items-start justify-between gap-8'>
+                  {/* Right Side: إجراء الإدارة */}
+                  <div className='flex-1 max-w-[50%] space-y-2 text-right'>
+                    <div className='flex items-center gap-2'>
+                      <span className='inline-block w-2.5 h-2.5 rounded-full bg-slate-900'></span>
+                      <span className='text-base font-black text-slate-950'>إجراء الإدارة /</span>
+                    </div>
+                    <div className='w-full min-h-[55px] border-b-2 border-dashed border-slate-300 rounded-sm pt-2'></div>
+                  </div>
+
+                  {/* Left Side (Opposite): توقيع المشرف (الاسم وتحته مساحة التوقيع فاضية) */}
+                  <div className='min-w-[220px] space-y-3 text-right' dir='rtl'>
+                    <div>
+                      <span className='text-xs text-slate-500 font-bold block mb-0.5'>
+                        المشرف المسؤول:
+                      </span>
+                      <p className='text-base font-black text-slate-950'>
+                        {t.supervisor_name || '—'}
+                      </p>
+                    </div>
+                    <div className='pt-1'>
+                      <span className='text-xs text-slate-500 font-bold block mb-1'>التوقيع:</span>
+                      <div className='w-48 border-b-2 border-slate-400 min-h-[38px]'></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : t.type !== 'advance' ? (
               <div className='pt-2 pb-2 px-8 sm:px-14'>
@@ -765,9 +829,35 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
             {/* Official Footer */}
             <div className='mt-auto border-t border-slate-400 px-4 py-2 text-center' dir='rtl'>
-              <p className='text-[9.5px] sm:text-[10.5px] font-bold text-slate-800 leading-tight'>
-                شركة ابرار عبدالرحمن محمد الشمراني – المملكة العربية السعودية – جدة – الطائف س .ت:
-                ٧٠٤٩٢١٤٥٩١ الهاتف : ٠٥٣١١١٢٢٢٥ االيميل : Abrar@aams-logistic.com
+              <p className='text-[10px] sm:text-[11px] font-bold text-slate-800 leading-normal flex flex-wrap items-center justify-center gap-x-2 gap-y-1'>
+                <span>شركة ابرار عبدالرحمن محمد الشمراني</span>
+                <span>–</span>
+                <span>المملكة العربية السعودية – جدة – الطائف</span>
+                <span>–</span>
+                <span>س .ت: ٧٠٤٩٢١٤٥٩١</span>
+                <span>–</span>
+                <span>
+                  الهاتف :{' '}
+                  <a
+                    href='tel:0531112225'
+                    className='text-slate-950 hover:text-blue-700 font-black hover:underline transition-colors'
+                    dir='ltr'
+                    title='اتصال عبر الهاتف'
+                  >
+                    0531112225
+                  </a>
+                </span>
+                <span>–</span>
+                <span>
+                  الإيميل :{' '}
+                  <a
+                    href='mailto:Abrar@aams-logistic.com'
+                    className='text-blue-700 hover:text-blue-900 font-black hover:underline transition-colors'
+                    title='إرسال بريد إلكتروني'
+                  >
+                    Abrar@aams-logistic.com
+                  </a>
+                </span>
               </p>
             </div>
           </div>
