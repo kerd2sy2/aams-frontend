@@ -750,29 +750,25 @@ export function InvestigationPageContent({
 
     if (supervisorOnly) {
       return (
-        <div className='px-8 pt-6 pb-4' dir='rtl'>
-          <div className='flex items-start justify-between gap-8'>
-            {/* Right Side: إجراء الإدارة */}
-            <div className='flex-1 max-w-[50%] space-y-2 text-right'>
-              <div className='flex items-center gap-2'>
-                <span className='inline-block w-2.5 h-2.5 rounded-full bg-slate-900'></span>
-                <span className='text-base font-black text-slate-950'>إجراء الإدارة /</span>
+        <div className='px-8 pt-8 pb-4' dir='rtl'>
+          <div className='flex items-start justify-between gap-12'>
+            {/* Right Side (اليمين): المشرف جنبه اسمه، وتحته التوقيع فارغ */}
+            <div className='space-y-4 text-right'>
+              <p className='text-base sm:text-lg font-black text-slate-950'>
+                المشرف : <span className='font-bold text-slate-900'>{supName || '—'}</span>
+              </p>
+              <div className='space-y-2 pt-1'>
+                <span className='text-base sm:text-lg font-black text-slate-950 block'>
+                  التوقيع :
+                </span>
+                <div className='w-48 border-b-2 border-slate-400 min-h-[40px]'></div>
               </div>
-              <div className='w-full min-h-[55px] border-b-2 border-dashed border-slate-300 rounded-sm pt-2'></div>
             </div>
 
-            {/* Left Side (Opposite): توقيع المشرف (الاسم وتحته مساحة التوقيع فاضية) */}
-            <div className='min-w-[220px] space-y-3 text-right' dir='rtl'>
-              <div>
-                <span className='text-xs text-slate-500 font-bold block mb-0.5'>
-                  المشرف المسؤول:
-                </span>
-                <p className='text-base font-black text-slate-950'>{supName || '—'}</p>
-              </div>
-              <div className='pt-1'>
-                <span className='text-xs text-slate-500 font-bold block mb-1'>التوقيع:</span>
-                <div className='w-48 border-b-2 border-slate-400 min-h-[38px]'></div>
-              </div>
+            {/* Left Side (الشمال): إجراء الإدارة */}
+            <div className='min-w-[220px] max-w-[45%] flex-1 space-y-3 text-right'>
+              <p className='text-base sm:text-lg font-black text-slate-950'>إجراء الإدارة /</p>
+              <div className='w-full min-h-[60px] border-b-2 border-dashed border-slate-300'></div>
             </div>
           </div>
         </div>
@@ -929,8 +925,11 @@ export function InvestigationPageContent({
   );
 
   const DocFooter = () => (
-    <div className='mt-auto border-t border-slate-400 px-4 py-2 text-center' dir='rtl'>
-      <p className='text-[10px] sm:text-[11px] font-bold text-slate-800 leading-normal flex flex-wrap items-center justify-center gap-x-2 gap-y-1'>
+    <div
+      className='mt-auto border-t border-slate-400 px-2 py-2 text-center overflow-hidden'
+      dir='rtl'
+    >
+      <p className='text-[8px] sm:text-[9.5px] md:text-[10px] font-bold text-slate-800 leading-none flex items-center justify-center gap-1.5 whitespace-nowrap overflow-hidden'>
         <span>شركة ابرار عبدالرحمن محمد الشمراني</span>
         <span>–</span>
         <span>المملكة العربية السعودية – جدة – الطائف</span>
@@ -1482,88 +1481,63 @@ export function InvestigationPageContent({
 
                       if (isReport) {
                         return (
-                          <div className='px-8 my-3 text-right' dir='rtl'>
+                          <div className='px-8 my-4 text-right' dir='rtl'>
                             {docEmps.length > 1 ? (
-                              <div className='space-y-3 bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 shadow-2xs'>
-                                <div className='space-y-2'>
-                                  <div className='flex items-center gap-2'>
-                                    <Users className='size-4 text-blue-600' />
-                                    <span className='font-black text-slate-950 text-sm'>
-                                      الموظفون المشمولون بالتقرير ({docEmps.length}):
-                                    </span>
-                                  </div>
-                                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 pr-1'>
-                                    {docEmps.map((emp, idx) => (
-                                      <div
-                                        key={idx}
-                                        className='flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200/70 text-xs font-bold'
-                                      >
-                                        <span className='text-slate-950'>
-                                          {idx + 1}. {emp.name}
-                                        </span>
-                                        <span className='font-mono text-slate-600'>
-                                          {emp.national_id}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
+                              <div className='space-y-2.5'>
+                                <span className='font-black text-slate-950 text-base'>
+                                  الموظفون المشمولون بالتقرير:
+                                </span>
+                                <div className='space-y-1 pr-3'>
+                                  {docEmps.map((emp, idx) => (
+                                    <div
+                                      key={idx}
+                                      className='text-sm sm:text-base font-bold text-slate-900'
+                                    >
+                                      {idx + 1}. {emp.name} - رقم الهوية:{' '}
+                                      <span className='font-mono'>{emp.national_id}</span>
+                                    </div>
+                                  ))}
                                 </div>
-                                <div className='flex items-center gap-2 pt-2 border-t border-slate-200 text-xs font-bold text-slate-700'>
-                                  <Calendar className='size-3.5 text-emerald-600' />
-                                  <span>التاريخ:</span>
-                                  <span className='font-mono font-black text-slate-900'>
+                                <div className='flex items-baseline gap-2 pt-1 text-base sm:text-lg'>
+                                  <span className='font-black text-slate-950 min-w-[105px]'>
+                                    التاريخ :
+                                  </span>
+                                  <span className='font-bold font-mono text-slate-900'>
                                     {formatReportDate(t.created_at)}
                                   </span>
                                 </div>
                               </div>
                             ) : (
-                              <div className='grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs'>
-                                <div className='flex items-center gap-3 p-2.5 bg-white rounded-xl border border-slate-200/70 shadow-2xs'>
-                                  <div className='size-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold'>
-                                    <User className='size-4' />
-                                  </div>
-                                  <div className='min-w-0 flex-1'>
-                                    <span className='text-[11px] font-bold text-slate-500 block leading-tight'>
-                                      اسم الموظف
-                                    </span>
-                                    <p className='text-sm sm:text-base font-black text-slate-950 truncate leading-snug'>
-                                      {employeeName ||
-                                        selectedEmployee?.name ||
-                                        t.employee_name ||
-                                        '—'}
-                                    </p>
-                                  </div>
+                              <div className='space-y-2.5 text-base sm:text-lg'>
+                                <div className='flex items-baseline gap-2'>
+                                  <span className='font-black text-slate-950 min-w-[105px]'>
+                                    اسم الموظف :
+                                  </span>
+                                  <span className='font-bold text-slate-900'>
+                                    {employeeName ||
+                                      selectedEmployee?.name ||
+                                      t.employee_name ||
+                                      '—'}
+                                  </span>
                                 </div>
-
-                                <div className='flex items-center gap-3 p-2.5 bg-white rounded-xl border border-slate-200/70 shadow-2xs'>
-                                  <div className='size-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 font-bold'>
-                                    <ShieldCheck className='size-4' />
-                                  </div>
-                                  <div className='min-w-0 flex-1'>
-                                    <span className='text-[11px] font-bold text-slate-500 block leading-tight'>
-                                      رقم الهوية
-                                    </span>
-                                    <p className='text-sm sm:text-base font-black font-mono tracking-wider text-slate-950 leading-snug'>
-                                      {nationalId ||
-                                        selectedEmployee?.national_id ||
-                                        t.national_id ||
-                                        '—'}
-                                    </p>
-                                  </div>
+                                <div className='flex items-baseline gap-2'>
+                                  <span className='font-black text-slate-950 min-w-[105px]'>
+                                    رقم الهوية :
+                                  </span>
+                                  <span className='font-bold font-mono text-slate-900 tracking-wider'>
+                                    {nationalId ||
+                                      selectedEmployee?.national_id ||
+                                      t.national_id ||
+                                      '—'}
+                                  </span>
                                 </div>
-
-                                <div className='flex items-center gap-3 p-2.5 bg-white rounded-xl border border-slate-200/70 shadow-2xs'>
-                                  <div className='size-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 font-bold'>
-                                    <Calendar className='size-4' />
-                                  </div>
-                                  <div className='min-w-0 flex-1'>
-                                    <span className='text-[11px] font-bold text-slate-500 block leading-tight'>
-                                      التاريخ
-                                    </span>
-                                    <p className='text-sm sm:text-base font-black font-mono text-slate-950 leading-snug'>
-                                      {formatReportDate(t.created_at)}
-                                    </p>
-                                  </div>
+                                <div className='flex items-baseline gap-2'>
+                                  <span className='font-black text-slate-950 min-w-[105px]'>
+                                    التاريخ :
+                                  </span>
+                                  <span className='font-bold font-mono text-slate-900'>
+                                    {formatReportDate(t.created_at)}
+                                  </span>
                                 </div>
                               </div>
                             )}
@@ -1786,14 +1760,11 @@ export function InvestigationPageContent({
                       </div>
                     )}
                     {isReport && (reportText || t.report_text) ? (
-                      <div className='px-8 my-4' dir='rtl'>
-                        <div className='flex items-center gap-2 mb-2.5'>
-                          <span className='inline-block w-2.5 h-2.5 rounded-full bg-[#e25b29]'></span>
-                          <h2 className='text-base sm:text-lg font-black text-slate-950'>
-                            موضوع ونص التقرير:
-                          </h2>
-                        </div>
-                        <div className='whitespace-pre-wrap font-medium leading-[2.2] text-slate-950 text-base sm:text-lg text-right bg-slate-50/70 border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-2xs'>
+                      <div className='px-8 my-6 text-right' dir='rtl'>
+                        <h2 className='text-base sm:text-lg font-black text-slate-950 mb-3'>
+                          موضوع ونص التقرير :
+                        </h2>
+                        <div className='whitespace-pre-wrap font-medium leading-[2.2] text-slate-950 text-base sm:text-lg text-right'>
                           {renderBoldText(reportText || t.report_text)}
                         </div>
                       </div>
@@ -1942,80 +1913,44 @@ export function InvestigationPageContent({
 
           if (isReport) {
             return (
-              <div className='px-8 my-3 text-right' dir='rtl'>
+              <div className='px-8 my-4 text-right' dir='rtl'>
                 {docEmps.length > 1 ? (
-                  <div className='space-y-3 bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 shadow-2xs'>
-                    <div className='space-y-2'>
-                      <div className='flex items-center gap-2'>
-                        <Users className='size-4 text-blue-600' />
-                        <span className='font-black text-slate-950 text-sm'>
-                          الموظفون المشمولون بالتقرير ({docEmps.length}):
-                        </span>
-                      </div>
-                      <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 pr-1'>
-                        {docEmps.map((emp, idx) => (
-                          <div
-                            key={idx}
-                            className='flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200/70 text-xs font-bold'
-                          >
-                            <span className='text-slate-950'>
-                              {idx + 1}. {emp.name}
-                            </span>
-                            <span className='font-mono text-slate-600'>{emp.national_id}</span>
-                          </div>
-                        ))}
-                      </div>
+                  <div className='space-y-2.5'>
+                    <span className='font-black text-slate-950 text-base'>
+                      الموظفون المشمولون بالتقرير:
+                    </span>
+                    <div className='space-y-1 pr-3'>
+                      {docEmps.map((emp, idx) => (
+                        <div key={idx} className='text-sm sm:text-base font-bold text-slate-900'>
+                          {idx + 1}. {emp.name} - رقم الهوية:{' '}
+                          <span className='font-mono'>{emp.national_id}</span>
+                        </div>
+                      ))}
                     </div>
-                    <div className='flex items-center gap-2 pt-2 border-t border-slate-200 text-xs font-bold text-slate-700'>
-                      <Calendar className='size-3.5 text-emerald-600' />
-                      <span>التاريخ:</span>
-                      <span className='font-mono font-black text-slate-900'>
+                    <div className='flex items-baseline gap-2 pt-1 text-base sm:text-lg'>
+                      <span className='font-black text-slate-950 min-w-[105px]'>التاريخ :</span>
+                      <span className='font-bold font-mono text-slate-900'>
                         {formatReportDate(t.created_at)}
                       </span>
                     </div>
                   </div>
                 ) : (
-                  <div className='grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs'>
-                    <div className='flex items-center gap-3 p-2.5 bg-white rounded-xl border border-slate-200/70 shadow-2xs'>
-                      <div className='size-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold'>
-                        <User className='size-4' />
-                      </div>
-                      <div className='min-w-0 flex-1'>
-                        <span className='text-[11px] font-bold text-slate-500 block leading-tight'>
-                          اسم الموظف
-                        </span>
-                        <p className='text-sm sm:text-base font-black text-slate-950 truncate leading-snug'>
-                          {t.employee_name || '—'}
-                        </p>
-                      </div>
+                  <div className='space-y-2.5 text-base sm:text-lg'>
+                    <div className='flex items-baseline gap-2'>
+                      <span className='font-black text-slate-950 min-w-[105px]'>اسم الموظف :</span>
+                      <span className='font-bold text-slate-900'>{t.employee_name || '—'}</span>
                     </div>
-
-                    <div className='flex items-center gap-3 p-2.5 bg-white rounded-xl border border-slate-200/70 shadow-2xs'>
-                      <div className='size-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 font-bold'>
-                        <ShieldCheck className='size-4' />
-                      </div>
-                      <div className='min-w-0 flex-1'>
-                        <span className='text-[11px] font-bold text-slate-500 block leading-tight'>
-                          رقم الهوية
-                        </span>
-                        <p className='text-sm sm:text-base font-black font-mono tracking-wider text-slate-950 leading-snug'>
-                          {t.national_id || '—'}
-                        </p>
-                      </div>
+                    <div className='flex items-baseline gap-2'>
+                      <span className='font-black text-slate-950 min-w-[105px]'>رقم الهوية :</span>
+                      <span className='font-bold font-mono text-slate-900 tracking-wider'>
+                        {t.national_id || '—'}
+                      </span>
                     </div>
-
-                    <div className='flex items-center gap-3 p-2.5 bg-white rounded-xl border border-slate-200/70 shadow-2xs'>
-                      <div className='size-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 font-bold'>
-                        <Calendar className='size-4' />
-                      </div>
-                      <div className='min-w-0 flex-1'>
-                        <span className='text-[11px] font-bold text-slate-500 block leading-tight'>
-                          التاريخ
-                        </span>
-                        <p className='text-sm sm:text-base font-black font-mono text-slate-950 leading-snug'>
-                          {formatReportDate(t.created_at)}
-                        </p>
-                      </div>
+                    <div className='flex items-baseline gap-2'>
+                      <span className='font-black text-slate-950 min-w-[105px]'>التاريخ :</span>
+                      <span className='font-bold font-mono text-slate-900'>
+                        {formatReportDate(t.created_at)}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -2159,12 +2094,11 @@ export function InvestigationPageContent({
           </div>
         )}
         {isReport && t.report_text ? (
-          <div className='px-8 my-4' dir='rtl'>
-            <div className='flex items-center gap-2 mb-2.5'>
-              <span className='inline-block w-2.5 h-2.5 rounded-full bg-[#e25b29]'></span>
-              <h2 className='text-base sm:text-lg font-black text-slate-950'>موضوع ونص التقرير:</h2>
-            </div>
-            <div className='whitespace-pre-wrap font-medium leading-[2.2] text-slate-950 text-base sm:text-lg text-right bg-slate-50/70 border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-2xs'>
+          <div className='px-8 my-6 text-right' dir='rtl'>
+            <h2 className='text-base sm:text-lg font-black text-slate-950 mb-3'>
+              موضوع ونص التقرير :
+            </h2>
+            <div className='whitespace-pre-wrap font-medium leading-[2.2] text-slate-950 text-base sm:text-lg text-right'>
               {renderBoldText(t.report_text)}
             </div>
           </div>
