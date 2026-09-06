@@ -44,7 +44,10 @@ export const navGroups: NavGroup[] = [
         title: 'Target & Identifiers',
         url: '#',
         icon: 'chartBar',
-        items: [{ title: 'Import Target Excel', url: '/dashboard/target/import' }]
+        items: [
+          { title: 'Target Dashboard', url: '/dashboard/target' },
+          { title: 'Import Target Excel', url: '/dashboard/target/import' }
+        ]
       },
 
       // 3. محاضر الموظفين
