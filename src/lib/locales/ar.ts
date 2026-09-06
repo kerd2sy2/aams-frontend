@@ -403,7 +403,11 @@ const ar: Record<string, string> = {
   'Signing In...': 'جارٍ تسجيل الدخول...',
   'Sign in with Google': 'تسجيل الدخول بواسطة Google',
   'Show password': 'إظهار كلمة المرور',
-  'Hide password': 'إخفاء كلمة المرور'
+  'Hide password': 'إخفاء كلمة المرور',
+
+  // ===== التارچت والمستهدفات =====
+  'Target & Identifiers': 'التارچت والمستهدفات',
+  'Import Target Excel': 'استيراد إكسل التارچت'
 };
 
 export default ar;
