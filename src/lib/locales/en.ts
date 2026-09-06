@@ -57,6 +57,7 @@ const en: Record<string, string> = {
   Roles: 'Roles',
   Settings: 'Settings',
   'System Settings': 'System Settings',
+  'Server Performance': 'Server Performance',
   Archive: 'Archive',
   'Archive & Trash': 'Archive & Trash',
   'Audit Logs': 'Audit Logs',

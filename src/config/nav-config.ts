@@ -191,6 +191,13 @@ export const navGroups: NavGroup[] = [
           { title: 'Users', url: '/dashboard/users', permission: 'users.manage' },
           { title: 'Roles & Permissions', url: '/dashboard/roles', permission: 'roles.manage' },
           { title: 'Settings', url: '/dashboard/settings', permission: 'settings.manage' },
+          {
+            title: 'Server Performance',
+            url: '/dashboard/server-performance',
+            icon: 'gauge',
+            adminOnly: true,
+            permission: 'settings.manage'
+          },
           { title: 'Archive & Trash', url: '/dashboard/archive', permission: 'archive.view' },
           { title: 'Audit Logs', url: '/dashboard/audit-logs', permission: 'audit_logs.view' },
           { title: 'Error Logs', url: '/dashboard/errors', permission: 'error_logs.view' }

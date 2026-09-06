@@ -66,6 +66,7 @@ const ar: Record<string, string> = {
   Roles: 'الأدوار',
   Settings: 'الإعدادات',
   'System Settings': 'الإعدادات العامة',
+  'Server Performance': 'أداء السيرفر',
   Archive: 'الأرشيف',
   'Archive & Trash': 'الأرشيف والمحذوفات',
   'Audit Logs': 'سجل العمليات والرقابة',
