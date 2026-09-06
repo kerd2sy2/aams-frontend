@@ -520,7 +520,7 @@ export default function StartWorkPage() {
                     <div className='flex items-center gap-1.5'>
                       <Icons.smartphone className='text-muted-foreground size-3.5 shrink-0' />
                       <span className='text-muted-foreground text-[10px] font-medium'>
-                        تطبيق التوصيل
+                        معرف التطبيق
                       </span>
                     </div>
                     <NativeSelect
