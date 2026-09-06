@@ -705,7 +705,19 @@ export default function TargetDashboardPage() {
 
                       return (
                         <TableRow key={item.id} className='hover:bg-muted/30'>
-                          <TableCell className='font-bold text-foreground'>{item.name}</TableCell>
+                          <TableCell className='font-bold text-foreground'>
+                            <div className='flex items-center gap-2'>
+                              <span>{item.name}</span>
+                              {item.app_name ? (
+                                <Badge
+                                  variant='outline'
+                                  className='text-[10px] px-1.5 py-0 border-orange-300 bg-orange-50 text-orange-800 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800'
+                                >
+                                  {item.app_name}
+                                </Badge>
+                              ) : null}
+                            </div>
+                          </TableCell>
                           <TableCell className='font-mono text-xs text-muted-foreground'>
                             {item.code || '—'}
                           </TableCell>

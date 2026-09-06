@@ -39,6 +39,7 @@ export interface ConfirmImportResponse {
 export interface IdentifierPerformance {
   id: string;
   name: string;
+  app_name?: string;
   code?: string;
   today_orders: number;
   week_orders: number;
