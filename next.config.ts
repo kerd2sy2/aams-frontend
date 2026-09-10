@@ -48,11 +48,11 @@ const baseConfig: NextConfig = {
     return [
       {
         source: '/api/v1/:path*',
-        destination: ${apiHost}/api/v1/:path*
+        destination: `${apiHost}/api/v1/:path*`
       },
       {
         source: '/uploads/:path*',
-        destination: ${apiHost}/uploads/:path*
+        destination: `${apiHost}/uploads/:path*`
       }
     ];
   }
