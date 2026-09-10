@@ -5,11 +5,9 @@ import { withSentryConfig } from '@sentry/nextjs';
 const baseConfig: NextConfig = {
   output: process.env.BUILD_STANDALONE === 'true' ? 'standalone' : undefined,
   allowedDevOrigins: [
-    'aams-logistics.kerd2sy.com',
-    '*.kerd2sy.com',
-    'localhost:3001',
-    'localhost:3000',
-    'localhost'
+    'aams.kerd2sy.com',
+    'api.kerd2sy.com',
+    '*.kerd2sy.com'
   ],
   images: {
     remotePatterns: [
@@ -30,13 +28,13 @@ const baseConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'aams-logistics.kerd2sy.com',
+        hostname: 'aams.kerd2sy.com',
         port: ''
       },
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '8081'
+        protocol: 'https',
+        hostname: 'api.kerd2sy.com',
+        port: ''
       }
     ]
   },
@@ -45,15 +43,16 @@ const baseConfig: NextConfig = {
     removeConsole: process.env.NODE_ENV === 'production'
   },
   async rewrites() {
+    // Server-to-server: use localhost to bypass Cloudflare Bot Protection
     const apiHost = process.env.API_HOST || 'http://localhost:8081';
     return [
       {
         source: '/api/v1/:path*',
-        destination: `${apiHost}/api/v1/:path*`
+        destination: ${apiHost}/api/v1/:path*
       },
       {
         source: '/uploads/:path*',
-        destination: `${apiHost}/uploads/:path*`
+        destination: ${apiHost}/uploads/:path*
       }
     ];
   }

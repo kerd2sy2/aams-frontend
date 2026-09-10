@@ -55,15 +55,7 @@ export function getSafeAvatarUrl(imagePath?: string | null, name?: string): stri
     return `${backendUrl.replace(/\/$/, '')}${normalized}`;
   }
 
-  if (typeof window !== 'undefined') {
-    const isLocal =
-      window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    if (isLocal) {
-      return `http://${window.location.hostname}:8081${normalized}`;
-    }
-  }
-
-  return `https://aams-backend-fxy7.onrender.com${normalized}`;
+  return `https://api.kerd2sy.com${normalized}`;
 }
 
 interface DelegateMapProps {
