@@ -245,20 +245,15 @@ export default function TargetDashboardPage() {
     return identifiers.filter((item) => {
       // Status filter
       if (statusFilter !== 'ALL') {
-        if (statusFilter === 'TARGET_ACHIEVED' && item.status !== 'TARGET_ACHIEVED') return false;
-        if (statusFilter === 'ON_TRACK' && item.status !== 'ON_TRACK') return false;
-        if (
-          statusFilter === 'AT_RISK' &&
-          item.status !== 'AT_RISK' &&
-          item.status !== 'BEHIND_TARGET'
-        )
-          return false;
-        if (
-          statusFilter === 'BEHIND_TARGET' &&
-          item.status !== 'BEHIND_TARGET' &&
-          item.status !== 'AT_RISK'
-        )
-          return false;
+        if (statusFilter === 'TARGET_ACHIEVED') {
+          if (item.status !== 'TARGET_ACHIEVED') return false;
+        } else if (statusFilter === 'ON_TRACK') {
+          if (item.status !== 'ON_TRACK' && item.status !== 'TARGET_ACHIEVED') return false;
+        } else if (statusFilter === 'AT_RISK') {
+          if (item.status !== 'AT_RISK') return false;
+        } else if (statusFilter === 'BEHIND_TARGET') {
+          if (item.status !== 'BEHIND_TARGET') return false;
+        }
       }
       // Search query
       if (searchQuery.trim()) {
@@ -314,12 +309,15 @@ export default function TargetDashboardPage() {
     summary?.target_achieved ?? identifiers.filter((i) => i.status === 'TARGET_ACHIEVED').length;
   const onTrackCount =
     summary?.on_track ?? identifiers.filter((i) => i.status === 'ON_TRACK').length;
+  const atRiskCount = summary?.at_risk ?? identifiers.filter((i) => i.status === 'AT_RISK').length;
   const behindCount =
-    (summary?.behind_target ?? 0) + (summary?.at_risk ?? 0) ||
-    identifiers.filter((i) => i.status === 'AT_RISK' || i.status === 'BEHIND_TARGET').length;
+    summary?.behind_target ?? identifiers.filter((i) => i.status === 'BEHIND_TARGET').length;
+  const qualifiedSum = onTrackCount + achievedCount;
   const totalOrders =
     summary?.total_month_orders ?? identifiers.reduce((acc, i) => acc + (i.month_orders || 0), 0);
-  const totalTargetGoal = totalIdents * (settings.default_monthly_target || 460);
+  const totalTargetGoal =
+    identifiers.reduce((acc, i) => acc + (i.monthly_target || 0), 0) ||
+    totalIdents * (settings.default_monthly_target || 460);
   const overallProgress =
     totalTargetGoal > 0 ? Math.min(Math.round((totalOrders / totalTargetGoal) * 100), 100) : 0;
   const unresolvedAlertsCount = alerts.filter((a) => !a.is_resolved).length;
@@ -438,44 +436,13 @@ export default function TargetDashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Target Achieved Card */}
+          {/* On Track / Achieved Card */}
           <Card
             className={`cursor-pointer transition-all hover:shadow-md border-2 ${
-              activeTab === 'identifiers' && statusFilter === 'TARGET_ACHIEVED'
+              activeTab === 'identifiers' &&
+              (statusFilter === 'ON_TRACK' || statusFilter === 'TARGET_ACHIEVED')
                 ? 'border-emerald-500 bg-emerald-500/5'
                 : 'hover:border-emerald-200 dark:hover:border-emerald-900'
-            }`}
-            onClick={() => {
-              setActiveTab('identifiers');
-              setStatusFilter('TARGET_ACHIEVED');
-            }}
-          >
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <div className='p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg'>
-                  <CheckCircle2 className='h-5 w-5' />
-                </div>
-                <Badge className='bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs'>
-                  حقق التارچت
-                </Badge>
-              </div>
-              <div className='mt-3'>
-                <div className='text-2xl font-black text-emerald-600 dark:text-emerald-400'>
-                  {achievedCount}
-                </div>
-                <div className='text-xs font-semibold text-muted-foreground mt-0.5'>
-                  حققوا التارچت الشهري
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* On Track Card */}
-          <Card
-            className={`cursor-pointer transition-all hover:shadow-md border-2 ${
-              activeTab === 'identifiers' && statusFilter === 'ON_TRACK'
-                ? 'border-sky-500 bg-sky-500/5'
-                : 'hover:border-sky-200 dark:hover:border-sky-900'
             }`}
             onClick={() => {
               setActiveTab('identifiers');
@@ -484,31 +451,30 @@ export default function TargetDashboardPage() {
           >
             <CardContent className='p-4'>
               <div className='flex items-center justify-between'>
-                <div className='p-2 bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-lg'>
-                  <TrendingUp className='h-5 w-5' />
+                <div className='p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg'>
+                  <CheckCircle2 className='h-5 w-5' />
                 </div>
-                <Badge className='bg-sky-600 hover:bg-sky-700 text-white font-mono text-xs'>
+                <Badge className='bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs'>
                   يسير بالمعدل
                 </Badge>
               </div>
               <div className='mt-3'>
-                <div className='text-2xl font-black text-sky-600 dark:text-sky-400'>
-                  {onTrackCount}
+                <div className='text-2xl font-black text-emerald-600 dark:text-emerald-400'>
+                  {qualifiedSum}
                 </div>
                 <div className='text-xs font-semibold text-muted-foreground mt-0.5'>
-                  يسير بالمعدل الطبيعي
+                  مؤهلون ({onTrackCount} بالمعدل + {achievedCount} أنجز 🏆)
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Behind / At Risk Card */}
+          {/* At Risk Card */}
           <Card
             className={`cursor-pointer transition-all hover:shadow-md border-2 ${
-              activeTab === 'identifiers' &&
-              (statusFilter === 'AT_RISK' || statusFilter === 'BEHIND_TARGET')
-                ? 'border-rose-500 bg-rose-500/5'
-                : 'hover:border-rose-200 dark:hover:border-rose-900'
+              activeTab === 'identifiers' && statusFilter === 'AT_RISK'
+                ? 'border-amber-500 bg-amber-500/5'
+                : 'hover:border-amber-200 dark:hover:border-amber-900'
             }`}
             onClick={() => {
               setActiveTab('identifiers');
@@ -517,11 +483,43 @@ export default function TargetDashboardPage() {
           >
             <CardContent className='p-4'>
               <div className='flex items-center justify-between'>
+                <div className='p-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg'>
+                  <Clock className='h-5 w-5' />
+                </div>
+                <Badge className='bg-amber-600 hover:bg-amber-700 text-white font-mono text-xs'>
+                  على وشك
+                </Badge>
+              </div>
+              <div className='mt-3'>
+                <div className='text-2xl font-black text-amber-600 dark:text-amber-400'>
+                  {atRiskCount}
+                </div>
+                <div className='text-xs font-semibold text-muted-foreground mt-0.5'>
+                  فرصة قائمة (في المتناول)
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Behind Target Card */}
+          <Card
+            className={`cursor-pointer transition-all hover:shadow-md border-2 ${
+              activeTab === 'identifiers' && statusFilter === 'BEHIND_TARGET'
+                ? 'border-rose-500 bg-rose-500/5'
+                : 'hover:border-rose-200 dark:hover:border-rose-900'
+            }`}
+            onClick={() => {
+              setActiveTab('identifiers');
+              setStatusFilter('BEHIND_TARGET');
+            }}
+          >
+            <CardContent className='p-4'>
+              <div className='flex items-center justify-between'>
                 <div className='p-2 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-lg'>
                   <AlertTriangle className='h-5 w-5' />
                 </div>
                 <Badge variant='destructive' className='font-mono text-xs'>
-                  على وشك المعدل / متأخر
+                  متأخر
                 </Badge>
               </div>
               <div className='mt-3'>
@@ -529,7 +527,7 @@ export default function TargetDashboardPage() {
                   {behindCount}
                 </div>
                 <div className='text-xs font-semibold text-muted-foreground mt-0.5'>
-                  متأخر عن المعدل
+                  يحتاج تكثيف الجهود
                 </div>
               </div>
             </CardContent>
@@ -635,31 +633,39 @@ export default function TargetDashboardPage() {
                 className={`h-7 text-xs ${statusFilter === 'ALL' ? 'bg-orange-600 text-white' : ''}`}
                 onClick={() => setStatusFilter('ALL')}
               >
-                الكل ({identifiers.length})
-              </Button>
-              <Button
-                size='sm'
-                variant={statusFilter === 'TARGET_ACHIEVED' ? 'default' : 'outline'}
-                className={`h-7 text-xs ${statusFilter === 'TARGET_ACHIEVED' ? 'bg-emerald-600 text-white' : ''}`}
-                onClick={() => setStatusFilter('TARGET_ACHIEVED')}
-              >
-                حقق التارچت ({achievedCount})
+                الكل ({totalIdents})
               </Button>
               <Button
                 size='sm'
                 variant={statusFilter === 'ON_TRACK' ? 'default' : 'outline'}
-                className={`h-7 text-xs ${statusFilter === 'ON_TRACK' ? 'bg-sky-600 text-white' : ''}`}
+                className={`h-7 text-xs ${statusFilter === 'ON_TRACK' ? 'bg-emerald-600 text-white' : ''}`}
                 onClick={() => setStatusFilter('ON_TRACK')}
               >
-                يسير بالمعدل ({onTrackCount})
+                بالمعدل ({qualifiedSum})
               </Button>
               <Button
                 size='sm'
                 variant={statusFilter === 'AT_RISK' ? 'default' : 'outline'}
-                className={`h-7 text-xs ${statusFilter === 'AT_RISK' ? 'bg-rose-600 text-white' : ''}`}
+                className={`h-7 text-xs ${statusFilter === 'AT_RISK' ? 'bg-amber-600 text-white' : ''}`}
                 onClick={() => setStatusFilter('AT_RISK')}
               >
-                متأخر / على وشك المعدل ({behindCount})
+                على وشك ({atRiskCount})
+              </Button>
+              <Button
+                size='sm'
+                variant={statusFilter === 'BEHIND_TARGET' ? 'default' : 'outline'}
+                className={`h-7 text-xs ${statusFilter === 'BEHIND_TARGET' ? 'bg-rose-600 text-white' : ''}`}
+                onClick={() => setStatusFilter('BEHIND_TARGET')}
+              >
+                متأخرين ({behindCount})
+              </Button>
+              <Button
+                size='sm'
+                variant={statusFilter === 'TARGET_ACHIEVED' ? 'default' : 'outline'}
+                className={`h-7 text-xs ${statusFilter === 'TARGET_ACHIEVED' ? 'bg-blue-600 text-white' : ''}`}
+                onClick={() => setStatusFilter('TARGET_ACHIEVED')}
+              >
+                حقق التارچت 🏆 ({achievedCount})
               </Button>
             </div>
 
@@ -702,6 +708,7 @@ export default function TargetDashboardPage() {
                       );
                       const isAchieved = item.status === 'TARGET_ACHIEVED';
                       const isOnTrack = item.status === 'ON_TRACK';
+                      const isAtRisk = item.status === 'AT_RISK';
 
                       return (
                         <TableRow key={item.id} className='hover:bg-muted/30'>
@@ -747,16 +754,20 @@ export default function TargetDashboardPage() {
                           </TableCell>
                           <TableCell>
                             {isAchieved ? (
-                              <Badge className='bg-emerald-600 text-white font-mono text-xs'>
-                                حقق التارچت
+                              <Badge className='bg-blue-600 hover:bg-blue-700 text-white font-mono text-xs'>
+                                حقق التارچت 🏆
                               </Badge>
                             ) : isOnTrack ? (
-                              <Badge className='bg-sky-600 text-white font-mono text-xs'>
+                              <Badge className='bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs'>
                                 يسير بالمعدل
+                              </Badge>
+                            ) : isAtRisk ? (
+                              <Badge className='bg-amber-500 hover:bg-amber-600 text-white font-mono text-xs'>
+                                على وشك (في المتناول)
                               </Badge>
                             ) : (
                               <Badge variant='destructive' className='font-mono text-xs'>
-                                متأخر
+                                غير مؤهل (متأخر)
                               </Badge>
                             )}
                           </TableCell>
