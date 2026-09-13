@@ -105,7 +105,7 @@ export default function TargetDashboardPage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settings, setSettings] = useState<TargetSettings>({
     default_monthly_target: 460,
-    default_daily_target: 17
+    default_daily_target: 18
   });
   const [savingSettings, setSavingSettings] = useState(false);
 
@@ -521,7 +521,7 @@ export default function TargetDashboardPage() {
                   <AlertTriangle className='h-5 w-5' />
                 </div>
                 <Badge variant='destructive' className='font-mono text-xs'>
-                  في خطر / متأخر
+                  على وشك المعدل / متأخر
                 </Badge>
               </div>
               <div className='mt-3'>
@@ -659,7 +659,7 @@ export default function TargetDashboardPage() {
                 className={`h-7 text-xs ${statusFilter === 'AT_RISK' ? 'bg-rose-600 text-white' : ''}`}
                 onClick={() => setStatusFilter('AT_RISK')}
               >
-                متأخر / في خطر ({behindCount})
+                متأخر / على وشك المعدل ({behindCount})
               </Button>
             </div>
 

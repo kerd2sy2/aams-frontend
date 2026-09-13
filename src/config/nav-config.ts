@@ -21,24 +21,6 @@ export const navGroups: NavGroup[] = [
         ]
       },
 
-      // حالة الموظفين
-      {
-        title: 'Employee Status',
-        url: '#',
-        icon: 'userCheck',
-        permission: 'work.view',
-        items: [
-          { title: 'Working Now', url: '/dashboard/employees/working', permission: 'work.view' },
-          {
-            title: 'Finished Today',
-            url: '/dashboard/employees/finished',
-            permission: 'work.view'
-          },
-          { title: "Today's Shifts", url: '/dashboard/employees/today', permission: 'work.view' },
-          { title: 'OTP Verifications', url: '/dashboard/otp', permission: 'work.view' }
-        ]
-      },
-
       // 3. التارچت والمستهدفات
       {
         title: 'Target & Identifiers',
@@ -202,6 +184,14 @@ export const navGroups: NavGroup[] = [
           { title: 'Audit Logs', url: '/dashboard/audit-logs', permission: 'audit_logs.view' },
           { title: 'Error Logs', url: '/dashboard/errors', permission: 'error_logs.view' }
         ]
+      },
+
+      // 12. رموز التحقق OTP
+      {
+        title: 'OTP Verifications',
+        url: '/dashboard/otp',
+        icon: 'key',
+        permission: 'work.view'
       }
     ]
   }

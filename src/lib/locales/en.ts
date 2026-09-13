@@ -13,6 +13,8 @@ const en: Record<string, string> = {
   'Working Now': 'Working Now',
   'Finished Today': 'Finished Today',
   "Today's Shifts": "Today's Shifts",
+  'OTP Verifications': 'OTP Verifications',
+  OTP: 'OTP',
   Work: 'Work',
   'Work Sessions': 'Work Sessions',
   'Start Work': 'Start Work',
