@@ -2,7 +2,7 @@
 
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
 
-import { DEFAULT_THEME } from './theme.config';
+import { DEFAULT_THEME, THEMES } from './theme.config';
 
 const COOKIE_NAME = 'active_theme';
 
@@ -54,6 +54,53 @@ export function ActiveThemeProvider({
       setThemeCookie(activeTheme);
     }
   }, [activeTheme]);
+
+  // Global shortcut: pressing 'tt' or 'فف' cycles the theme
+  useEffect(() => {
+    let lastKey = '';
+    let lastTime = 0;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        target?.isContentEditable ||
+        target?.getAttribute?.('role') === 'textbox'
+      ) {
+        return;
+      }
+
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      const key = e.key ? e.key.toLowerCase() : '';
+      const now = Date.now();
+
+      if (key === 't' || key === 'ف') {
+        if (lastKey === key && now - lastTime < 600) {
+          e.preventDefault();
+          lastKey = '';
+          lastTime = 0;
+
+          setActiveTheme((prev) => {
+            const currentIndex = THEMES.findIndex((item) => item.value === prev);
+            const nextIndex = (currentIndex + 1) % THEMES.length;
+            return THEMES[nextIndex].value;
+          });
+        } else {
+          lastKey = key;
+          lastTime = now;
+        }
+      } else {
+        lastKey = '';
+        lastTime = 0;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ activeTheme, setActiveTheme }}>
