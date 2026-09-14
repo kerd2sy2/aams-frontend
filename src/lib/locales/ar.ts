@@ -409,7 +409,13 @@ const ar: Record<string, string> = {
 
   // ===== التارچت والمستهدفات =====
   'Target & Identifiers': 'التارچت والمستهدفات',
-  'Import Target Excel': 'استيراد إكسل التارچت'
+  'Target and Identifiers': 'التارچت والمستهدفات',
+  'Target Dashboard': 'لوحة متابعة التارچت',
+  'Import Target Excel': 'استيراد إكسل التارچت',
+  Target: 'التارچت والمستهدفات',
+  Identifiers: 'المعرفات',
+  'Audit & Review': 'مراجعة وتدقيق',
+  'مراجعة وتدقيق': 'مراجعة وتدقيق العدادات'
 };
 
 export default ar;

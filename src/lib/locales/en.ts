@@ -349,7 +349,16 @@ const en: Record<string, string> = {
   'Signing In...': 'Signing In...',
   'Sign in with Google': 'Sign in with Google',
   'Show password': 'Show password',
-  'Hide password': 'Hide password'
+  'Hide password': 'Hide password',
+
+  // ===== Target & Identifiers =====
+  'Target & Identifiers': 'Target & Identifiers',
+  'Target and Identifiers': 'Target & Identifiers',
+  'Target Dashboard': 'Target Dashboard',
+  'Import Target Excel': 'Import Target Excel',
+  Target: 'Target & Identifiers',
+  Identifiers: 'Identifiers',
+  'Audit & Review': 'Audit & Review'
 };
 
 export default en;

@@ -16,8 +16,7 @@ export const navGroups: NavGroup[] = [
         icon: 'play',
         items: [
           { title: 'Start Work', url: '/dashboard/work/start', permission: 'work.start' },
-          { title: 'End Work', url: '/dashboard/work/end', permission: 'work.end' },
-          { title: 'Odometer Audits', url: '/dashboard/odometer-audits', permission: 'work.view' }
+          { title: 'End Work', url: '/dashboard/work/end', permission: 'work.end' }
         ]
       },
 
@@ -191,6 +190,14 @@ export const navGroups: NavGroup[] = [
         title: 'OTP Verifications',
         url: '/dashboard/otp',
         icon: 'key',
+        permission: 'work.view'
+      },
+
+      // 13. مراجعة وتدقيق العدادات
+      {
+        title: 'Odometer Audits',
+        url: '/dashboard/odometer-audits',
+        icon: 'clipboardCheck',
         permission: 'work.view'
       }
     ]
