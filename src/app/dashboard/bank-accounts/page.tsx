@@ -8,13 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter
+} from '@/components/ui/sheet';
 import {
   Table,
   TableBody,
@@ -356,94 +356,98 @@ export default function BankAccountsPage() {
           </CardContent>
         </Card>
 
-        {/* Modal */}
-        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-          <DialogContent className='sm:max-w-[480px]' dir='rtl'>
-            <DialogHeader>
-              <DialogTitle>
-                {editingAcc ? 'تعديل الحساب البنكي' : 'إضافة حساب بنكي جديد'}
-              </DialogTitle>
-              <DialogDescription>
+        {/* Modal / Sheet */}
+        <Sheet open={modalOpen} onOpenChange={setModalOpen}>
+          <SheetContent className='sm:max-w-lg w-full p-0 flex flex-col'>
+            <SheetHeader className='p-6'>
+              <SheetTitle>{editingAcc ? 'تعديل الحساب البنكي' : 'إضافة حساب بنكي جديد'}</SheetTitle>
+              <SheetDescription>
                 أدخل تفاصيل الآيبان واسم البنك والمندوب صاحب الحساب
-              </DialogDescription>
-            </DialogHeader>
+              </SheetDescription>
+            </SheetHeader>
 
-            <form onSubmit={handleSubmit} className='space-y-4 py-2'>
-              <div className='space-y-1.5'>
-                <Label>المندوب *</Label>
-                <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
-                  <SelectTrigger>
-                    <SelectValue placeholder='اختر المندوب'>
-                      {employeeId
-                        ? (() => {
-                            const emp = employees.find((e) => e.id === employeeId);
-                            return emp
-                              ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
-                              : 'اختر المندوب';
-                          })()
-                        : null}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employees.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <form onSubmit={handleSubmit} className='flex-1 flex flex-col min-h-0'>
+              <div className='flex-1 overflow-y-auto px-6 py-5 space-y-4'>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground'>المندوب *</Label>
+                  <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
+                    <SelectTrigger className='w-full'>
+                      <SelectValue placeholder='اختر المندوب'>
+                        {employeeId
+                          ? (() => {
+                              const emp = employees.find((e) => e.id === employeeId);
+                              return emp
+                                ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
+                                : 'اختر المندوب';
+                            })()
+                          : null}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees.map((emp) => (
+                        <SelectItem key={emp.id} value={emp.id}>
+                          {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground'>اسم البنك *</Label>
+                  <Select value={bankName} onValueChange={(val) => setBankName(val || '')}>
+                    <SelectTrigger className='w-full'>
+                      <SelectValue placeholder='اختر البنك' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SAUDI_BANKS.map((bank) => (
+                        <SelectItem key={bank} value={bank}>
+                          {bank}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    رقم الآيبان (IBAN) *
+                  </Label>
+                  <Input
+                    value={iban}
+                    onChange={(e) => setIban(e.target.value)}
+                    placeholder='SA0000000000000000000000'
+                    className='font-mono text-left'
+                    dir='ltr'
+                    required
+                  />
+                </div>
+
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    اسم صاحب الحساب (كما يظهر بالبنك) *
+                  </Label>
+                  <Input
+                    value={accountOwnerName}
+                    onChange={(e) => setAccountOwnerName(e.target.value)}
+                    placeholder='الاسم الرباعي'
+                    required
+                  />
+                </div>
+
+                <div className='flex items-center gap-2 pt-2'>
+                  <Checkbox
+                    id='is_default'
+                    checked={isDefault}
+                    onCheckedChange={(checked) => setIsDefault(!!checked)}
+                  />
+                  <Label htmlFor='is_default' className='cursor-pointer text-sm'>
+                    تعيين كحساب افتراضي معتمد لصرف المستحقات
+                  </Label>
+                </div>
               </div>
 
-              <div className='space-y-1.5'>
-                <Label>اسم البنك *</Label>
-                <Select value={bankName} onValueChange={(val) => setBankName(val || '')}>
-                  <SelectTrigger>
-                    <SelectValue placeholder='اختر البنك' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SAUDI_BANKS.map((bank) => (
-                      <SelectItem key={bank} value={bank}>
-                        {bank}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className='space-y-1.5'>
-                <Label>رقم الآيبان (IBAN) *</Label>
-                <Input
-                  value={iban}
-                  onChange={(e) => setIban(e.target.value)}
-                  placeholder='SA0000000000000000000000'
-                  className='font-mono text-left'
-                  dir='ltr'
-                  required
-                />
-              </div>
-
-              <div className='space-y-1.5'>
-                <Label>اسم صاحب الحساب (كما يظهر بالبنك) *</Label>
-                <Input
-                  value={accountOwnerName}
-                  onChange={(e) => setAccountOwnerName(e.target.value)}
-                  placeholder='الاسم الرباعي'
-                  required
-                />
-              </div>
-
-              <div className='flex items-center gap-2 pt-2'>
-                <Checkbox
-                  id='is_default'
-                  checked={isDefault}
-                  onCheckedChange={(checked) => setIsDefault(!!checked)}
-                />
-                <Label htmlFor='is_default' className='cursor-pointer text-sm'>
-                  تعيين كحساب افتراضي معتمد لصرف المستحقات
-                </Label>
-              </div>
-
-              <DialogFooter className='gap-2 pt-2'>
+              <SheetFooter className='p-4 border-t bg-muted/20 flex items-center justify-end gap-2'>
                 <Button type='button' variant='outline' onClick={() => setModalOpen(false)}>
                   إلغاء
                 </Button>
@@ -454,10 +458,10 @@ export default function BankAccountsPage() {
                 >
                   {submitting ? 'جارٍ الحفظ...' : editingAcc ? 'حفظ التعديلات' : 'إضافة الحساب'}
                 </Button>
-              </DialogFooter>
+              </SheetFooter>
             </form>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       </div>
     </PageContainer>
   );

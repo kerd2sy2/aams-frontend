@@ -201,19 +201,15 @@ export function TargetImportSheet({ open, onOpenChange, onImportSuccess }: Targe
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side='left'
-        className='sm:max-w-2xl w-full p-0 flex flex-col bg-background text-start'
-        dir={dir}
-      >
+      <SheetContent className='sm:max-w-2xl w-full p-0 flex flex-col bg-background'>
         {/* Header */}
-        <SheetHeader className='p-5 border-b bg-muted/30'>
+        <SheetHeader className='p-6'>
           <div className='flex items-center justify-between gap-4'>
             <div className='flex items-center gap-3'>
-              <div className='bg-primary/10 text-primary flex size-9 items-center justify-center rounded-lg shrink-0'>
+              <div className='bg-primary/10 text-primary flex size-10 items-center justify-center rounded-xl shrink-0'>
                 <FileSpreadsheet className='size-5' />
               </div>
-              <div>
+              <div className='min-w-0 flex-1'>
                 <SheetTitle className='text-base font-bold'>استيراد إكسل التارچت اليومي</SheetTitle>
                 <SheetDescription className='text-xs mt-0.5'>
                   رفع وتدقيق إكسل طلبات اليوم واحتساب نسب إنجاز المعرفين والمناديب
@@ -225,7 +221,7 @@ export function TargetImportSheet({ open, onOpenChange, onImportSuccess }: Targe
                 variant='outline'
                 onClick={resetAll}
                 size='sm'
-                className='gap-1.5 text-xs h-8'
+                className='gap-1.5 text-xs h-8 shrink-0'
               >
                 <Icons.refresh className='size-3.5' />
                 ملف جديد
@@ -235,7 +231,7 @@ export function TargetImportSheet({ open, onOpenChange, onImportSuccess }: Targe
         </SheetHeader>
 
         {/* Body content with scroll */}
-        <div className='flex-1 overflow-y-auto p-5 space-y-5'>
+        <div className='flex-1 overflow-y-auto p-6 space-y-5'>
           {/* Success Banner */}
           {importSuccess && (
             <Card className='border-emerald-500/30 bg-emerald-500/10 shadow-xs'>

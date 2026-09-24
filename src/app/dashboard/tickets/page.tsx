@@ -9,13 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter
+} from '@/components/ui/sheet';
 import {
   Table,
   TableBody,
@@ -476,130 +476,142 @@ export default function SupportTicketsPage() {
           </CardContent>
         </Card>
 
-        {/* Modal */}
-        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-          <DialogContent className='sm:max-w-[500px]' dir='rtl'>
-            <DialogHeader>
-              <DialogTitle>
+        {/* Modal / Sheet */}
+        <Sheet open={modalOpen} onOpenChange={setModalOpen}>
+          <SheetContent className='sm:max-w-lg w-full p-0 flex flex-col'>
+            <SheetHeader className='p-6'>
+              <SheetTitle>
                 {editingTicket
                   ? `تعديل التذكرة #${editingTicket.ticket_number}`
                   : 'فتح تذكرة دعم جديدة'}
-              </DialogTitle>
-              <DialogDescription>
-                أدخل تفاصيل التذكرة وتصنيف المشكلة ومستوى الأولوية
-              </DialogDescription>
-            </DialogHeader>
+              </SheetTitle>
+              <SheetDescription>أدخل تفاصيل التذكرة وتصنيف المشكلة ومستوى الأولوية</SheetDescription>
+            </SheetHeader>
 
-            <form onSubmit={handleSubmit} className='space-y-4 py-2'>
-              <div className='space-y-1.5'>
-                <Label>المندوب صاحب المشكلة (اختياري)</Label>
-                <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
-                  <SelectTrigger>
-                    <SelectValue placeholder='اختر المندوب'>
-                      {employeeId
-                        ? (() => {
-                            const emp = employees.find((e) => e.id === employeeId);
-                            return emp
-                              ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
-                              : 'اختر المندوب';
-                          })()
-                        : null}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employees.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className='space-y-1.5'>
-                <Label>موضوع التذكرة *</Label>
-                <Input
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder='مثال: مشكلة في صرف مستحقات الأسبوع الماضي'
-                  required
-                />
-              </div>
-
-              <div className='grid grid-cols-2 gap-4'>
+            <form onSubmit={handleSubmit} className='flex-1 flex flex-col min-h-0'>
+              <div className='flex-1 overflow-y-auto px-6 py-5 space-y-4'>
                 <div className='space-y-1.5'>
-                  <Label>التصنيف *</Label>
-                  <Select value={category} onValueChange={(val) => setCategory(val || '')}>
-                    <SelectTrigger>
-                      <SelectValue placeholder='التصنيف' />
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    المندوب صاحب المشكلة (اختياري)
+                  </Label>
+                  <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
+                    <SelectTrigger className='w-full'>
+                      <SelectValue placeholder='اختر المندوب'>
+                        {employeeId
+                          ? (() => {
+                              const emp = employees.find((e) => e.id === employeeId);
+                              return emp
+                                ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
+                                : 'اختر المندوب';
+                            })()
+                          : null}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='OPERATIONAL'>تشغيلي / طلبات</SelectItem>
-                      <SelectItem value='FINANCIAL'>مالي / مستحقات</SelectItem>
-                      <SelectItem value='VEHICLE'>مركبات ودبابات</SelectItem>
-                      <SelectItem value='APPLICATION'>تطبيق ونظام</SelectItem>
-                      <SelectItem value='OTHER'>عام / أخرى</SelectItem>
+                      {employees.map((emp) => (
+                        <SelectItem key={emp.id} value={emp.id}>
+                          {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label>مستوى الأولوية</Label>
-                  <Select value={priority} onValueChange={(val) => setPriority(val || '')}>
-                    <SelectTrigger>
-                      <SelectValue placeholder='الأولوية' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='LOW'>منخفض</SelectItem>
-                      <SelectItem value='MEDIUM'>متوسط</SelectItem>
-                      <SelectItem value='HIGH'>عالي</SelectItem>
-                      <SelectItem value='URGENT'>عاجل</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    موضوع التذكرة *
+                  </Label>
+                  <Input
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    placeholder='مثال: مشكلة في صرف مستحقات الأسبوع الماضي'
+                    required
+                  />
                 </div>
-              </div>
 
-              <div className='space-y-1.5'>
-                <Label>تفاصيل الشكوى / البلاغ *</Label>
-                <Textarea
-                  placeholder='اشرح المشكلة بالتفصيل...'
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  required
-                  rows={3}
-                />
-              </div>
-
-              {editingTicket && (
-                <>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                   <div className='space-y-1.5'>
-                    <Label>حالة التذكرة</Label>
-                    <Select value={status} onValueChange={(val) => setStatus(val || '')}>
-                      <SelectTrigger>
-                        <SelectValue placeholder='الحالة' />
+                    <Label className='text-xs font-medium text-muted-foreground'>التصنيف *</Label>
+                    <Select value={category} onValueChange={(val) => setCategory(val || '')}>
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder='التصنيف' />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value='OPEN'>مفتوحة</SelectItem>
-                        <SelectItem value='IN_PROGRESS'>قيد المعالجة</SelectItem>
-                        <SelectItem value='RESOLVED'>تم الحل</SelectItem>
-                        <SelectItem value='CLOSED'>مغلقة</SelectItem>
+                        <SelectItem value='OPERATIONAL'>تشغيلي / طلبات</SelectItem>
+                        <SelectItem value='FINANCIAL'>مالي / مستحقات</SelectItem>
+                        <SelectItem value='VEHICLE'>مركبات ودبابات</SelectItem>
+                        <SelectItem value='APPLICATION'>تطبيق ونظام</SelectItem>
+                        <SelectItem value='OTHER'>عام / أخرى</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className='space-y-1.5'>
-                    <Label>الحل / الإجراء المتخذ</Label>
-                    <Textarea
-                      placeholder='اكتب رد الدعم أو الإجراء الذي تم لحل المشكلة...'
-                      value={resolution}
-                      onChange={(e) => setResolution(e.target.value)}
-                      rows={2}
-                    />
+                    <Label className='text-xs font-medium text-muted-foreground'>
+                      مستوى الأولوية
+                    </Label>
+                    <Select value={priority} onValueChange={(val) => setPriority(val || '')}>
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder='الأولوية' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='LOW'>منخفض</SelectItem>
+                        <SelectItem value='MEDIUM'>متوسط</SelectItem>
+                        <SelectItem value='HIGH'>عالي</SelectItem>
+                        <SelectItem value='URGENT'>عاجل</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </>
-              )}
+                </div>
 
-              <DialogFooter className='gap-2 pt-2'>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    تفاصيل الشكوى / البلاغ *
+                  </Label>
+                  <Textarea
+                    placeholder='اشرح المشكلة بالتفصيل...'
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    required
+                    rows={4}
+                  />
+                </div>
+
+                {editingTicket && (
+                  <>
+                    <div className='space-y-1.5'>
+                      <Label className='text-xs font-medium text-muted-foreground'>
+                        حالة التذكرة
+                      </Label>
+                      <Select value={status} onValueChange={(val) => setStatus(val || '')}>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='الحالة' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value='OPEN'>مفتوحة</SelectItem>
+                          <SelectItem value='IN_PROGRESS'>قيد المعالجة</SelectItem>
+                          <SelectItem value='RESOLVED'>تم الحل</SelectItem>
+                          <SelectItem value='CLOSED'>مغلقة</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className='space-y-1.5'>
+                      <Label className='text-xs font-medium text-muted-foreground'>
+                        الحل / الإجراء المتخذ
+                      </Label>
+                      <Textarea
+                        placeholder='اكتب رد الدعم أو الإجراء الذي تم لحل المشكلة...'
+                        value={resolution}
+                        onChange={(e) => setResolution(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <SheetFooter className='p-4 border-t bg-muted/20 flex items-center justify-end gap-2'>
                 <Button type='button' variant='outline' onClick={() => setModalOpen(false)}>
                   إلغاء
                 </Button>
@@ -610,10 +622,10 @@ export default function SupportTicketsPage() {
                 >
                   {submitting ? 'جارٍ الحفظ...' : editingTicket ? 'حفظ التعديلات' : 'فتح التذكرة'}
                 </Button>
-              </DialogFooter>
+              </SheetFooter>
             </form>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       </div>
     </PageContainer>
   );

@@ -828,9 +828,9 @@ export default function UsersPage() {
 
         {/* Slide-over Sheet for Create / Edit User */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetContent side='left' className='sm:max-w-md flex flex-col w-full' dir='rtl'>
-            <SheetHeader className='text-right'>
-              <SheetTitle className='text-lg font-bold flex items-center gap-2'>
+          <SheetContent className='sm:max-w-lg flex flex-col w-full p-0'>
+            <SheetHeader className='p-6'>
+              <SheetTitle className='flex items-center gap-2'>
                 {editingUser ? (
                   <Edit className='size-5 text-primary' />
                 ) : (
@@ -838,19 +838,17 @@ export default function UsersPage() {
                 )}
                 {editingUser ? 'تعديل بيانات المستخدم' : 'إضافة مستخدم جديد'}
               </SheetTitle>
-              <SheetDescription className='text-xs'>
+              <SheetDescription>
                 {editingUser
                   ? `تعديل الحساب والدور الوظيفي والفرع للمستخدم «${editingUser.name}».`
                   : 'أدخل البيانات لإنشاء حساب جديد وتعيين الصلاحيات والفرع.'}
               </SheetDescription>
             </SheetHeader>
 
-            <Separator className='my-2' />
-
             <form
               id='user-form'
               onSubmit={handleSubmit}
-              className='flex-1 overflow-y-auto space-y-4 px-1 py-2'
+              className='flex-1 overflow-y-auto space-y-4 px-6 py-5 min-h-0'
             >
               {/* Full Name */}
               <div className='space-y-1.5'>
@@ -1023,7 +1021,7 @@ export default function UsersPage() {
               </div>
             </form>
 
-            <SheetFooter className='border-t pt-3 mt-auto gap-2 flex-row justify-end'>
+            <SheetFooter className='p-4 border-t bg-muted/20 flex items-center justify-end gap-2'>
               <Button
                 type='button'
                 variant='outline'
@@ -1036,7 +1034,7 @@ export default function UsersPage() {
                 type='submit'
                 form='user-form'
                 disabled={isFormPending}
-                className='gap-2 font-bold shadow-sm'
+                className='gap-2 font-medium shadow-sm'
               >
                 {isFormPending && <Icons.spinner className='size-4 animate-spin' />}
                 {editingUser ? 'حفظ التعديلات' : 'إضافة المستخدم'}

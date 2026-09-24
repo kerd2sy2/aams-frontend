@@ -478,197 +478,208 @@ export default function DocumentsPage() {
           </CardContent>
         </Card>
 
-        {/* Modal */}
+        {/* Modal / Sheet */}
         <Sheet open={modalOpen} onOpenChange={setModalOpen}>
-          <SheetContent className='sm:max-w-[500px] overflow-y-auto' dir='rtl'>
-            <SheetHeader>
+          <SheetContent className='sm:max-w-lg w-full p-0 flex flex-col'>
+            <SheetHeader className='p-6'>
               <SheetTitle>{editingDoc ? 'تعديل المستند' : 'إضافة مستند جديد'}</SheetTitle>
               <SheetDescription>أدخل تفاصيل الوثيقة والمندوب وتاريخ الانتهاء</SheetDescription>
             </SheetHeader>
 
-            <form onSubmit={handleSubmit} className='space-y-4 py-2'>
-              <div className='space-y-1.5'>
-                <Label>المندوب المعني *</Label>
-                <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
-                  <SelectTrigger className='w-full'>
-                    <SelectValue placeholder='اختر المندوب'>
-                      {employeeId
-                        ? (() => {
-                            const emp = employees.find((e) => e.id === employeeId);
-                            return emp
-                              ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
-                              : 'اختر المندوب';
-                          })()
-                        : null}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employees.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className='grid grid-cols-2 gap-4'>
+            <form onSubmit={handleSubmit} className='flex-1 flex flex-col min-h-0'>
+              <div className='flex-1 overflow-y-auto px-6 py-5 space-y-4'>
                 <div className='space-y-1.5'>
-                  <Label>نوع الوثيقة *</Label>
-                  <Select value={docType} onValueChange={(val) => setDocType(val || '')}>
-                    <SelectTrigger>
-                      <SelectValue placeholder='نوع الوثيقة' />
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    المندوب المعني *
+                  </Label>
+                  <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
+                    <SelectTrigger className='w-full'>
+                      <SelectValue placeholder='اختر المندوب'>
+                        {employeeId
+                          ? (() => {
+                              const emp = employees.find((e) => e.id === employeeId);
+                              return emp
+                                ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
+                                : 'اختر المندوب';
+                            })()
+                          : null}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='CONTRACT'>عقد عمل</SelectItem>
-                      <SelectItem value='PROMISSORY_NOTE'>سند لأمر</SelectItem>
-                      <SelectItem value='DRIVING_LICENSE'>رخصة قيادة</SelectItem>
-                      <SelectItem value='VEHICLE_REGISTRATION'>استمارة مركبة</SelectItem>
-                      <SelectItem value='CRIMINAL_RECORD'>شهادة خلو سوابق</SelectItem>
-                      <SelectItem value='MEDICAL_INSURANCE'>تأمين طبي</SelectItem>
-                      <SelectItem value='OTHER'>مستند آخر</SelectItem>
+                      {employees.map((emp) => (
+                        <SelectItem key={emp.id} value={emp.id}>
+                          {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className='space-y-1.5'>
-                  <Label>عنوان الوثيقة *</Label>
-                  <Input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder='مثال: رخصة قيادة خصوصي'
-                    required
-                  />
-                </div>
-              </div>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>
+                      نوع الوثيقة *
+                    </Label>
+                    <Select value={docType} onValueChange={(val) => setDocType(val || '')}>
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder='نوع الوثيقة' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='CONTRACT'>عقد عمل</SelectItem>
+                        <SelectItem value='PROMISSORY_NOTE'>سند لأمر</SelectItem>
+                        <SelectItem value='DRIVING_LICENSE'>رخصة قيادة</SelectItem>
+                        <SelectItem value='VEHICLE_REGISTRATION'>استمارة مركبة</SelectItem>
+                        <SelectItem value='CRIMINAL_RECORD'>شهادة خلو سوابق</SelectItem>
+                        <SelectItem value='MEDICAL_INSURANCE'>تأمين طبي</SelectItem>
+                        <SelectItem value='OTHER'>مستند آخر</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='space-y-1.5'>
-                  <Label>رقم الوثيقة / السجل</Label>
-                  <Input
-                    value={docNumber}
-                    onChange={(e) => setDocNumber(e.target.value)}
-                    placeholder='مثال: 108477289'
-                  />
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>
+                      عنوان الوثيقة *
+                    </Label>
+                    <Input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder='مثال: رخصة قيادة خصوصي'
+                      required
+                    />
+                  </div>
                 </div>
-                <div className='space-y-1.5'>
-                  <Label>رابط الملف (URL اختياري)</Label>
-                  <Input
-                    value={fileUrl}
-                    onChange={(e) => setFileUrl(e.target.value)}
-                    placeholder='https://...'
-                    dir='ltr'
-                  />
-                </div>
-              </div>
 
-              {/* File Upload Area */}
-              <div className='space-y-1.5'>
-                <Label>رفع ملف مرفق</Label>
-                <div
-                  className={`relative border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
-                    uploading
-                      ? 'border-primary/50 bg-primary/5'
-                      : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30'
-                  }`}
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                  }}
-                  onDrop={async (e) => {
-                    e.preventDefault();
-                    const dropped = e.dataTransfer.files[0];
-                    if (dropped) await handleFileUpload(dropped);
-                  }}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type='file'
-                    className='hidden'
-                    accept='image/*,.pdf,.mp4,.mov,.avi,.mkv,.webm,.doc,.docx,.xls,.xlsx'
-                    onChange={async (e) => {
-                      const picked = e.target.files?.[0];
-                      if (picked) await handleFileUpload(picked);
-                      e.target.value = '';
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>
+                      رقم الوثيقة / السجل
+                    </Label>
+                    <Input
+                      value={docNumber}
+                      onChange={(e) => setDocNumber(e.target.value)}
+                      placeholder='مثال: 108477289'
+                    />
+                  </div>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>
+                      رابط الملف (URL اختياري)
+                    </Label>
+                    <Input
+                      value={fileUrl}
+                      onChange={(e) => setFileUrl(e.target.value)}
+                      placeholder='https://...'
+                      dir='ltr'
+                    />
+                  </div>
+                </div>
+
+                {/* File Upload Area */}
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground'>رفع ملف مرفق</Label>
+                  <div
+                    className={`relative border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                      uploading
+                        ? 'border-primary/50 bg-primary/5'
+                        : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30'
+                    }`}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => {
+                      e.preventDefault();
                     }}
-                  />
-                  {uploading ? (
-                    <div className='flex flex-col items-center gap-2 py-2'>
-                      <div className='size-8 rounded-full border-2 border-primary border-t-transparent animate-spin' />
-                      <p className='text-sm text-muted-foreground'>جارٍ رفع الملف...</p>
-                    </div>
-                  ) : fileName ? (
-                    <div className='flex items-center justify-between px-2'>
-                      <div className='flex items-center gap-2 text-sm'>
-                        <Icons.page className='size-4 text-primary' />
-                        <span className='font-medium truncate max-w-[200px]'>{fileName}</span>
+                    onDrop={async (e) => {
+                      e.preventDefault();
+                      const dropped = e.dataTransfer.files[0];
+                      if (dropped) await handleFileUpload(dropped);
+                    }}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type='file'
+                      className='hidden'
+                      accept='image/*,.pdf,.mp4,.mov,.avi,.mkv,.webm,.doc,.docx,.xls,.xlsx'
+                      onChange={async (e) => {
+                        const picked = e.target.files?.[0];
+                        if (picked) await handleFileUpload(picked);
+                        e.target.value = '';
+                      }}
+                    />
+                    {uploading ? (
+                      <div className='flex flex-col items-center gap-2 py-2'>
+                        <div className='size-8 rounded-full border-2 border-primary border-t-transparent animate-spin' />
+                        <p className='text-sm text-muted-foreground'>جارٍ رفع الملف...</p>
                       </div>
-                      <button
-                        type='button'
-                        className='text-xs text-red-500 hover:underline'
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFileName('');
-                          setFileUrl('');
-                        }}
-                      >
-                        حذف
-                      </button>
-                    </div>
-                  ) : (
-                    <div className='flex flex-col items-center gap-1 py-2'>
-                      <Icons.upload className='size-6 text-muted-foreground' />
-                      <p className='text-sm text-muted-foreground'>ادفع ملفاً أو اضغط للاختيار</p>
-                      <p className='text-xs text-muted-foreground/60'>
-                        صور، PDF، فيديو حتى 50 ميجا
-                      </p>
-                    </div>
-                  )}
+                    ) : fileName ? (
+                      <div className='flex items-center justify-between px-2'>
+                        <div className='flex items-center gap-2 text-sm'>
+                          <Icons.page className='size-4 text-primary' />
+                          <span className='font-medium truncate max-w-[200px]'>{fileName}</span>
+                        </div>
+                        <button
+                          type='button'
+                          className='text-xs text-red-500 hover:underline'
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFileName('');
+                            setFileUrl('');
+                          }}
+                        >
+                          حذف
+                        </button>
+                      </div>
+                    ) : (
+                      <div className='flex flex-col items-center gap-1 py-2'>
+                        <Icons.upload className='size-6 text-muted-foreground' />
+                        <p className='text-sm text-muted-foreground'>ادفع ملفاً أو اضغط للاختيار</p>
+                        <p className='text-xs text-muted-foreground/60'>
+                          صور، PDF، فيديو حتى 50 ميجا
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div className='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>
+                      تاريخ الإصدار
+                    </Label>
+                    <Input
+                      type='date'
+                      value={issueDate}
+                      onChange={(e) => setIssueDate(e.target.value)}
+                    />
+                  </div>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>
+                      تاريخ الانتهاء
+                    </Label>
+                    <Input
+                      type='date'
+                      value={expiryDate}
+                      onChange={(e) => setExpiryDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+
                 <div className='space-y-1.5'>
-                  <Label>تاريخ الإصدار</Label>
-                  <Input
-                    type='date'
-                    value={issueDate}
-                    onChange={(e) => setIssueDate(e.target.value)}
+                  <Label className='text-xs font-medium text-muted-foreground'>ملاحظات</Label>
+                  <Textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder='أي ملاحظات حول الوثيقة...'
+                    rows={3}
                   />
                 </div>
-                <div className='space-y-1.5'>
-                  <Label>تاريخ الانتهاء</Label>
-                  <Input
-                    type='date'
-                    value={expiryDate}
-                    onChange={(e) => setExpiryDate(e.target.value)}
-                  />
-                </div>
               </div>
 
-              <div className='space-y-1.5'>
-                <Label>ملاحظات</Label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder='أي ملاحظات حول الوثيقة...'
-                  rows={2}
-                />
-              </div>
-
-              <SheetFooter className='gap-2 pt-6 mt-auto'>
-                <Button
-                  type='button'
-                  variant='outline'
-                  onClick={() => setModalOpen(false)}
-                  className='w-full'
-                >
+              <SheetFooter className='p-4 border-t bg-muted/20 flex items-center justify-end gap-2'>
+                <Button type='button' variant='outline' onClick={() => setModalOpen(false)}>
                   إلغاء
                 </Button>
                 <Button
                   type='submit'
                   disabled={submitting}
-                  className='bg-emerald-600 hover:bg-emerald-700 text-white w-full'
+                  className='bg-emerald-600 hover:bg-emerald-700 text-white'
                 >
                   {submitting ? 'جارٍ الحفظ...' : editingDoc ? 'حفظ التعديلات' : 'إضافة الوثيقة'}
                 </Button>

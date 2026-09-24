@@ -29,7 +29,8 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription
+  SheetDescription,
+  SheetFooter
 } from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Icons } from '@/components/icons';
@@ -455,141 +456,148 @@ export default function MaintenanceRequestsPage() {
           </CardContent>
         </Card>
 
-        {/* Slide-over Sheet Modal (Appears from the left side in RTL) */}
+        {/* Slide-over Sheet Modal */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetContent
-            side={dir === 'rtl' ? 'left' : 'right'}
-            className='w-full sm:max-w-md overflow-y-auto flex flex-col p-6'
-            dir={dir}
-          >
-            <SheetHeader className='text-right pb-2'>
-              <SheetTitle className='text-lg font-bold flex items-center gap-2 text-indigo-600'>
+          <SheetContent className='sm:max-w-lg w-full p-0 flex flex-col'>
+            <SheetHeader className='p-6'>
+              <SheetTitle className='flex items-center gap-2 text-indigo-600'>
                 <Icons.tool className='h-5 w-5' />
                 {editingReq ? 'تعديل طلب الصيانة' : 'إنشاء طلب صيانة جديد'}
               </SheetTitle>
-              <SheetDescription className='text-xs'>
+              <SheetDescription>
                 أدخل تفاصيل العطل، حدد رقم اللوحة والمندوب المُبلغ ومستوى الأولوية.
               </SheetDescription>
             </SheetHeader>
 
-            <Separator className='my-1' />
-
-            <form onSubmit={handleSubmit} className='flex-1 space-y-4 py-2 overflow-y-auto'>
-              <div className='space-y-1.5'>
-                <Label className='text-xs font-semibold'>رقم اللوحة / الدباب *</Label>
-                <div className='flex gap-2'>
-                  <Input
-                    placeholder='مثال: 2565'
-                    value={vehiclePlate}
-                    onChange={(e) => setVehiclePlate(e.target.value)}
-                    required
-                    className='h-10 font-mono'
-                  />
-                  {vehicles.length > 0 && (
-                    <Select
+            <form onSubmit={handleSubmit} className='flex-1 flex flex-col min-h-0'>
+              <div className='flex-1 overflow-y-auto px-6 py-5 space-y-4'>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    رقم اللوحة / الدباب *
+                  </Label>
+                  <div className='flex gap-2'>
+                    <Input
+                      placeholder='مثال: 2565'
                       value={vehiclePlate}
-                      onValueChange={(val) => setVehiclePlate(val || '')}
-                    >
-                      <SelectTrigger className='w-[120px] h-10 font-mono'>
-                        <SelectValue placeholder='الأسطول' />
+                      onChange={(e) => setVehiclePlate(e.target.value)}
+                      required
+                      className='h-10 font-mono flex-1'
+                    />
+                    {vehicles.length > 0 && (
+                      <Select
+                        value={vehiclePlate}
+                        onValueChange={(val) => setVehiclePlate(val || '')}
+                      >
+                        <SelectTrigger className='w-[120px] h-10 font-mono'>
+                          <SelectValue placeholder='الأسطول' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {vehicles.map((v) => (
+                            <SelectItem key={v.id} value={v.plate_number}>
+                              {v.plate_number}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                </div>
+
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    المندوب المُبلغ (اختياري)
+                  </Label>
+                  <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
+                    <SelectTrigger className='w-full h-10'>
+                      <SelectValue placeholder='اختر المندوب'>
+                        {employeeId
+                          ? (() => {
+                              const emp = employees.find((e) => e.id === employeeId);
+                              return emp
+                                ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
+                                : 'اختر المندوب';
+                            })()
+                          : null}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees.map((emp) => (
+                        <SelectItem key={emp.id} value={emp.id}>
+                          {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    وصف العطل / المشكلة *
+                  </Label>
+                  <Textarea
+                    placeholder='مثال: مشكلة في الفرامل الخلفية وصوت في المحرك...'
+                    value={issueDescription}
+                    onChange={(e) => setIssueDescription(e.target.value)}
+                    required
+                    rows={3}
+                    className='resize-none'
+                  />
+                </div>
+
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>
+                      مستوى الأولوية
+                    </Label>
+                    <Select value={priority} onValueChange={(val) => setPriority(val || 'MEDIUM')}>
+                      <SelectTrigger className='h-10 w-full'>
+                        <SelectValue placeholder='الأولوية' />
                       </SelectTrigger>
-                      <SelectContent dir={dir}>
-                        {vehicles.map((v) => (
-                          <SelectItem key={v.id} value={v.plate_number}>
-                            {v.plate_number}
-                          </SelectItem>
-                        ))}
+                      <SelectContent>
+                        <SelectItem value='LOW'>منخفض</SelectItem>
+                        <SelectItem value='MEDIUM'>متوسط</SelectItem>
+                        <SelectItem value='HIGH'>عالي</SelectItem>
+                        <SelectItem value='URGENT'>حرج / عاجل</SelectItem>
                       </SelectContent>
                     </Select>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              <div className='space-y-1.5'>
-                <Label className='text-xs font-semibold'>المندوب المُبلغ (اختياري)</Label>
-                <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
-                  <SelectTrigger className='w-full h-10'>
-                    <SelectValue placeholder='اختر المندوب'>
-                      {employeeId
-                        ? (() => {
-                            const emp = employees.find((e) => e.id === employeeId);
-                            return emp
-                              ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
-                              : 'اختر المندوب';
-                          })()
-                        : null}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent dir={dir}>
-                    {employees.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className='space-y-1.5'>
-                <Label className='text-xs font-semibold'>وصف العطل / المشكلة *</Label>
-                <Textarea
-                  placeholder='مثال: مشكلة في الفرامل الخلفية وصوت في المحرك...'
-                  value={issueDescription}
-                  onChange={(e) => setIssueDescription(e.target.value)}
-                  required
-                  rows={3}
-                  className='resize-none'
-                />
-              </div>
-
-              <div className='grid grid-cols-2 gap-3'>
-                <div className='space-y-1.5'>
-                  <Label className='text-xs font-semibold'>مستوى الأولوية</Label>
-                  <Select value={priority} onValueChange={(val) => setPriority(val || 'MEDIUM')}>
-                    <SelectTrigger className='h-10'>
-                      <SelectValue placeholder='الأولوية' />
-                    </SelectTrigger>
-                    <SelectContent dir={dir}>
-                      <SelectItem value='LOW'>منخفض</SelectItem>
-                      <SelectItem value='MEDIUM'>متوسط</SelectItem>
-                      <SelectItem value='HIGH'>عالي</SelectItem>
-                      <SelectItem value='URGENT'>حرج / عاجل</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>حالة الطلب</Label>
+                    <Select value={status} onValueChange={(val) => setStatus(val || 'OPEN')}>
+                      <SelectTrigger className='h-10 w-full'>
+                        <SelectValue placeholder='الحالة' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='OPEN'>مفتوح (جديد)</SelectItem>
+                        <SelectItem value='IN_PROGRESS'>قيد الإصلاح</SelectItem>
+                        <SelectItem value='RESOLVED'>تم الإصلاح</SelectItem>
+                        <SelectItem value='CLOSED'>مغلق</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label className='text-xs font-semibold'>حالة الطلب</Label>
-                  <Select value={status} onValueChange={(val) => setStatus(val || 'OPEN')}>
-                    <SelectTrigger className='h-10'>
-                      <SelectValue placeholder='الحالة' />
-                    </SelectTrigger>
-                    <SelectContent dir={dir}>
-                      <SelectItem value='OPEN'>مفتوح (جديد)</SelectItem>
-                      <SelectItem value='IN_PROGRESS'>قيد الإصلاح</SelectItem>
-                      <SelectItem value='RESOLVED'>تم الإصلاح</SelectItem>
-                      <SelectItem value='CLOSED'>مغلق</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label className='text-xs font-medium text-muted-foreground'>ملاحظات إضافية</Label>
+                  <Textarea
+                    placeholder='ملاحظات إضافية عن البلاغ...'
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={3}
+                    className='resize-none'
+                  />
                 </div>
               </div>
 
-              <div className='space-y-1.5'>
-                <Label className='text-xs font-semibold'>ملاحظات إضافية</Label>
-                <Textarea
-                  placeholder='ملاحظات إضافية عن البلاغ...'
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                  className='resize-none'
-                />
-              </div>
-
-              <div className='flex items-center gap-3 pt-4'>
+              <SheetFooter className='p-4 border-t bg-muted/20 flex items-center justify-end gap-2'>
+                <Button type='button' variant='outline' onClick={() => setSheetOpen(false)}>
+                  إلغاء
+                </Button>
                 <Button
                   type='submit'
                   disabled={submitting}
-                  className='h-11 flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold gap-2'
+                  className='bg-indigo-600 hover:bg-indigo-700 text-white font-medium gap-2'
                 >
                   {submitting ? (
                     <Icons.spinner className='h-4 w-4 animate-spin' />
@@ -598,15 +606,7 @@ export default function MaintenanceRequestsPage() {
                   )}
                   {editingReq ? 'حفظ التعديلات' : 'إنشاء الطلب'}
                 </Button>
-                <Button
-                  type='button'
-                  variant='outline'
-                  onClick={() => setSheetOpen(false)}
-                  className='h-11 px-4 font-bold'
-                >
-                  إلغاء
-                </Button>
-              </div>
+              </SheetFooter>
             </form>
           </SheetContent>
         </Sheet>

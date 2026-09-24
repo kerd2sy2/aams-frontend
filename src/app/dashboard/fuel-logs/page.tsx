@@ -9,13 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter
+} from '@/components/ui/sheet';
 import {
   Table,
   TableBody,
@@ -447,136 +447,145 @@ export default function FuelLogsPage() {
         </Card>
 
         {/* Add/Edit Modal */}
-        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-          <DialogContent className='sm:max-w-[500px]' dir='rtl'>
-            <DialogHeader>
-              <DialogTitle>
-                {editingLog ? 'تعديل سجل الوقود' : 'تسجيل تعبئة وقود جديدة'}
-              </DialogTitle>
-              <DialogDescription>
+        <Sheet open={modalOpen} onOpenChange={setModalOpen}>
+          <SheetContent className='sm:max-w-lg w-full p-0 flex flex-col'>
+            <SheetHeader className='p-6'>
+              <SheetTitle>{editingLog ? 'تعديل سجل الوقود' : 'تسجيل تعبئة وقود جديدة'}</SheetTitle>
+              <SheetDescription>
                 أدخل تفاصيل التعبئة والمبلغ والمندوب والدباب المرتبط
-              </DialogDescription>
-            </DialogHeader>
+              </SheetDescription>
+            </SheetHeader>
 
-            <form onSubmit={handleSubmit} className='space-y-4 py-2'>
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='space-y-1.5'>
-                  <Label>المندوب</Label>
-                  <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
-                    <SelectTrigger>
-                      <SelectValue placeholder='اختر المندوب'>
-                        {employeeId
-                          ? (() => {
-                              const emp = employees.find((e) => e.id === employeeId);
-                              return emp
-                                ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
-                                : 'اختر المندوب';
-                            })()
-                          : null}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {employees.map((emp) => (
-                        <SelectItem key={emp.id} value={emp.id}>
-                          {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <form onSubmit={handleSubmit} className='flex-1 flex flex-col min-h-0'>
+              <div className='flex-1 overflow-y-auto px-6 py-5 space-y-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>المندوب</Label>
+                    <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder='اختر المندوب'>
+                          {employeeId
+                            ? (() => {
+                                const emp = employees.find((e) => e.id === employeeId);
+                                return emp
+                                  ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
+                                  : 'اختر المندوب';
+                              })()
+                            : null}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {employees.map((emp) => (
+                          <SelectItem key={emp.id} value={emp.id}>
+                            {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className='space-y-1.5'>
-                  <Label>رقم اللوحة / الدباب</Label>
-                  <div className='flex gap-2'>
-                    <Input
-                      placeholder='مثال: 2565'
-                      value={vehiclePlate}
-                      onChange={(e) => setVehiclePlate(e.target.value)}
-                    />
-                    {vehicles.length > 0 && (
-                      <Select
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>
+                      رقم اللوحة / الدباب
+                    </Label>
+                    <div className='flex gap-2'>
+                      <Input
+                        placeholder='مثال: 2565'
                         value={vehiclePlate}
-                        onValueChange={(val) => setVehiclePlate(val || '')}
-                      >
-                        <SelectTrigger className='w-[110px]'>
-                          <SelectValue placeholder='الأسطول' />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {vehicles.map((v) => (
-                            <SelectItem key={v.id} value={v.plate_number}>
-                              {v.plate_number}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
+                        onChange={(e) => setVehiclePlate(e.target.value)}
+                        className='flex-1'
+                      />
+                      {vehicles.length > 0 && (
+                        <Select
+                          value={vehiclePlate}
+                          onValueChange={(val) => setVehiclePlate(val || '')}
+                        >
+                          <SelectTrigger className='w-[105px]'>
+                            <SelectValue placeholder='الأسطول' />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {vehicles.map((v) => (
+                              <SelectItem key={v.id} value={v.plate_number}>
+                                {v.plate_number}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>
+                      المبلغ (ر.س) *
+                    </Label>
+                    <Input
+                      type='number'
+                      step='0.01'
+                      placeholder='مثال: 30'
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>عدد اللترات</Label>
+                    <Input
+                      type='number'
+                      step='0.01'
+                      placeholder='مثال: 13.5'
+                      value={liters}
+                      onChange={(e) => setLiters(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>
+                      تاريخ التعبئة
+                    </Label>
+                    <Input
+                      type='date'
+                      value={fuelDate}
+                      onChange={(e) => setFuelDate(e.target.value)}
+                    />
+                  </div>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>اسم المحطة</Label>
+                    <Input
+                      placeholder='مثال: محطة الدريس'
+                      value={stationName}
+                      onChange={(e) => setStationName(e.target.value)}
+                    />
+                  </div>
+                </div>
+
                 <div className='space-y-1.5'>
-                  <Label>المبلغ (ر.س) *</Label>
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    رابط صورة الفاتورة (اختياري)
+                  </Label>
                   <Input
-                    type='number'
-                    step='0.01'
-                    placeholder='مثال: 30'
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    required
+                    placeholder='https://...'
+                    value={invoiceImage}
+                    onChange={(e) => setInvoiceImage(e.target.value)}
                   />
                 </div>
+
                 <div className='space-y-1.5'>
-                  <Label>عدد اللترات</Label>
-                  <Input
-                    type='number'
-                    step='0.01'
-                    placeholder='مثال: 13.5'
-                    value={liters}
-                    onChange={(e) => setLiters(e.target.value)}
+                  <Label className='text-xs font-medium text-muted-foreground'>ملاحظات</Label>
+                  <Textarea
+                    placeholder='أي تفاصيل أو ملاحظات إضافية...'
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={3}
                   />
                 </div>
               </div>
 
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='space-y-1.5'>
-                  <Label>تاريخ التعبئة</Label>
-                  <Input
-                    type='date'
-                    value={fuelDate}
-                    onChange={(e) => setFuelDate(e.target.value)}
-                  />
-                </div>
-                <div className='space-y-1.5'>
-                  <Label>اسم المحطة</Label>
-                  <Input
-                    placeholder='مثال: محطة الدريس'
-                    value={stationName}
-                    onChange={(e) => setStationName(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className='space-y-1.5'>
-                <Label>رابط صورة الفاتورة (اختياري)</Label>
-                <Input
-                  placeholder='https://...'
-                  value={invoiceImage}
-                  onChange={(e) => setInvoiceImage(e.target.value)}
-                />
-              </div>
-
-              <div className='space-y-1.5'>
-                <Label>ملاحظات</Label>
-                <Textarea
-                  placeholder='أي تفاصيل أو ملاحظات إضافية...'
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={2}
-                />
-              </div>
-
-              <DialogFooter className='gap-2 pt-2'>
+              <SheetFooter className='p-4 border-t bg-muted/20 flex items-center justify-end gap-2'>
                 <Button type='button' variant='outline' onClick={() => setModalOpen(false)}>
                   إلغاء
                 </Button>
@@ -587,10 +596,10 @@ export default function FuelLogsPage() {
                 >
                   {submitting ? 'جارٍ الحفظ...' : editingLog ? 'حفظ التعديلات' : 'تسجيل التعبئة'}
                 </Button>
-              </DialogFooter>
+              </SheetFooter>
             </form>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       </div>
     </PageContainer>
   );

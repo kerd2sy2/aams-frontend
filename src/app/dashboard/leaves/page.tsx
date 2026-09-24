@@ -435,107 +435,105 @@ export default function LeavesPage() {
 
         {/* Modal */}
         <Sheet open={modalOpen} onOpenChange={setModalOpen}>
-          <SheetContent side='left' className='sm:max-w-[480px] overflow-y-auto' dir='rtl'>
-            <SheetHeader className='text-right'>
-              <SheetTitle className='text-xl font-bold pr-4'>تقديم طلب إجازة جديد</SheetTitle>
-              <SheetDescription className='pr-4'>
-                أدخل تفاصيل الإجازة والمندوب وفترة الإجازة
-              </SheetDescription>
+          <SheetContent className='sm:max-w-lg w-full p-0 flex flex-col'>
+            <SheetHeader className='p-6'>
+              <SheetTitle>تقديم طلب إجازة جديد</SheetTitle>
+              <SheetDescription>أدخل تفاصيل الإجازة والمندوب وفترة الإجازة</SheetDescription>
             </SheetHeader>
 
-            <form onSubmit={handleSubmit} className='space-y-4 py-2'>
-              <div className='space-y-1.5'>
-                <Label>المندوب *</Label>
-                <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
-                  <SelectTrigger className='w-full text-right'>
-                    <SelectValue placeholder='اختر المندوب'>
-                      {employeeId
-                        ? employees.find((emp) => emp.id === employeeId)?.name
-                        : 'اختر المندوب'}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent dir='rtl'>
-                    {employees.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id} className='text-right'>
-                        {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className='space-y-1.5'>
-                <Label>نوع الإجازة *</Label>
-                <Select value={leaveType} onValueChange={(val) => setLeaveType(val || '')}>
-                  <SelectTrigger className='w-full text-right'>
-                    <SelectValue placeholder='نوع الإجازة'>
-                      {LEAVE_TYPES[leaveType] || 'نوع الإجازة'}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent dir='rtl'>
-                    <SelectItem value='ANNUAL' className='text-right'>
-                      إجازة سنوية
-                    </SelectItem>
-                    <SelectItem value='SICK' className='text-right'>
-                      إجازة مرضية
-                    </SelectItem>
-                    <SelectItem value='EMERGENCY' className='text-right'>
-                      إجازة طارئة
-                    </SelectItem>
-                    <SelectItem value='UNPAID' className='text-right'>
-                      إجازة بدون راتب
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className='grid grid-cols-2 gap-4'>
+            <form onSubmit={handleSubmit} className='flex-1 flex flex-col min-h-0'>
+              <div className='flex-1 overflow-y-auto px-6 py-5 space-y-4'>
                 <div className='space-y-1.5'>
-                  <Label>من تاريخ *</Label>
+                  <Label className='text-xs font-medium text-muted-foreground'>المندوب *</Label>
+                  <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
+                    <SelectTrigger className='w-full'>
+                      <SelectValue placeholder='اختر المندوب'>
+                        {employeeId
+                          ? (() => {
+                              const emp = employees.find((e) => e.id === employeeId);
+                              return emp
+                                ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
+                                : 'اختر المندوب';
+                            })()
+                          : null}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees.map((emp) => (
+                        <SelectItem key={emp.id} value={emp.id}>
+                          {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground'>نوع الإجازة *</Label>
+                  <Select value={leaveType} onValueChange={(val) => setLeaveType(val || '')}>
+                    <SelectTrigger className='w-full'>
+                      <SelectValue placeholder='نوع الإجازة'>
+                        {LEAVE_TYPES[leaveType] || 'نوع الإجازة'}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='ANNUAL'>إجازة سنوية</SelectItem>
+                      <SelectItem value='SICK'>إجازة مرضية</SelectItem>
+                      <SelectItem value='EMERGENCY'>إجازة طارئة</SelectItem>
+                      <SelectItem value='UNPAID'>إجازة بدون راتب</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>من تاريخ *</Label>
+                    <Input
+                      type='date'
+                      value={startDate}
+                      onChange={(e) => handleStartDateChange(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>إلى تاريخ *</Label>
+                    <Input
+                      type='date'
+                      value={endDate}
+                      onChange={(e) => handleEndDateChange(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    عدد الأيام المحسوبة
+                  </Label>
                   <Input
-                    type='date'
-                    value={startDate}
-                    onChange={(e) => handleStartDateChange(e.target.value)}
-                    className='text-right'
+                    type='number'
+                    value={daysCount}
+                    onChange={(e) => setDaysCount(e.target.value)}
+                    min='1'
                     required
                   />
                 </div>
+
                 <div className='space-y-1.5'>
-                  <Label>إلى تاريخ *</Label>
-                  <Input
-                    type='date'
-                    value={endDate}
-                    onChange={(e) => handleEndDateChange(e.target.value)}
-                    className='text-right'
-                    required
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    السبب أو الملاحظات
+                  </Label>
+                  <Textarea
+                    placeholder='سبب طلب الإجازة أو الملاحظات...'
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    className='resize-none'
+                    rows={3}
                   />
                 </div>
               </div>
 
-              <div className='space-y-1.5'>
-                <Label>عدد الأيام المحسوبة</Label>
-                <Input
-                  type='number'
-                  value={daysCount}
-                  onChange={(e) => setDaysCount(e.target.value)}
-                  min='1'
-                  className='text-right'
-                  required
-                />
-              </div>
-
-              <div className='space-y-1.5'>
-                <Label>السبب أو الملاحظات</Label>
-                <Textarea
-                  placeholder='سبب طلب الإجازة أو الملاحظات...'
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  className='text-right resize-none'
-                  rows={3}
-                />
-              </div>
-
-              <SheetFooter className='flex flex-row justify-end gap-2 pt-6'>
+              <SheetFooter className='p-4 border-t bg-muted/20 flex items-center justify-end gap-2'>
                 <Button type='button' variant='outline' onClick={() => setModalOpen(false)}>
                   إلغاء
                 </Button>

@@ -475,171 +475,192 @@ export default function ViolationsPage() {
 
         {/* Modal */}
         <Sheet open={modalOpen} onOpenChange={setModalOpen}>
-          <SheetContent className='sm:max-w-[500px] overflow-y-auto' dir='rtl'>
+          <SheetContent className='sm:max-w-lg w-full p-0 flex flex-col'>
             <SheetHeader>
-              <SheetTitle>
-                {editingViolation ? 'تعديل بيانات المخالفة' : 'تسجيل مخالفة جديدة'}
-              </SheetTitle>
-              <SheetDescription>أدخل تفاصيل المخالفة والمبلغ والمندوب المعني</SheetDescription>
+              <div className='flex items-center gap-3'>
+                <div className='size-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0'>
+                  <Icons.violation className='size-5' />
+                </div>
+                <div className='min-w-0 flex-1'>
+                  <SheetTitle>
+                    {editingViolation ? 'تعديل بيانات المخالفة' : 'تسجيل مخالفة جديدة'}
+                  </SheetTitle>
+                  <SheetDescription>
+                    أدخل تفاصيل المخالفة والمبلغ والمندوب المعني والخصم
+                  </SheetDescription>
+                </div>
+              </div>
             </SheetHeader>
 
-            <form onSubmit={handleSubmit} className='space-y-4 py-2'>
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='space-y-1.5'>
-                  <Label>رقم المخالفة</Label>
-                  <Input
-                    placeholder='مثال: 10458829'
-                    value={violationNumber}
-                    onChange={(e) => setViolationNumber(e.target.value)}
-                  />
-                </div>
-                <div className='space-y-1.5'>
-                  <Label>المبلغ (ر.س) *</Label>
-                  <Input
-                    type='number'
-                    step='0.01'
-                    placeholder='مثال: 150'
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='space-y-1.5'>
-                  <Label>المندوب</Label>
-                  <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
-                    <SelectTrigger className='w-full'>
-                      <SelectValue placeholder='اختر المندوب'>
-                        {employeeId
-                          ? (() => {
-                              const emp = employees.find((e) => e.id === employeeId);
-                              return emp
-                                ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
-                                : 'اختر المندوب';
-                            })()
-                          : null}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {employees.map((emp) => (
-                        <SelectItem key={emp.id} value={emp.id}>
-                          {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className='space-y-1.5'>
-                  <Label>الدباب / اللوحة</Label>
-                  <div className='flex gap-2'>
+            <form onSubmit={handleSubmit} className='flex-1 flex flex-col min-h-0'>
+              <div className='flex-1 overflow-y-auto px-6 py-5 space-y-4'>
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-semibold'>رقم المخالفة</Label>
                     <Input
-                      placeholder='مثال: 2565'
-                      value={vehiclePlate}
-                      onChange={(e) => setVehiclePlate(e.target.value)}
+                      placeholder='مثال: 10458829'
+                      value={violationNumber}
+                      onChange={(e) => setViolationNumber(e.target.value)}
+                      className='h-10 text-start'
                     />
-                    {vehicles.length > 0 && (
-                      <Select
-                        value={vehiclePlate}
-                        onValueChange={(val) => setVehiclePlate(val || '')}
-                      >
-                        <SelectTrigger className='w-[110px]'>
-                          <SelectValue placeholder='الأسطول' />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {vehicles.map((v) => (
-                            <SelectItem key={v.id} value={v.plate_number}>
-                              {v.plate_number}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
+                  </div>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-semibold'>
+                      المبلغ (ر.س) <span className='text-destructive'>*</span>
+                    </Label>
+                    <Input
+                      type='number'
+                      step='0.01'
+                      placeholder='مثال: 150'
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      required
+                      className='h-10 text-start font-mono font-bold'
+                    />
                   </div>
                 </div>
-              </div>
 
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='space-y-1.5'>
-                  <Label>نوع المخالفة / السبب *</Label>
-                  <Select value={reason} onValueChange={(val) => setReason(val || '')}>
-                    <SelectTrigger>
-                      <SelectValue placeholder='اختر السبب' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='تجاوز سرعة'>تجاوز سرعة</SelectItem>
-                      <SelectItem value='قطع إشارة'>قطع إشارة</SelectItem>
-                      <SelectItem value='عدم ارتداء حزام الأمان'>عدم ارتداء حزام الأمان</SelectItem>
-                      <SelectItem value='استخدام الجوال أثناء القيادة'>
-                        استخدام الجوال أثناء القيادة
-                      </SelectItem>
-                      <SelectItem value='وقوف ممنوع'>وقوف ممنوع</SelectItem>
-                      <SelectItem value='عدم حمل رخصة قيادة'>عدم حمل رخصة قيادة</SelectItem>
-                      <SelectItem value='مخالفة أخرى'>مخالفة أخرى</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-semibold'>المندوب</Label>
+                    <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
+                      <SelectTrigger className='w-full h-10'>
+                        <SelectValue placeholder='اختر المندوب'>
+                          {employeeId
+                            ? (() => {
+                                const emp = employees.find((e) => e.id === employeeId);
+                                return emp
+                                  ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
+                                  : 'اختر المندوب';
+                              })()
+                            : null}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {employees.map((emp) => (
+                          <SelectItem key={emp.id} value={emp.id}>
+                            {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-semibold'>الدباب / اللوحة</Label>
+                    <div className='flex gap-2'>
+                      <Input
+                        placeholder='مثال: 2565'
+                        value={vehiclePlate}
+                        onChange={(e) => setVehiclePlate(e.target.value)}
+                        className='h-10 font-mono'
+                      />
+                      {vehicles.length > 0 && (
+                        <Select
+                          value={vehiclePlate}
+                          onValueChange={(val) => setVehiclePlate(val || '')}
+                        >
+                          <SelectTrigger className='w-[110px] h-10'>
+                            <SelectValue placeholder='الأسطول' />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {vehicles.map((v) => (
+                              <SelectItem key={v.id} value={v.plate_number}>
+                                {v.plate_number}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-semibold'>
+                      نوع المخالفة / السبب <span className='text-destructive'>*</span>
+                    </Label>
+                    <Select value={reason} onValueChange={(val) => setReason(val || '')}>
+                      <SelectTrigger className='h-10'>
+                        <SelectValue placeholder='اختر السبب' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='تجاوز سرعة'>تجاوز سرعة</SelectItem>
+                        <SelectItem value='قطع إشارة'>قطع إشارة</SelectItem>
+                        <SelectItem value='عدم ارتداء حزام الأمان'>عدم ارتداء حزام الأمان</SelectItem>
+                        <SelectItem value='استخدام الجوال أثناء القيادة'>
+                          استخدام الجوال أثناء القيادة
+                        </SelectItem>
+                        <SelectItem value='وقوف ممنوع'>وقوف ممنوع</SelectItem>
+                        <SelectItem value='عدم حمل رخصة قيادة'>عدم حمل رخصة قيادة</SelectItem>
+                        <SelectItem value='مخالفة أخرى'>مخالفة أخرى</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-semibold'>حالة المخالفة</Label>
+                    <Select value={status} onValueChange={(val) => setStatus(val || '')}>
+                      <SelectTrigger className='h-10'>
+                        <SelectValue placeholder='الحالة' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='RECORDED'>مسجلة (جديدة)</SelectItem>
+                        <SelectItem value='DEDUCTED'>تم الخصم من المندوب</SelectItem>
+                        <SelectItem value='DISPUTED'>معترض عليها</SelectItem>
+                        <SelectItem value='PAID'>مسددة بالكامل</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-semibold'>تاريخ المخالفة</Label>
+                    <Input
+                      type='date'
+                      value={violationDate}
+                      onChange={(e) => setViolationDate(e.target.value)}
+                      className='h-10'
+                    />
+                  </div>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-semibold'>المدينة</Label>
+                    <Input
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder='مثال: الرياض'
+                      className='h-10'
+                    />
+                  </div>
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label>حالة المخالفة</Label>
-                  <Select value={status} onValueChange={(val) => setStatus(val || '')}>
-                    <SelectTrigger>
-                      <SelectValue placeholder='الحالة' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='RECORDED'>مسجلة (جديدة)</SelectItem>
-                      <SelectItem value='DEDUCTED'>تم الخصم من المندوب</SelectItem>
-                      <SelectItem value='DISPUTED'>معترض عليها</SelectItem>
-                      <SelectItem value='PAID'>مسددة بالكامل</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='space-y-1.5'>
-                  <Label>تاريخ المخالفة</Label>
-                  <Input
-                    type='date'
-                    value={violationDate}
-                    onChange={(e) => setViolationDate(e.target.value)}
+                  <Label className='text-xs font-semibold'>ملاحظات</Label>
+                  <Textarea
+                    placeholder='أي تفاصيل أو ملاحظات...'
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={3}
+                    className='resize-none rounded-lg'
                   />
                 </div>
-                <div className='space-y-1.5'>
-                  <Label>المدينة</Label>
-                  <Input
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder='مثال: الرياض'
-                  />
-                </div>
               </div>
 
-              <div className='space-y-1.5'>
-                <Label>ملاحظات</Label>
-                <Textarea
-                  placeholder='أي تفاصيل أو ملاحظات...'
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={2}
-                />
-              </div>
-
-              <SheetFooter className='gap-2 pt-6 mt-auto'>
+              <SheetFooter>
                 <Button
                   type='button'
                   variant='outline'
                   onClick={() => setModalOpen(false)}
-                  className='w-full'
+                  className='h-10 px-5 font-medium'
                 >
                   إلغاء
                 </Button>
                 <Button
                   type='submit'
                   disabled={submitting}
-                  className='bg-rose-600 hover:bg-rose-700 text-white w-full'
+                  className='h-10 px-6 font-bold shadow-xs'
                 >
                   {submitting
                     ? 'جارٍ الحفظ...'
