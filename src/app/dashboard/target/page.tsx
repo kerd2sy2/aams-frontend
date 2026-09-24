@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import Link from 'next/link';
 import PageContainer from '@/components/layout/page-container';
+import { TargetImportSheet } from '@/components/target/target-import-sheet';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { targetWebApi } from '@/lib/aams/target-api';
+import { useLocale } from '@/components/layout/locale-provider';
+import { Icons } from '@/components/icons';
 import {
   TargetDashboardSummary,
   IdentifierPerformance,
@@ -48,29 +50,18 @@ import {
 } from '@/types/target';
 import {
   Target,
-  TrendingUp,
-  CheckCircle2,
-  AlertTriangle,
-  XCircle,
-  Clock,
-  Users,
   FileSpreadsheet,
   Trash2,
-  RefreshCw,
-  Settings,
-  Upload,
   Calendar,
-  Search,
-  ArrowUpRight,
-  ShieldCheck,
-  Building2,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Info
+  CheckCircle2,
+  AlertTriangle,
+  Clock,
+  Users
 } from 'lucide-react';
 
 export default function TargetDashboardPage() {
+  const { t, dir } = useLocale();
+
   // Current Month State (e.g. "2026-09")
   const [selectedMonth, setSelectedMonth] = useState<string>(() => {
     const d = new Date();
@@ -112,6 +103,9 @@ export default function TargetDashboardPage() {
   // Sheet Delete Confirmation
   const [batchToDelete, setBatchToDelete] = useState<ImportBatchItem | null>(null);
   const [deletingBatch, setDeletingBatch] = useState(false);
+
+  // Import Excel Side Sheet
+  const [importSheetOpen, setImportSheetOpen] = useState(false);
 
   // Load All Dashboard Data
   const loadData = useCallback(
@@ -204,7 +198,6 @@ export default function TargetDashboardPage() {
     if (!batchToDelete) return;
     setDeletingBatch(true);
     try {
-      // Use deleteBatch or deleteSheetByDate
       if (batchToDelete.order_date) {
         await targetWebApi.deleteSheetByDate(batchToDelete.order_date);
       } else {
@@ -215,7 +208,6 @@ export default function TargetDashboardPage() {
         `تم حذف شيت تاريخ ${batchToDelete.order_date || batchToDelete.file_name} وجميع طلباته بنجاح!`
       );
       setBatchToDelete(null);
-      // Reload entire dashboard
       await loadData(true);
     } catch (err: any) {
       const msg = err?.response?.data?.error || err?.message || 'فشل في حذف الشيت';
@@ -243,7 +235,6 @@ export default function TargetDashboardPage() {
   // Filtered Identifiers
   const filteredIdentifiers = useMemo(() => {
     return identifiers.filter((item) => {
-      // Status filter
       if (statusFilter !== 'ALL') {
         if (statusFilter === 'TARGET_ACHIEVED') {
           if (item.status !== 'TARGET_ACHIEVED') return false;
@@ -255,7 +246,6 @@ export default function TargetDashboardPage() {
           if (item.status !== 'BEHIND_TARGET') return false;
         }
       }
-      // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const matchName = item.name?.toLowerCase().includes(q);
@@ -323,260 +313,231 @@ export default function TargetDashboardPage() {
   const unresolvedAlertsCount = alerts.filter((a) => !a.is_resolved).length;
 
   return (
-    <PageContainer>
-      <div className='space-y-6 max-w-7xl mx-auto pb-16 text-right' dir='rtl'>
-        {/* Top Header Bar */}
-        <div className='flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b pb-4'>
-          <div>
-            <div className='flex items-center gap-3'>
-              <div className='p-2.5 bg-orange-500/10 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded-xl'>
-                <Target className='h-7 w-7' />
-              </div>
-              <div>
-                <h1 className='text-2xl font-black tracking-tight text-foreground'>
-                  لوحة متابعة وإنجاز التارچت (Target Dashboard)
-                </h1>
-                <p className='text-sm text-muted-foreground mt-0.5'>
-                  متابعة مؤشرات الأداء اللوجستي للمعرفين والمناديب وإدارة تقارير الشيتات اليومية
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Actions & Month Selector */}
-          <div className='flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end'>
-            {/* Month Picker Controls */}
-            <div className='flex items-center bg-muted/60 dark:bg-muted/30 border rounded-lg p-1 gap-1'>
-              <Button
-                variant='ghost'
-                size='icon'
-                className='h-8 w-8'
-                onClick={handlePrevMonth}
-                title='الشهر السابق'
-              >
-                <ChevronRight className='h-4 w-4' />
-              </Button>
-              <div className='flex items-center gap-1 px-2 font-mono font-bold text-sm'>
-                <Calendar className='h-3.5 w-3.5 text-muted-foreground' />
-                <span>{selectedMonth}</span>
-              </div>
-              <Button
-                variant='ghost'
-                size='icon'
-                className='h-8 w-8'
-                onClick={handleNextMonth}
-                title='الشهر التالي'
-              >
-                <ChevronLeft className='h-4 w-4' />
-              </Button>
-            </div>
-
-            {/* Refresh Button */}
+    <PageContainer
+      pageTitle={t('Target Dashboard', 'لوحة متابعة وإنجاز التارچت')}
+      pageDescription='متابعة مؤشرات أداء المعرفين والمناديب وإدارة تقارير الشيتات اليومية'
+      pageHeaderAction={
+        <div className='flex flex-wrap items-center gap-2'>
+          {/* Month Selector */}
+          <div className='flex items-center bg-muted/60 border rounded-lg p-0.5'>
             <Button
-              variant='outline'
-              size='sm'
-              onClick={() => loadData(true)}
-              disabled={refreshing}
-              className='gap-2'
+              variant='ghost'
+              size='icon'
+              className='size-7'
+              onClick={handlePrevMonth}
+              title='الشهر السابق'
             >
-              <RefreshCw
-                className={`h-4 w-4 ${refreshing ? 'animate-spin text-orange-500' : ''}`}
-              />
-              <span className='hidden sm:inline'>تحديث</span>
+              <Icons.chevronRight className='size-3.5' />
             </Button>
-
-            {/* Target Settings */}
-            <Button variant='outline' size='sm' onClick={handleOpenSettings} className='gap-2'>
-              <Settings className='h-4 w-4 text-muted-foreground' />
-              <span className='hidden sm:inline'>إعدادات التارچت</span>
+            <div className='flex items-center gap-1.5 px-2 font-mono font-semibold text-xs'>
+              <Calendar className='size-3.5 text-muted-foreground' />
+              <span>{selectedMonth}</span>
+            </div>
+            <Button
+              variant='ghost'
+              size='icon'
+              className='size-7'
+              onClick={handleNextMonth}
+              title='الشهر التالي'
+            >
+              <Icons.chevronLeft className='size-3.5' />
             </Button>
-
-            {/* Import Excel Link Button */}
-            <Link href='/dashboard/target/import'>
-              <Button
-                size='sm'
-                className='gap-2 bg-orange-600 hover:bg-orange-700 text-white shadow-sm'
-              >
-                <Upload className='h-4 w-4' />
-                <span>استيراد ملف إكسل</span>
-              </Button>
-            </Link>
           </div>
-        </div>
 
-        {/* 1. KPI Summary Cards (Interactive - Matching Phone Experience) */}
-        <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+          {/* Refresh Button */}
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() => loadData(true)}
+            disabled={refreshing}
+            className='gap-1.5 h-8'
+          >
+            <Icons.refresh
+              className={`size-3.5 ${refreshing ? 'animate-spin text-primary' : ''}`}
+            />
+            <span className='hidden sm:inline'>{t('Refresh', 'تحديث')}</span>
+          </Button>
+
+          {/* Target Settings */}
+          <Button variant='outline' size='sm' onClick={handleOpenSettings} className='gap-1.5 h-8'>
+            <Icons.settings className='size-3.5 text-muted-foreground' />
+            <span className='hidden sm:inline'>إعدادات التارچت</span>
+          </Button>
+
+          {/* Import Excel Side Sheet Button */}
+          <Button
+            size='sm'
+            onClick={() => setImportSheetOpen(true)}
+            className='gap-1.5 h-8 shadow-xs font-semibold'
+          >
+            <Icons.upload className='size-3.5' />
+            <span>استيراد ملف إكسل</span>
+          </Button>
+        </div>
+      }
+    >
+      <div className='flex flex-1 flex-col gap-4' dir={dir}>
+        {/* 1. Hero KPI Cards - Styled like DashboardView Hero Stats */}
+        <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-2 gap-3 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-4 md:gap-4'>
           {/* Total Identifiers Card */}
           <Card
-            className={`cursor-pointer transition-all hover:shadow-md border-2 ${
+            className={`cursor-pointer transition-all hover:shadow-sm ${
               activeTab === 'identifiers' && statusFilter === 'ALL'
-                ? 'border-orange-500/80 bg-orange-500/5'
-                : 'hover:border-orange-200 dark:hover:border-orange-900'
+                ? 'ring-2 ring-primary bg-primary/10'
+                : ''
             }`}
             onClick={() => {
               setActiveTab('identifiers');
               setStatusFilter('ALL');
             }}
           >
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <div className='p-2 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg'>
-                  <Users className='h-5 w-5' />
-                </div>
-                <Badge variant='outline' className='font-mono text-xs'>
-                  معرف
-                </Badge>
+            <CardHeader className='flex flex-row items-center justify-between pb-2'>
+              <CardTitle className='text-xs font-medium text-muted-foreground'>
+                إجمالي المعرفين
+              </CardTitle>
+              <div className='bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg'>
+                <Users className='size-4' />
               </div>
-              <div className='mt-3'>
-                <div className='text-2xl font-black text-foreground'>{totalIdents}</div>
-                <div className='text-xs font-semibold text-muted-foreground mt-0.5'>
-                  إجمالي المعرفين
-                </div>
+            </CardHeader>
+            <CardContent>
+              <div className='text-2xl font-bold tracking-tight text-foreground font-mono'>
+                {totalIdents}
               </div>
+              <p className='text-muted-foreground text-xs mt-1'>معرف مسجل بنظام المتابعة</p>
             </CardContent>
           </Card>
 
           {/* On Track / Achieved Card */}
           <Card
-            className={`cursor-pointer transition-all hover:shadow-md border-2 ${
+            className={`cursor-pointer transition-all hover:shadow-sm ${
               activeTab === 'identifiers' &&
               (statusFilter === 'ON_TRACK' || statusFilter === 'TARGET_ACHIEVED')
-                ? 'border-emerald-500 bg-emerald-500/5'
-                : 'hover:border-emerald-200 dark:hover:border-emerald-900'
+                ? 'ring-2 ring-emerald-500 bg-emerald-500/10'
+                : ''
             }`}
             onClick={() => {
               setActiveTab('identifiers');
               setStatusFilter('ON_TRACK');
             }}
           >
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <div className='p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg'>
-                  <CheckCircle2 className='h-5 w-5' />
-                </div>
-                <Badge className='bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs'>
-                  يسير بالمعدل
-                </Badge>
+            <CardHeader className='flex flex-row items-center justify-between pb-2'>
+              <CardTitle className='text-xs font-medium text-muted-foreground'>
+                يسير بالمعدل / أنجز
+              </CardTitle>
+              <div className='bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex size-8 items-center justify-center rounded-lg'>
+                <CheckCircle2 className='size-4' />
               </div>
-              <div className='mt-3'>
-                <div className='text-2xl font-black text-emerald-600 dark:text-emerald-400'>
-                  {qualifiedSum}
-                </div>
-                <div className='text-xs font-semibold text-muted-foreground mt-0.5'>
-                  مؤهلون ({onTrackCount} بالمعدل + {achievedCount} أنجز 🏆)
-                </div>
+            </CardHeader>
+            <CardContent>
+              <div className='text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 font-mono'>
+                {qualifiedSum}
               </div>
+              <p className='text-muted-foreground text-xs mt-1'>
+                {onTrackCount} بالمعدل + {achievedCount} حقق التارچت 🏆
+              </p>
             </CardContent>
           </Card>
 
           {/* At Risk Card */}
           <Card
-            className={`cursor-pointer transition-all hover:shadow-md border-2 ${
+            className={`cursor-pointer transition-all hover:shadow-sm ${
               activeTab === 'identifiers' && statusFilter === 'AT_RISK'
-                ? 'border-amber-500 bg-amber-500/5'
-                : 'hover:border-amber-200 dark:hover:border-amber-900'
+                ? 'ring-2 ring-amber-500 bg-amber-500/10'
+                : ''
             }`}
             onClick={() => {
               setActiveTab('identifiers');
               setStatusFilter('AT_RISK');
             }}
           >
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <div className='p-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg'>
-                  <Clock className='h-5 w-5' />
-                </div>
-                <Badge className='bg-amber-600 hover:bg-amber-700 text-white font-mono text-xs'>
-                  على وشك
-                </Badge>
+            <CardHeader className='flex flex-row items-center justify-between pb-2'>
+              <CardTitle className='text-xs font-medium text-muted-foreground'>
+                على وشك (فرصة قائمة)
+              </CardTitle>
+              <div className='bg-amber-500/10 text-amber-600 dark:text-amber-400 flex size-8 items-center justify-center rounded-lg'>
+                <Clock className='size-4' />
               </div>
-              <div className='mt-3'>
-                <div className='text-2xl font-black text-amber-600 dark:text-amber-400'>
-                  {atRiskCount}
-                </div>
-                <div className='text-xs font-semibold text-muted-foreground mt-0.5'>
-                  فرصة قائمة (في المتناول)
-                </div>
+            </CardHeader>
+            <CardContent>
+              <div className='text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400 font-mono'>
+                {atRiskCount}
               </div>
+              <p className='text-muted-foreground text-xs mt-1'>في المتناول لتحقيق التارچت</p>
             </CardContent>
           </Card>
 
           {/* Behind Target Card */}
           <Card
-            className={`cursor-pointer transition-all hover:shadow-md border-2 ${
+            className={`cursor-pointer transition-all hover:shadow-sm ${
               activeTab === 'identifiers' && statusFilter === 'BEHIND_TARGET'
-                ? 'border-rose-500 bg-rose-500/5'
-                : 'hover:border-rose-200 dark:hover:border-rose-900'
+                ? 'ring-2 ring-destructive bg-destructive/10'
+                : ''
             }`}
             onClick={() => {
               setActiveTab('identifiers');
               setStatusFilter('BEHIND_TARGET');
             }}
           >
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <div className='p-2 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-lg'>
-                  <AlertTriangle className='h-5 w-5' />
-                </div>
-                <Badge variant='destructive' className='font-mono text-xs'>
-                  متأخر
-                </Badge>
+            <CardHeader className='flex flex-row items-center justify-between pb-2'>
+              <CardTitle className='text-xs font-medium text-muted-foreground'>
+                متأخر عن التارچت
+              </CardTitle>
+              <div className='bg-destructive/10 text-destructive flex size-8 items-center justify-center rounded-lg'>
+                <AlertTriangle className='size-4' />
               </div>
-              <div className='mt-3'>
-                <div className='text-2xl font-black text-rose-600 dark:text-rose-400'>
-                  {behindCount}
-                </div>
-                <div className='text-xs font-semibold text-muted-foreground mt-0.5'>
-                  يحتاج تكثيف الجهود
-                </div>
+            </CardHeader>
+            <CardContent>
+              <div className='text-2xl font-bold tracking-tight text-destructive font-mono'>
+                {behindCount}
               </div>
+              <p className='text-muted-foreground text-xs mt-1'>يحتاج لتكثيف الجهود والتوزيع</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* 2. Secondary Progress & Goal Card */}
-        <Card className='border shadow-sm bg-gradient-to-l from-orange-500/5 via-card to-card'>
-          <CardContent className='p-5'>
-            <div className='grid grid-cols-1 md:grid-cols-4 gap-6 items-center'>
+        {/* 2. Secondary Progress & Goal Overview */}
+        <Card className='shadow-xs'>
+          <CardContent className='p-4 sm:p-5'>
+            <div className='grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 items-center'>
               <div className='md:col-span-2 space-y-2'>
                 <div className='flex justify-between items-center text-sm'>
-                  <span className='font-bold flex items-center gap-1.5 text-foreground'>
-                    <Target className='h-4 w-4 text-orange-500' />
+                  <span className='font-semibold flex items-center gap-2 text-foreground'>
+                    <Target className='size-4 text-primary' />
                     نسبة إنجاز التارچت الشهري العام
                   </span>
-                  <span className='font-black font-mono text-orange-600 text-base'>
+                  <span className='font-bold font-mono text-primary text-base'>
                     {overallProgress}%
                   </span>
                 </div>
-                <Progress value={overallProgress} className='h-3 bg-muted' />
+                <Progress value={overallProgress} className='h-2.5' />
                 <div className='flex justify-between text-xs text-muted-foreground font-mono'>
                   <span>المحقق: {totalOrders.toLocaleString()} طلب</span>
                   <span>المستهدف العام: {totalTargetGoal.toLocaleString()} طلب</span>
                 </div>
               </div>
 
-              <div className='border-r pr-6 space-y-1'>
+              <div className='border-s ps-4 md:ps-6 space-y-1'>
                 <div className='text-xs text-muted-foreground font-medium'>إجمالي طلبات الشهر</div>
-                <div className='text-xl font-black text-foreground font-mono'>
+                <div className='text-xl font-bold text-foreground font-mono'>
                   {totalOrders.toLocaleString()}
-                  <span className='text-xs font-normal text-muted-foreground mr-1'>طلب</span>
+                  <span className='text-xs font-normal text-muted-foreground ms-1'>طلب</span>
                 </div>
                 <div className='text-xs text-muted-foreground'>المسجل خلال شهر {selectedMonth}</div>
               </div>
 
-              <div className='border-r pr-6 space-y-1'>
+              <div className='border-s ps-4 md:ps-6 space-y-1'>
                 <div className='text-xs text-muted-foreground font-medium'>
                   تنبيهات العجز غير المسواة
                 </div>
-                <div className='text-xl font-black text-rose-600 font-mono'>
+                <div className='text-xl font-bold text-destructive font-mono'>
                   {unresolvedAlertsCount}
-                  <span className='text-xs font-normal text-muted-foreground mr-1'>تنبيه</span>
+                  <span className='text-xs font-normal text-muted-foreground ms-1'>تنبيه</span>
                 </div>
                 <Button
                   variant='link'
                   size='sm'
                   onClick={() => setActiveTab('alerts')}
-                  className='p-0 h-auto text-xs text-orange-600'
+                  className='p-0 h-auto text-xs text-primary'
                 >
                   معاينة التنبيهات وإجراء التسوية ←
                 </Button>
@@ -585,39 +546,36 @@ export default function TargetDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* 3. Main Tabs (Identifiers, Drivers, Alerts, Sheets & Delete) */}
+        {/* 3. Main Tabs (Identifiers, Drivers, Alerts, Sheets) */}
         <Tabs value={activeTab} onValueChange={(val: any) => setActiveTab(val)} className='w-full'>
           <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b pb-3'>
-            <TabsList className='bg-muted/80 p-1 h-auto grid grid-cols-2 sm:grid-cols-4 w-full sm:w-auto'>
-              <TabsTrigger value='identifiers' className='gap-2 py-2'>
-                <Users className='h-4 w-4' />
+            <TabsList className='grid grid-cols-2 sm:inline-flex sm:w-auto h-9'>
+              <TabsTrigger value='identifiers' className='gap-2 text-xs md:text-sm'>
+                <Users className='size-3.5' />
                 <span>المعرفين ({identifiers.length})</span>
               </TabsTrigger>
-              <TabsTrigger value='drivers' className='gap-2 py-2'>
-                <TrendingUp className='h-4 w-4' />
+              <TabsTrigger value='drivers' className='gap-2 text-xs md:text-sm'>
+                <Icons.trendingUp className='size-3.5' />
                 <span>المناديب والطلبات ({drivers.length})</span>
               </TabsTrigger>
-              <TabsTrigger value='alerts' className='gap-2 py-2'>
-                <AlertTriangle className='h-4 w-4' />
+              <TabsTrigger value='alerts' className='gap-2 text-xs md:text-sm'>
+                <AlertTriangle className='size-3.5' />
                 <span>تنبيهات العجز ({alerts.length})</span>
               </TabsTrigger>
-              <TabsTrigger
-                value='sheets'
-                className='gap-2 py-2 font-bold text-orange-600 dark:text-orange-400'
-              >
-                <FileSpreadsheet className='h-4 w-4' />
-                <span>سجل الشيتات وحذفها ({batches.length})</span>
+              <TabsTrigger value='sheets' className='gap-2 text-xs md:text-sm'>
+                <FileSpreadsheet className='size-3.5' />
+                <span>سجل الشيتات ({batches.length})</span>
               </TabsTrigger>
             </TabsList>
 
             {/* Quick Search */}
             <div className='relative w-full sm:w-72'>
-              <Search className='absolute right-3 top-2.5 h-4 w-4 text-muted-foreground' />
+              <Icons.search className='text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2' />
               <Input
                 placeholder='بحث بالاسم، الكود، أو التاريخ...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className='pr-9 text-xs h-9'
+                className='h-9 ps-9 text-xs'
               />
             </div>
           </div>
@@ -626,11 +584,13 @@ export default function TargetDashboardPage() {
           <TabsContent value='identifiers' className='mt-4 space-y-4'>
             {/* Status Filter Chips */}
             <div className='flex flex-wrap items-center gap-2'>
-              <span className='text-xs font-bold text-muted-foreground ml-2'>تصفية الحالة:</span>
+              <span className='text-xs font-semibold text-muted-foreground me-1'>
+                تصفية الحالة:
+              </span>
               <Button
                 size='sm'
                 variant={statusFilter === 'ALL' ? 'default' : 'outline'}
-                className={`h-7 text-xs ${statusFilter === 'ALL' ? 'bg-orange-600 text-white' : ''}`}
+                className='h-7 text-xs'
                 onClick={() => setStatusFilter('ALL')}
               >
                 الكل ({totalIdents})
@@ -638,7 +598,7 @@ export default function TargetDashboardPage() {
               <Button
                 size='sm'
                 variant={statusFilter === 'ON_TRACK' ? 'default' : 'outline'}
-                className={`h-7 text-xs ${statusFilter === 'ON_TRACK' ? 'bg-emerald-600 text-white' : ''}`}
+                className='h-7 text-xs'
                 onClick={() => setStatusFilter('ON_TRACK')}
               >
                 بالمعدل ({qualifiedSum})
@@ -646,7 +606,7 @@ export default function TargetDashboardPage() {
               <Button
                 size='sm'
                 variant={statusFilter === 'AT_RISK' ? 'default' : 'outline'}
-                className={`h-7 text-xs ${statusFilter === 'AT_RISK' ? 'bg-amber-600 text-white' : ''}`}
+                className='h-7 text-xs'
                 onClick={() => setStatusFilter('AT_RISK')}
               >
                 على وشك ({atRiskCount})
@@ -654,7 +614,7 @@ export default function TargetDashboardPage() {
               <Button
                 size='sm'
                 variant={statusFilter === 'BEHIND_TARGET' ? 'default' : 'outline'}
-                className={`h-7 text-xs ${statusFilter === 'BEHIND_TARGET' ? 'bg-rose-600 text-white' : ''}`}
+                className='h-7 text-xs'
                 onClick={() => setStatusFilter('BEHIND_TARGET')}
               >
                 متأخرين ({behindCount})
@@ -662,7 +622,7 @@ export default function TargetDashboardPage() {
               <Button
                 size='sm'
                 variant={statusFilter === 'TARGET_ACHIEVED' ? 'default' : 'outline'}
-                className={`h-7 text-xs ${statusFilter === 'TARGET_ACHIEVED' ? 'bg-blue-600 text-white' : ''}`}
+                className='h-7 text-xs'
                 onClick={() => setStatusFilter('TARGET_ACHIEVED')}
               >
                 حقق التارچت 🏆 ({achievedCount})
@@ -670,25 +630,25 @@ export default function TargetDashboardPage() {
             </div>
 
             {/* Identifiers Table */}
-            <div className='rounded-xl border bg-card overflow-hidden shadow-sm'>
+            <Card className='shadow-xs overflow-hidden'>
               <Table>
                 <TableHeader>
-                  <TableRow className='bg-muted/40'>
-                    <TableHead className='text-right font-bold'>المعرف</TableHead>
-                    <TableHead className='text-right font-bold'>الكود</TableHead>
-                    <TableHead className='text-right font-bold'>التارچت الشهري</TableHead>
-                    <TableHead className='text-right font-bold'>المحقق الفعلي</TableHead>
-                    <TableHead className='text-right font-bold'>المتبقي</TableHead>
-                    <TableHead className='text-right font-bold'>نسبة الإنجاز</TableHead>
-                    <TableHead className='text-right font-bold'>الحالة</TableHead>
-                    <TableHead className='text-center font-bold'>إجراءات</TableHead>
+                  <TableRow className='bg-muted/50'>
+                    <TableHead className='font-semibold'>المعرف</TableHead>
+                    <TableHead className='font-semibold'>الكود</TableHead>
+                    <TableHead className='font-semibold'>التارچت الشهري</TableHead>
+                    <TableHead className='font-semibold'>المحقق الفعلي</TableHead>
+                    <TableHead className='font-semibold'>المتبقي</TableHead>
+                    <TableHead className='font-semibold'>نسبة الإنجاز</TableHead>
+                    <TableHead className='font-semibold'>الحالة</TableHead>
+                    <TableHead className='text-center font-semibold'>إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
                       <TableCell colSpan={8} className='text-center py-10'>
-                        <RefreshCw className='h-6 w-6 animate-spin mx-auto text-orange-500' />
+                        <Icons.spinner className='size-6 animate-spin mx-auto text-primary' />
                         <div className='text-xs text-muted-foreground mt-2'>
                           جاري تحميل بيانات المعرفين...
                         </div>
@@ -696,7 +656,10 @@ export default function TargetDashboardPage() {
                     </TableRow>
                   ) : filteredIdentifiers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className='text-center py-10 text-muted-foreground'>
+                      <TableCell
+                        colSpan={8}
+                        className='text-center py-10 text-muted-foreground text-xs'
+                      >
                         لا توجد بيانات معرفين تطابق معايير البحث
                       </TableCell>
                     </TableRow>
@@ -711,15 +674,12 @@ export default function TargetDashboardPage() {
                       const isAtRisk = item.status === 'AT_RISK';
 
                       return (
-                        <TableRow key={item.id} className='hover:bg-muted/30'>
-                          <TableCell className='font-bold text-foreground'>
+                        <TableRow key={item.id}>
+                          <TableCell className='font-semibold text-foreground'>
                             <div className='flex items-center gap-2'>
                               <span>{item.name}</span>
                               {item.app_name ? (
-                                <Badge
-                                  variant='outline'
-                                  className='text-[10px] px-1.5 py-0 border-orange-300 bg-orange-50 text-orange-800 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800'
-                                >
+                                <Badge variant='outline' className='text-[10px] px-1.5 py-0'>
                                   {item.app_name}
                                 </Badge>
                               ) : null}
@@ -731,12 +691,14 @@ export default function TargetDashboardPage() {
                           <TableCell className='font-mono font-bold text-foreground'>
                             {item.monthly_target || 460}
                           </TableCell>
-                          <TableCell className='font-mono font-bold text-orange-600'>
+                          <TableCell className='font-mono font-bold text-primary'>
                             {item.month_orders || 0}
                           </TableCell>
                           <TableCell className='font-mono text-muted-foreground'>
                             {remaining === 0 ? (
-                              <span className='text-emerald-600 font-bold'>اكتمل ✓</span>
+                              <span className='text-emerald-600 dark:text-emerald-400 font-bold'>
+                                اكتمل ✓
+                              </span>
                             ) : (
                               `${remaining} طلب`
                             )}
@@ -754,7 +716,7 @@ export default function TargetDashboardPage() {
                           </TableCell>
                           <TableCell>
                             {isAchieved ? (
-                              <Badge className='bg-blue-600 hover:bg-blue-700 text-white font-mono text-xs'>
+                              <Badge className='bg-primary text-primary-foreground font-mono text-xs'>
                                 حقق التارچت 🏆
                               </Badge>
                             ) : isOnTrack ? (
@@ -762,8 +724,8 @@ export default function TargetDashboardPage() {
                                 يسير بالمعدل
                               </Badge>
                             ) : isAtRisk ? (
-                              <Badge className='bg-amber-500 hover:bg-amber-600 text-white font-mono text-xs'>
-                                على وشك (في المتناول)
+                              <Badge className='bg-amber-600 hover:bg-amber-700 text-white font-mono text-xs'>
+                                على وشك
                               </Badge>
                             ) : (
                               <Badge variant='destructive' className='font-mono text-xs'>
@@ -776,7 +738,7 @@ export default function TargetDashboardPage() {
                               variant='ghost'
                               size='sm'
                               onClick={() => handleOpenDetails(item.id)}
-                              className='h-8 text-xs text-orange-600 hover:text-orange-700 hover:bg-orange-50'
+                              className='h-8 text-xs'
                             >
                               عرض التفاصيل
                             </Button>
@@ -787,28 +749,28 @@ export default function TargetDashboardPage() {
                   )}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
           </TabsContent>
 
           {/* TAB 2: DRIVERS (المناديب) */}
           <TabsContent value='drivers' className='mt-4 space-y-4'>
-            <div className='rounded-xl border bg-card overflow-hidden shadow-sm'>
+            <Card className='shadow-xs overflow-hidden'>
               <Table>
                 <TableHeader>
-                  <TableRow className='bg-muted/40'>
-                    <TableHead className='text-right font-bold'>اسم المندوب</TableHead>
-                    <TableHead className='text-right font-bold'>رقم الجوال</TableHead>
-                    <TableHead className='text-right font-bold'>إجمالي طلبات الشهر</TableHead>
-                    <TableHead className='text-right font-bold'>طلبات اليوم</TableHead>
-                    <TableHead className='text-right font-bold'>التطبيقات المسجل بها</TableHead>
-                    <TableHead className='text-right font-bold'>المعرفين التابع لهم</TableHead>
+                  <TableRow className='bg-muted/50'>
+                    <TableHead className='font-semibold'>اسم المندوب</TableHead>
+                    <TableHead className='font-semibold'>رقم الجوال</TableHead>
+                    <TableHead className='font-semibold'>إجمالي طلبات الشهر</TableHead>
+                    <TableHead className='font-semibold'>طلبات اليوم</TableHead>
+                    <TableHead className='font-semibold'>التطبيقات المسجل بها</TableHead>
+                    <TableHead className='font-semibold'>المعرفين التابع لهم</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
                       <TableCell colSpan={6} className='text-center py-10'>
-                        <RefreshCw className='h-6 w-6 animate-spin mx-auto text-orange-500' />
+                        <Icons.spinner className='size-6 animate-spin mx-auto text-primary' />
                         <div className='text-xs text-muted-foreground mt-2'>
                           جاري تحميل بيانات المناديب...
                         </div>
@@ -816,31 +778,32 @@ export default function TargetDashboardPage() {
                     </TableRow>
                   ) : filteredDrivers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className='text-center py-10 text-muted-foreground'>
+                      <TableCell
+                        colSpan={6}
+                        className='text-center py-10 text-muted-foreground text-xs'
+                      >
                         لا توجد بيانات مناديب مسجلة في هذا الشهر
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredDrivers.map((driver) => (
-                      <TableRow key={driver.id} className='hover:bg-muted/30'>
-                        <TableCell className='font-bold text-foreground'>{driver.name}</TableCell>
+                      <TableRow key={driver.id}>
+                        <TableCell className='font-semibold text-foreground'>
+                          {driver.name}
+                        </TableCell>
                         <TableCell className='font-mono text-xs text-muted-foreground'>
                           {driver.phone || '—'}
                         </TableCell>
-                        <TableCell className='font-mono font-bold text-orange-600'>
+                        <TableCell className='font-mono font-bold text-primary'>
                           {driver.month_orders || 0}
                         </TableCell>
-                        <TableCell className='font-mono font-bold text-emerald-600'>
+                        <TableCell className='font-mono font-bold text-emerald-600 dark:text-emerald-400'>
                           {driver.today_orders || 0}
                         </TableCell>
                         <TableCell>
                           <div className='flex flex-wrap gap-1'>
                             {(driver.apps || []).map((app, idx) => (
-                              <Badge
-                                key={idx}
-                                variant='outline'
-                                className='text-[11px] bg-muted/30'
-                              >
+                              <Badge key={idx} variant='outline' className='text-[11px]'>
                                 {app}
                               </Badge>
                             ))}
@@ -860,29 +823,29 @@ export default function TargetDashboardPage() {
                   )}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
           </TabsContent>
 
           {/* TAB 3: ALERTS (تنبيهات العجز) */}
           <TabsContent value='alerts' className='mt-4 space-y-4'>
-            <div className='rounded-xl border bg-card overflow-hidden shadow-sm'>
+            <Card className='shadow-xs overflow-hidden'>
               <Table>
                 <TableHeader>
-                  <TableRow className='bg-muted/40'>
-                    <TableHead className='text-right font-bold'>المعرف</TableHead>
-                    <TableHead className='text-right font-bold'>تاريخ التنبيه</TableHead>
-                    <TableHead className='text-right font-bold'>المستهدف اليومي</TableHead>
-                    <TableHead className='text-right font-bold'>المحقق الفعلي</TableHead>
-                    <TableHead className='text-right font-bold'>العجز</TableHead>
-                    <TableHead className='text-right font-bold'>الحالة</TableHead>
-                    <TableHead className='text-center font-bold'>إجراء</TableHead>
+                  <TableRow className='bg-muted/50'>
+                    <TableHead className='font-semibold'>المعرف</TableHead>
+                    <TableHead className='font-semibold'>تاريخ التنبيه</TableHead>
+                    <TableHead className='font-semibold'>المستهدف اليومي</TableHead>
+                    <TableHead className='font-semibold'>المحقق الفعلي</TableHead>
+                    <TableHead className='font-semibold'>العجز</TableHead>
+                    <TableHead className='font-semibold'>الحالة</TableHead>
+                    <TableHead className='text-center font-semibold'>إجراء</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
                       <TableCell colSpan={7} className='text-center py-10'>
-                        <RefreshCw className='h-6 w-6 animate-spin mx-auto text-orange-500' />
+                        <Icons.spinner className='size-6 animate-spin mx-auto text-primary' />
                         <div className='text-xs text-muted-foreground mt-2'>
                           جاري تحميل التنبيهات...
                         </div>
@@ -890,26 +853,29 @@ export default function TargetDashboardPage() {
                     </TableRow>
                   ) : filteredAlerts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className='text-center py-10 text-muted-foreground'>
+                      <TableCell
+                        colSpan={7}
+                        className='text-center py-10 text-muted-foreground text-xs'
+                      >
                         لا توجد تنبيهات عجز مسجلة حالياً
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredAlerts.map((alert) => (
-                      <TableRow key={alert.id} className='hover:bg-muted/30'>
-                        <TableCell className='font-bold text-foreground'>
+                      <TableRow key={alert.id}>
+                        <TableCell className='font-semibold text-foreground'>
                           {alert.identifier_name}
                         </TableCell>
                         <TableCell className='font-mono text-xs text-muted-foreground'>
                           {alert.alert_date}
                         </TableCell>
-                        <TableCell className='font-mono font-semibold'>
+                        <TableCell className='font-mono font-medium'>
                           {alert.target_orders || 17} طلب
                         </TableCell>
-                        <TableCell className='font-mono font-bold text-orange-600'>
+                        <TableCell className='font-mono font-bold text-primary'>
                           {alert.actual_orders} طلب
                         </TableCell>
-                        <TableCell className='font-mono font-bold text-rose-600'>
+                        <TableCell className='font-mono font-bold text-destructive'>
                           -{alert.deficit} طلب
                         </TableCell>
                         <TableCell>
@@ -929,7 +895,7 @@ export default function TargetDashboardPage() {
                               variant='outline'
                               size='sm'
                               onClick={() => handleResolveAlert(alert.id)}
-                              className='h-7 text-xs border-emerald-500 text-emerald-600 hover:bg-emerald-50'
+                              className='h-7 text-xs border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950'
                             >
                               تسوية التنبيه
                             </Button>
@@ -940,60 +906,61 @@ export default function TargetDashboardPage() {
                   )}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
           </TabsContent>
 
           {/* TAB 4: SHEETS & DELETION (سجل الشيتات وحذفها) */}
           <TabsContent value='sheets' className='mt-4 space-y-4'>
-            <Card className='border border-orange-200 dark:border-orange-900/50 bg-orange-500/5 shadow-sm'>
+            <Card className='shadow-xs'>
               <CardContent className='p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3'>
                 <div className='flex items-center gap-3'>
-                  <div className='p-2 bg-orange-500 text-white rounded-lg'>
-                    <Info className='h-5 w-5' />
+                  <div className='bg-primary/10 text-primary flex size-9 items-center justify-center rounded-lg shrink-0'>
+                    <Icons.info className='size-5' />
                   </div>
                   <div>
-                    <h3 className='font-bold text-foreground text-sm'>
+                    <h3 className='font-semibold text-foreground text-sm'>
                       إدارة وحذف الشيتات اليومية المرفوعة
                     </h3>
-                    <p className='text-xs text-muted-foreground mt-0.5'>
+                    <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
                       في حال وجود أي خطأ في ملف إكسل تم رفعه ليوم معين، يمكنك حذف شيت ذلك اليوم من
                       هنا وسيقوم النظام تلقائياً بمسح طلباته وإعادة حساب نسب التارچت فوراً.
                     </p>
                   </div>
                 </div>
 
-                <Link href='/dashboard/target/import'>
-                  <Button
-                    size='sm'
-                    className='gap-2 bg-orange-600 hover:bg-orange-700 text-white shrink-0'
-                  >
-                    <Upload className='h-4 w-4' />
-                    <span>رفع شيت جديد</span>
-                  </Button>
-                </Link>
+                <Button
+                  size='sm'
+                  onClick={() => setImportSheetOpen(true)}
+                  className='gap-1.5 shrink-0 font-semibold'
+                >
+                  <Icons.upload className='size-3.5' />
+                  <span>رفع شيت جديد</span>
+                </Button>
               </CardContent>
             </Card>
 
             {/* Sheets Table */}
-            <div className='rounded-xl border bg-card overflow-hidden shadow-sm'>
+            <Card className='shadow-xs overflow-hidden'>
               <Table>
                 <TableHeader>
-                  <TableRow className='bg-muted/40'>
-                    <TableHead className='text-right font-bold'>تاريخ الشيت (اليوم)</TableHead>
-                    <TableHead className='text-right font-bold'>اسم الملف</TableHead>
-                    <TableHead className='text-right font-bold'>إجمالي الطلبات</TableHead>
-                    <TableHead className='text-right font-bold'>عدد المعرفين</TableHead>
-                    <TableHead className='text-right font-bold'>عدد المناديب</TableHead>
-                    <TableHead className='text-right font-bold'>مَن قام بالرفع</TableHead>
-                    <TableHead className='text-right font-bold'>وقت وتاريخ الرفع</TableHead>
-                    <TableHead className='text-center font-bold text-rose-600'>حذف الشيت</TableHead>
+                  <TableRow className='bg-muted/50'>
+                    <TableHead className='font-semibold'>تاريخ الشيت (اليوم)</TableHead>
+                    <TableHead className='font-semibold'>اسم الملف</TableHead>
+                    <TableHead className='font-semibold'>إجمالي الطلبات</TableHead>
+                    <TableHead className='font-semibold'>عدد المعرفين</TableHead>
+                    <TableHead className='font-semibold'>عدد المناديب</TableHead>
+                    <TableHead className='font-semibold'>مَن قام بالرفع</TableHead>
+                    <TableHead className='font-semibold'>وقت وتاريخ الرفع</TableHead>
+                    <TableHead className='text-center font-semibold text-destructive'>
+                      حذف الشيت
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
                       <TableCell colSpan={8} className='text-center py-10'>
-                        <RefreshCw className='h-6 w-6 animate-spin mx-auto text-orange-500' />
+                        <Icons.spinner className='size-6 animate-spin mx-auto text-primary' />
                         <div className='text-xs text-muted-foreground mt-2'>
                           جاري تحميل سجل الشيتات...
                         </div>
@@ -1001,7 +968,10 @@ export default function TargetDashboardPage() {
                     </TableRow>
                   ) : filteredBatches.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className='text-center py-10 text-muted-foreground'>
+                      <TableCell
+                        colSpan={8}
+                        className='text-center py-10 text-muted-foreground text-xs'
+                      >
                         لا توجد شيتات مرفوعة مسجلة حالياً
                       </TableCell>
                     </TableRow>
@@ -1015,17 +985,17 @@ export default function TargetDashboardPage() {
                         : '—';
 
                       return (
-                        <TableRow key={batch.id} className='hover:bg-muted/30'>
-                          <TableCell className='font-mono font-bold text-foreground text-sm'>
-                            <span className='inline-flex items-center gap-1.5 px-2.5 py-1 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-md'>
-                              <Calendar className='h-3.5 w-3.5' />
+                        <TableRow key={batch.id}>
+                          <TableCell className='font-mono font-bold text-foreground text-xs'>
+                            <Badge variant='outline' className='font-mono font-medium gap-1'>
+                              <Calendar className='size-3' />
                               {batch.order_date || 'غير محدد'}
-                            </span>
+                            </Badge>
                           </TableCell>
                           <TableCell className='font-medium text-xs font-mono text-foreground'>
                             {batch.file_name}
                           </TableCell>
-                          <TableCell className='font-mono font-bold text-orange-600 text-sm'>
+                          <TableCell className='font-mono font-bold text-primary text-xs'>
                             {batch.total_orders?.toLocaleString() || 0} طلب
                           </TableCell>
                           <TableCell className='font-mono text-muted-foreground text-xs'>
@@ -1045,10 +1015,10 @@ export default function TargetDashboardPage() {
                               variant='destructive'
                               size='sm'
                               onClick={() => setBatchToDelete(batch)}
-                              className='h-8 px-3 gap-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs shadow-xs'
+                              className='h-7 px-2.5 gap-1.5 text-xs'
                             >
-                              <Trash2 className='h-3.5 w-3.5' />
-                              <span>حذف شيت اليوم</span>
+                              <Trash2 className='size-3.5' />
+                              <span>حذف</span>
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -1057,7 +1027,7 @@ export default function TargetDashboardPage() {
                   )}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
           </TabsContent>
         </Tabs>
 
@@ -1066,21 +1036,21 @@ export default function TargetDashboardPage() {
           open={Boolean(batchToDelete)}
           onOpenChange={(open) => !open && setBatchToDelete(null)}
         >
-          <AlertDialogContent className='text-right' dir='rtl'>
+          <AlertDialogContent className='text-start' dir={dir}>
             <AlertDialogHeader>
-              <AlertDialogTitle className='text-rose-600 flex items-center gap-2 text-lg font-black'>
-                <Trash2 className='h-5 w-5 text-rose-600' />
+              <AlertDialogTitle className='text-destructive flex items-center gap-2 text-base font-bold'>
+                <Trash2 className='size-5 text-destructive' />
                 تأكيد حذف شيت يوم ({batchToDelete?.order_date})
               </AlertDialogTitle>
-              <AlertDialogDescription className='text-sm text-muted-foreground mt-2 leading-relaxed'>
+              <AlertDialogDescription className='text-xs text-muted-foreground mt-2 leading-relaxed'>
                 أنت على وشك حذف ملف الشيت:{' '}
                 <strong className='font-mono text-foreground'>{batchToDelete?.file_name}</strong>{' '}
                 الخاص بتاريخ{' '}
                 <strong className='font-mono text-foreground'>{batchToDelete?.order_date}</strong>.
                 <br />
                 <br />
-                ⚠️ <strong className='text-rose-600'>تحذير مهم:</strong> سيؤدي الحذف إلى إزالة جميع
-                طلبات هذا اليوم (
+                ⚠️ <strong className='text-destructive'>تحذير مهم:</strong> سيؤدي الحذف إلى إزالة
+                جميع طلبات هذا اليوم (
                 <strong className='font-mono text-foreground'>
                   {batchToDelete?.total_orders} طلب
                 </strong>
@@ -1088,7 +1058,7 @@ export default function TargetDashboardPage() {
                 التارچت فوراً.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter className='flex-row-reverse gap-2 mt-4'>
+            <AlertDialogFooter className='gap-2 mt-4'>
               <AlertDialogCancel disabled={deletingBatch}>إلغاء</AlertDialogCancel>
               <AlertDialogAction
                 onClick={(e) => {
@@ -1096,7 +1066,7 @@ export default function TargetDashboardPage() {
                   handleConfirmDeleteSheet();
                 }}
                 disabled={deletingBatch}
-                className='bg-rose-600 hover:bg-rose-700 text-white font-bold'
+                className='bg-destructive hover:bg-destructive/90 text-destructive-foreground font-bold'
               >
                 {deletingBatch ? 'جاري الحذف...' : 'نعم، احذف شيت هذا اليوم'}
               </AlertDialogAction>
@@ -1109,123 +1079,99 @@ export default function TargetDashboardPage() {
           open={Boolean(selectedIdentifierId)}
           onOpenChange={(open) => !open && setSelectedIdentifierId(null)}
         >
-          <DialogContent className='max-w-2xl text-right' dir='rtl'>
+          <DialogContent className='max-w-2xl text-start' dir={dir}>
             <DialogHeader>
-              <DialogTitle className='flex items-center gap-2 text-lg font-black'>
-                <Users className='h-5 w-5 text-orange-500' />
+              <DialogTitle className='flex items-center gap-2 text-base font-bold'>
+                <Users className='size-5 text-primary' />
                 تفاصيل إنجاز المعرف: {identifierDetails?.performance?.name}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className='text-xs'>
                 معدلات الطلبات، المناديب النشطين، وتوزيع التطبيقات لهذا الشهر
               </DialogDescription>
             </DialogHeader>
 
             {loadingDetails ? (
               <div className='py-12 text-center'>
-                <RefreshCw className='h-6 w-6 animate-spin mx-auto text-orange-500' />
+                <Icons.spinner className='size-6 animate-spin mx-auto text-primary' />
                 <div className='text-xs text-muted-foreground mt-2'>جاري تحميل التفاصيل...</div>
               </div>
             ) : identifierDetails ? (
-              <div className='space-y-4 mt-2 max-h-[70vh] overflow-y-auto pr-1'>
+              <div className='space-y-4 mt-2 max-h-[70vh] overflow-y-auto pe-1'>
                 {/* Stats row */}
                 <div className='grid grid-cols-3 gap-3'>
                   <div className='p-3 bg-muted/40 rounded-lg border text-center'>
                     <div className='text-xs text-muted-foreground'>المحقق الفعلي</div>
-                    <div className='text-lg font-black font-mono text-orange-600'>
+                    <div className='text-lg font-bold font-mono text-primary'>
                       {identifierDetails.performance.month_orders}
                     </div>
                   </div>
                   <div className='p-3 bg-muted/40 rounded-lg border text-center'>
                     <div className='text-xs text-muted-foreground'>المستهدف الشهري</div>
-                    <div className='text-lg font-black font-mono text-foreground'>
+                    <div className='text-lg font-bold font-mono text-foreground'>
                       {identifierDetails.performance.monthly_target}
                     </div>
                   </div>
                   <div className='p-3 bg-muted/40 rounded-lg border text-center'>
                     <div className='text-xs text-muted-foreground'>نسبة الإنجاز</div>
-                    <div className='text-lg font-black font-mono text-emerald-600'>
+                    <div className='text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400'>
                       {identifierDetails.performance.achievement_percent}%
                     </div>
                   </div>
                 </div>
 
-                {/* Linked Drivers */}
-                <div>
-                  <h4 className='font-bold text-sm text-foreground mb-2 flex items-center gap-1.5'>
-                    <Users className='h-4 w-4 text-orange-500' />
-                    المناديب المرتبطين ومساهماتهم (
-                    {identifierDetails.drivers_breakdown?.length || 0})
+                {/* Sub details: Drivers Breakdown */}
+                <div className='space-y-2'>
+                  <h4 className='text-xs font-semibold text-foreground'>
+                    المناديب النشطين مع هذا المعرف:
                   </h4>
-                  <div className='rounded-lg border bg-card overflow-hidden'>
-                    <Table>
-                      <TableHeader>
-                        <TableRow className='bg-muted/30'>
-                          <TableHead className='text-right text-xs font-bold'>
-                            اسم المندوب
-                          </TableHead>
-                          <TableHead className='text-right text-xs font-bold'>الطلبات</TableHead>
-                          <TableHead className='text-right text-xs font-bold'>المساهمة</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {(identifierDetails.drivers_breakdown || []).map((driver) => (
-                          <TableRow key={driver.driver_id}>
-                            <TableCell className='text-xs font-medium'>
-                              {driver.driver_name}
-                            </TableCell>
-                            <TableCell className='text-xs font-mono font-bold text-orange-600'>
-                              {driver.orders}
-                            </TableCell>
-                            <TableCell className='text-xs font-mono text-muted-foreground'>
-                              {driver.percentage}%
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-
-                {/* App Breakdown */}
-                <div>
-                  <h4 className='font-bold text-sm text-foreground mb-2'>
-                    توزيع الطلبات بحسب التطبيقات
-                  </h4>
-                  <div className='grid grid-cols-2 sm:grid-cols-4 gap-2'>
-                    {Object.entries(identifierDetails.apps_breakdown || {}).map(
-                      ([appName, count]) => (
+                  <div className='border rounded-lg p-2 max-h-48 overflow-y-auto divide-y'>
+                    {!identifierDetails.drivers_breakdown ||
+                    identifierDetails.drivers_breakdown.length === 0 ? (
+                      <p className='text-center py-4 text-xs text-muted-foreground'>
+                        لا يوجد مناديب مسجلين لهذا المعرف
+                      </p>
+                    ) : (
+                      identifierDetails.drivers_breakdown.map((d, i) => (
                         <div
-                          key={appName}
-                          className='p-2.5 bg-muted/30 border rounded-lg text-center'
+                          key={i}
+                          className='flex justify-between items-center py-2 px-1 text-xs'
                         >
-                          <div className='text-xs text-muted-foreground'>{appName}</div>
-                          <div className='text-base font-bold font-mono text-foreground mt-0.5'>
-                            {count} طلب
-                          </div>
+                          <span className='font-medium'>{d.driver_name}</span>
+                          <span className='font-mono font-bold text-primary'>
+                            {d.orders} طلب ({d.percentage || 0}%)
+                          </span>
                         </div>
-                      )
+                      ))
                     )}
                   </div>
                 </div>
               </div>
             ) : null}
+
+            <DialogFooter>
+              <Button variant='outline' size='sm' onClick={() => setSelectedIdentifierId(null)}>
+                إغلاق
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 
         {/* 6. Settings Modal */}
         <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-          <DialogContent className='max-w-md text-right' dir='rtl'>
+          <DialogContent className='max-w-md text-start' dir={dir}>
             <DialogHeader>
-              <DialogTitle className='flex items-center gap-2 text-lg font-black'>
-                <Settings className='h-5 w-5 text-orange-500' />
+              <DialogTitle className='flex items-center gap-2 text-base font-bold'>
+                <Icons.settings className='size-5 text-primary' />
                 إعدادات التارچت الافتراضية
               </DialogTitle>
-              <DialogDescription>ضبط حدود التارچت اليومي والشهري العامة للمعرفين</DialogDescription>
+              <DialogDescription className='text-xs'>
+                ضبط حدود التارچت اليومي والشهري العامة للمعرفين
+              </DialogDescription>
             </DialogHeader>
 
             <div className='space-y-4 py-2'>
               <div className='space-y-1.5'>
-                <label className='text-xs font-bold text-foreground'>
+                <label className='text-xs font-semibold text-foreground'>
                   المستهدف الشهري الافتراضي (طلب/شهر)
                 </label>
                 <Input
@@ -1234,12 +1180,12 @@ export default function TargetDashboardPage() {
                   onChange={(e) =>
                     setSettings({ ...settings, default_monthly_target: Number(e.target.value) })
                   }
-                  className='font-mono'
+                  className='font-mono text-sm'
                 />
               </div>
 
               <div className='space-y-1.5'>
-                <label className='text-xs font-bold text-foreground'>
+                <label className='text-xs font-semibold text-foreground'>
                   المستهدف اليومي الافتراضي (طلب/يوم)
                 </label>
                 <Input
@@ -1248,29 +1194,37 @@ export default function TargetDashboardPage() {
                   onChange={(e) =>
                     setSettings({ ...settings, default_daily_target: Number(e.target.value) })
                   }
-                  className='font-mono'
+                  className='font-mono text-sm'
                 />
-                <p className='text-[11px] text-muted-foreground'>
+                <p className='text-[11px] text-muted-foreground leading-relaxed'>
                   يتم توليد تنبيه عجز تلقائي لأي معرف يقل إجمالي طلباته اليومية عن هذا الحد (افتراضياً
                   17 طلب).
                 </p>
               </div>
             </div>
 
-            <DialogFooter className='flex-row-reverse gap-2 mt-3'>
-              <Button variant='outline' onClick={() => setSettingsOpen(false)}>
+            <DialogFooter className='gap-2 mt-3'>
+              <Button variant='outline' size='sm' onClick={() => setSettingsOpen(false)}>
                 إلغاء
               </Button>
               <Button
+                size='sm'
                 onClick={handleSaveSettings}
                 disabled={savingSettings}
-                className='bg-orange-600 hover:bg-orange-700 text-white font-bold'
+                className='font-semibold'
               >
                 {savingSettings ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* 7. Import Target Excel Side Sheet (from left) */}
+        <TargetImportSheet
+          open={importSheetOpen}
+          onOpenChange={setImportSheetOpen}
+          onImportSuccess={() => loadData(true)}
+        />
       </div>
     </PageContainer>
   );
