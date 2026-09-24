@@ -30,12 +30,13 @@ import {
   TableRow
 } from '@/components/ui/table';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter
+} from '@/components/ui/sheet';
 import { TableSkeleton } from '@/components/aams/skeletons';
 import { Icons } from '@/components/icons';
 import type { Employee, PaginatedResponse, WorkSessionDetail } from '@/types/aams';
@@ -613,25 +614,26 @@ export default function ReportsPage() {
         )}
       </div>
 
-      {/* Edit Modal */}
-      <Dialog open={!!editSession} onOpenChange={(open) => !open && closeEditModal()}>
-        <DialogContent className='sm:max-w-md'>
-          <DialogHeader>
-            <DialogTitle className='flex items-center gap-2 text-base font-bold'>
+      {/* Edit Modal as Sheet */}
+      <Sheet open={!!editSession} onOpenChange={(open) => !open && closeEditModal()}>
+        <SheetContent className='sm:max-w-lg w-full p-0 flex flex-col'>
+          <SheetHeader className='p-6'>
+            <SheetTitle className='flex items-center gap-2 text-base font-bold'>
               <Icons.edit className='text-primary size-4' />
               تعديل شفت العمل
-            </DialogTitle>
-          </DialogHeader>
+            </SheetTitle>
+            <SheetDescription>تعديل بيانات الشفت وساعات العمل وقراءات العدادات</SheetDescription>
+          </SheetHeader>
 
-          <div className='space-y-4'>
+          <div className='flex-1 overflow-y-auto px-6 py-5 space-y-4 min-h-0'>
             {/* Employee info header */}
-            <div className='bg-muted flex items-center gap-3 rounded-xl p-3'>
-              <div className='bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-full'>
-                <span className='text-sm font-bold'>{editSession?.employee_name?.charAt(0)}</span>
+            <div className='bg-muted/50 border flex items-center gap-3 rounded-xl p-3'>
+              <div className='bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-full font-bold'>
+                <span className='text-sm'>{editSession?.employee_name?.charAt(0)}</span>
               </div>
               <div className='min-w-0'>
                 <p className='truncate text-sm font-bold'>{editSession?.employee_name}</p>
-                <p className='text-muted-foreground font-mono text-[10px]'>
+                <p className='text-muted-foreground font-mono text-[11px]'>
                   {editSession
                     ? formatRiyadh(new Date(editSession.start_time), 'yyyy-MM-dd · hh:mm a', {
                         locale: ar
@@ -646,8 +648,8 @@ export default function ReportsPage() {
 
             {/* Employee Change Selector */}
             <div className='space-y-1.5'>
-              <Label className='flex items-center gap-1 text-xs font-semibold'>
-                <span className='inline-block h-3 w-1 rounded-full bg-amber-500'></span>
+              <Label className='flex items-center gap-1.5 text-xs font-semibold'>
+                <span className='inline-block size-2 rounded-full bg-amber-500'></span>
                 تغيير المندوب
               </Label>
               <Select
@@ -677,10 +679,10 @@ export default function ReportsPage() {
 
             {/* Form Fields */}
             <div className='space-y-3'>
-              <div className='space-y-3'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                 <div className='space-y-1.5'>
-                  <Label className='flex items-center gap-1 text-xs font-semibold'>
-                    <span className='inline-block h-3 w-1 rounded-full bg-emerald-500'></span>
+                  <Label className='flex items-center gap-1.5 text-xs font-semibold'>
+                    <span className='inline-block size-2 rounded-full bg-emerald-500'></span>
                     تاريخ ووقت البداية
                   </Label>
                   <Input
@@ -691,8 +693,8 @@ export default function ReportsPage() {
                   />
                 </div>
                 <div className='space-y-1.5'>
-                  <Label className='flex items-center gap-1 text-xs font-semibold'>
-                    <span className='inline-block h-3 w-1 rounded-full bg-rose-500'></span>
+                  <Label className='flex items-center gap-1.5 text-xs font-semibold'>
+                    <span className='inline-block size-2 rounded-full bg-rose-500'></span>
                     تاريخ ووقت النهاية
                   </Label>
                   <Input
@@ -704,79 +706,83 @@ export default function ReportsPage() {
                 </div>
               </div>
 
-              <div className='space-y-1.5'>
-                <Label className='text-xs font-semibold'>عداد البداية (كم)</Label>
-                <Input
-                  type='text'
-                  inputMode='decimal'
-                  value={editStartKm}
-                  onChange={(e) => {
-                    const v = e.target.value.replace(/[^0-9.]/g, '');
-                    if ((v.match(/\./g) || []).length <= 1) {
-                      setEditStartKm(v);
-                    }
-                  }}
-                  className='h-10 font-mono'
-                />
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-semibold'>عداد البداية (كم)</Label>
+                  <Input
+                    type='text'
+                    inputMode='decimal'
+                    value={editStartKm}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/[^0-9.]/g, '');
+                      if ((v.match(/\./g) || []).length <= 1) {
+                        setEditStartKm(v);
+                      }
+                    }}
+                    className='h-10 font-mono'
+                  />
+                </div>
+
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-semibold'>عداد النهاية (كم)</Label>
+                  <Input
+                    type='text'
+                    inputMode='decimal'
+                    value={editEndKm}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/[^0-9.]/g, '');
+                      if ((v.match(/\./g) || []).length <= 1) {
+                        setEditEndKm(v);
+                      }
+                    }}
+                    placeholder={`أكبر من ${editSession?.start_km}`}
+                    className='h-10 font-mono'
+                  />
+                </div>
               </div>
 
-              <div className='space-y-1.5'>
-                <Label className='text-xs font-semibold'>عداد النهاية (كم)</Label>
-                <Input
-                  type='text'
-                  inputMode='decimal'
-                  value={editEndKm}
-                  onChange={(e) => {
-                    const v = e.target.value.replace(/[^0-9.]/g, '');
-                    if ((v.match(/\./g) || []).length <= 1) {
-                      setEditEndKm(v);
-                    }
-                  }}
-                  placeholder={`أكبر من ${editSession?.start_km}`}
-                  className='h-10 font-mono'
-                />
-              </div>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-semibold'>عدد الطلبات</Label>
+                  <Input
+                    type='text'
+                    inputMode='numeric'
+                    value={editOrdersCount}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/[^0-9]/g, '');
+                      setEditOrdersCount(v);
+                    }}
+                    className='h-10 font-mono'
+                  />
+                </div>
 
-              <div className='space-y-1.5'>
-                <Label className='text-xs font-semibold'>عدد الطلبات</Label>
-                <Input
-                  type='text'
-                  inputMode='numeric'
-                  value={editOrdersCount}
-                  onChange={(e) => {
-                    const v = e.target.value.replace(/[^0-9]/g, '');
-                    setEditOrdersCount(v);
-                  }}
-                  className='h-10 font-mono'
-                />
-              </div>
-
-              <div className='space-y-1.5'>
-                <Label className='text-xs font-semibold'>تكلفة الوقود (ر.س)</Label>
-                <Input
-                  type='text'
-                  inputMode='decimal'
-                  value={editFuelCost}
-                  onChange={(e) => {
-                    const v = e.target.value.replace(/[^0-9.]/g, '');
-                    if ((v.match(/\./g) || []).length <= 1) {
-                      setEditFuelCost(v);
-                    }
-                  }}
-                  className='h-10 font-mono'
-                />
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-semibold'>تكلفة الوقود (ر.س)</Label>
+                  <Input
+                    type='text'
+                    inputMode='decimal'
+                    value={editFuelCost}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/[^0-9.]/g, '');
+                      if ((v.match(/\./g) || []).length <= 1) {
+                        setEditFuelCost(v);
+                      }
+                    }}
+                    className='h-10 font-mono'
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          <DialogFooter>
+          <SheetFooter className='p-4 border-t bg-muted/20 flex items-center justify-end gap-2'>
             <Button variant='outline' onClick={closeEditModal} disabled={editMutation.isPending}>
               إلغاء
             </Button>
             <Button
               onClick={handleEditSave}
               disabled={editMutation.isPending}
-              className='gap-2 font-bold'
+              className='gap-2 font-medium'
             >
               {editMutation.isPending ? (
                 <Icons.spinner className='size-4 animate-spin' />
@@ -785,22 +791,23 @@ export default function ReportsPage() {
               )}
               حفظ التعديلات
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
-      {/* Filter Modal */}
-      <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
-        <DialogContent className='sm:max-w-md'>
-          <DialogHeader>
-            <DialogTitle className='flex items-center gap-2 text-base font-bold'>
+      {/* Filter Modal as Sheet */}
+      <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+        <SheetContent className='sm:max-w-lg w-full p-0 flex flex-col'>
+          <SheetHeader className='p-6'>
+            <SheetTitle className='flex items-center gap-2 text-base font-bold'>
               <Icons.adjustments className='text-primary size-4' />
-              تصفية التقارير
-            </DialogTitle>
-          </DialogHeader>
+              تصفية كشف الشفتات
+            </SheetTitle>
+            <SheetDescription>حدد خيارات الفلترة حسب التاريخ والمندوب أو التطبيق</SheetDescription>
+          </SheetHeader>
 
-          <div className='space-y-4'>
-            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+          <div className='flex-1 overflow-y-auto px-6 py-5 space-y-4 min-h-0'>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
               <div className='space-y-1.5'>
                 <Label className='text-xs font-semibold'>من تاريخ</Label>
                 <Input
@@ -859,23 +866,23 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant='outline' onClick={resetFilters} className='gap-1 text-xs'>
+          <SheetFooter className='p-4 border-t bg-muted/20 flex items-center justify-between gap-2'>
+            <Button variant='outline' onClick={resetFilters} className='gap-1.5 text-xs'>
               <Icons.refresh className='size-3.5' />
               مسح الكل
             </Button>
-            <div className='flex gap-2'>
+            <div className='flex items-center gap-2'>
               <Button variant='ghost' onClick={() => setFilterOpen(false)}>
                 إلغاء
               </Button>
-              <Button onClick={applyFilters} className='gap-2 font-bold'>
+              <Button onClick={applyFilters} className='gap-2 font-medium'>
                 <Icons.search className='size-4' />
                 تطبيق الفلترة
               </Button>
             </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </PageContainer>
   );
 }
