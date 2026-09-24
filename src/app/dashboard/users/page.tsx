@@ -95,7 +95,7 @@ const AVATAR_COLORS = [
   'bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-900',
   'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900',
   'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-900',
-  'bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900',
+  'bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900'
 ];
 
 function getAvatarColor(name: string): string {
@@ -141,7 +141,11 @@ export default function UsersPage() {
   const currentAdmin = getAdminUser();
   const isGeneralMgr = !currentAdmin?.branch_id;
 
-  const { data: admins = [], isLoading, refetch } = useQuery({
+  const {
+    data: admins = [],
+    isLoading,
+    refetch
+  } = useQuery({
     queryKey: ['users'],
     queryFn: () => adminApi.getAll(),
     enabled: mounted && isGeneralMgr
@@ -274,7 +278,11 @@ export default function UsersPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name.trim() || !formData.email.trim() || (!editingUser && !formData.username.trim())) {
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      (!editingUser && !formData.username.trim())
+    ) {
       toast.error('يرجى تعبئة الحقول الأساسية المطلوبة');
       return;
     }
@@ -344,7 +352,8 @@ export default function UsersPage() {
       // Branch filter
       if (selectedBranchFilter !== 'ALL') {
         if (selectedBranchFilter === 'HEADQUARTERS' && admin.branch_id) return false;
-        if (selectedBranchFilter !== 'HEADQUARTERS' && admin.branch_id !== selectedBranchFilter) return false;
+        if (selectedBranchFilter !== 'HEADQUARTERS' && admin.branch_id !== selectedBranchFilter)
+          return false;
       }
 
       // Search query
@@ -487,7 +496,12 @@ export default function UsersPage() {
                   }}
                 >
                   <SelectTrigger className='w-[160px] h-9 text-xs'>
-                    <SelectValue placeholder='الدور الوظيفي' />
+                    <SelectValue placeholder='الدور الوظيفي'>
+                      {selectedRoleFilter === 'ALL'
+                        ? 'كافة الأدوار'
+                        : roles.find((r) => r.id === selectedRoleFilter)?.display_name ||
+                          'الدور الوظيفي'}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value='ALL'>كافة الأدوار</SelectItem>
@@ -508,7 +522,13 @@ export default function UsersPage() {
                   }}
                 >
                   <SelectTrigger className='w-[160px] h-9 text-xs'>
-                    <SelectValue placeholder='الفرع' />
+                    <SelectValue placeholder='الفرع'>
+                      {selectedBranchFilter === 'ALL'
+                        ? 'كافة الفروع'
+                        : selectedBranchFilter === 'HEADQUARTERS'
+                          ? 'الإدارة العامة'
+                          : branches.find((b) => b.id === selectedBranchFilter)?.name || 'الفرع'}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value='ALL'>كافة الفروع</SelectItem>
@@ -561,7 +581,9 @@ export default function UsersPage() {
                   <TableCell colSpan={6} className='h-48 text-center'>
                     <div className='flex flex-col items-center justify-center gap-2'>
                       <Icons.spinner className='size-6 animate-spin text-primary' />
-                      <p className='text-sm text-muted-foreground'>جارٍ تحميل بيانات المستخدمين...</p>
+                      <p className='text-sm text-muted-foreground'>
+                        جارٍ تحميل بيانات المستخدمين...
+                      </p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -574,7 +596,9 @@ export default function UsersPage() {
                       </div>
                       <p className='text-base font-bold'>لا توجد نتائج</p>
                       <p className='text-xs text-muted-foreground max-w-sm'>
-                        {searchQuery || selectedRoleFilter !== 'ALL' || selectedBranchFilter !== 'ALL'
+                        {searchQuery ||
+                        selectedRoleFilter !== 'ALL' ||
+                        selectedBranchFilter !== 'ALL'
                           ? 'لم يتم العثور على أي مستخدمين يطابقون معايير التصفية والبحث المحددة.'
                           : 'لا يوجد مستخدمون مسجلون حالياً. يمكنك إضافة مستخدم جديد بالنقر على زر الإضافة أعلاه.'}
                       </p>
@@ -603,12 +627,18 @@ export default function UsersPage() {
                                 {admin.name}
                               </span>
                               {isCurrent && (
-                                <Badge variant='secondary' className='text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold'>
+                                <Badge
+                                  variant='secondary'
+                                  className='text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold'
+                                >
                                   أنت
                                 </Badge>
                               )}
                             </div>
-                            <span className='text-xs text-muted-foreground font-mono truncate flex items-center gap-1 mt-0.5' dir='ltr'>
+                            <span
+                              className='text-xs text-muted-foreground font-mono truncate flex items-center gap-1 mt-0.5'
+                              dir='ltr'
+                            >
                               <Mail className='size-3 shrink-0' />
                               {admin.email}
                             </span>
@@ -618,7 +648,11 @@ export default function UsersPage() {
 
                       {/* Username */}
                       <TableCell>
-                        <Badge variant='outline' className='font-mono text-xs font-medium px-2 py-0.5 bg-muted/30' dir='ltr'>
+                        <Badge
+                          variant='outline'
+                          className='font-mono text-xs font-medium px-2 py-0.5 bg-muted/30'
+                          dir='ltr'
+                        >
                           @{admin.username || '—'}
                         </Badge>
                       </TableCell>
@@ -626,7 +660,10 @@ export default function UsersPage() {
                       {/* Phone */}
                       <TableCell>
                         {admin.phone ? (
-                          <div className='flex items-center gap-1.5 text-xs font-mono text-muted-foreground' dir='ltr'>
+                          <div
+                            className='flex items-center gap-1.5 text-xs font-mono text-muted-foreground'
+                            dir='ltr'
+                          >
                             <Phone className='size-3 text-muted-foreground shrink-0' />
                             <span>{admin.phone}</span>
                           </div>
@@ -724,9 +761,17 @@ export default function UsersPage() {
           {!isLoading && filteredAdmins.length > 0 && (
             <div className='p-4 border-t bg-card flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground'>
               <div>
-                عرض <strong className='font-mono text-foreground'>{Math.min(filteredAdmins.length, (currentPage - 1) * pageSize + 1)}</strong> إلى{' '}
-                <strong className='font-mono text-foreground'>{Math.min(filteredAdmins.length, currentPage * pageSize)}</strong> من أصل{' '}
-                <strong className='font-mono text-foreground'>{filteredAdmins.length}</strong> مستخدم
+                عرض{' '}
+                <strong className='font-mono text-foreground'>
+                  {Math.min(filteredAdmins.length, (currentPage - 1) * pageSize + 1)}
+                </strong>{' '}
+                إلى{' '}
+                <strong className='font-mono text-foreground'>
+                  {Math.min(filteredAdmins.length, currentPage * pageSize)}
+                </strong>{' '}
+                من أصل{' '}
+                <strong className='font-mono text-foreground'>{filteredAdmins.length}</strong>{' '}
+                مستخدم
               </div>
 
               <div className='flex items-center gap-2'>
@@ -786,7 +831,11 @@ export default function UsersPage() {
           <SheetContent side='left' className='sm:max-w-md flex flex-col w-full' dir='rtl'>
             <SheetHeader className='text-right'>
               <SheetTitle className='text-lg font-bold flex items-center gap-2'>
-                {editingUser ? <Edit className='size-5 text-primary' /> : <Plus className='size-5 text-primary' />}
+                {editingUser ? (
+                  <Edit className='size-5 text-primary' />
+                ) : (
+                  <Plus className='size-5 text-primary' />
+                )}
                 {editingUser ? 'تعديل بيانات المستخدم' : 'إضافة مستخدم جديد'}
               </SheetTitle>
               <SheetDescription className='text-xs'>
@@ -798,10 +847,16 @@ export default function UsersPage() {
 
             <Separator className='my-2' />
 
-            <form id='user-form' onSubmit={handleSubmit} className='flex-1 overflow-y-auto space-y-4 px-1 py-2'>
+            <form
+              id='user-form'
+              onSubmit={handleSubmit}
+              className='flex-1 overflow-y-auto space-y-4 px-1 py-2'
+            >
               {/* Full Name */}
               <div className='space-y-1.5'>
-                <Label className='text-xs font-semibold'>الاسم الكامل <span className='text-destructive'>*</span></Label>
+                <Label className='text-xs font-semibold'>
+                  الاسم الكامل <span className='text-destructive'>*</span>
+                </Label>
                 <div className='relative'>
                   <UserIcon className='absolute right-3 top-2.5 size-4 text-muted-foreground' />
                   <Input
@@ -816,7 +871,9 @@ export default function UsersPage() {
 
               {/* Email */}
               <div className='space-y-1.5'>
-                <Label className='text-xs font-semibold'>البريد الإلكتروني <span className='text-destructive'>*</span></Label>
+                <Label className='text-xs font-semibold'>
+                  البريد الإلكتروني <span className='text-destructive'>*</span>
+                </Label>
                 <div className='relative'>
                   <Mail className='absolute right-3 top-2.5 size-4 text-muted-foreground' />
                   <Input
@@ -834,7 +891,8 @@ export default function UsersPage() {
               {/* Username (only editable or set on create) */}
               <div className='space-y-1.5'>
                 <Label className='text-xs font-semibold'>
-                  اسم المستخدم (لتسجيل الدخول) {!editingUser && <span className='text-destructive'>*</span>}
+                  اسم المستخدم (لتسجيل الدخول){' '}
+                  {!editingUser && <span className='text-destructive'>*</span>}
                 </Label>
                 <Input
                   required={!editingUser}
@@ -846,7 +904,9 @@ export default function UsersPage() {
                   dir='ltr'
                 />
                 {editingUser && (
-                  <p className='text-[11px] text-muted-foreground'>اسم المستخدم مرتبط بمعرف الحساب ولا يمكن تغييره.</p>
+                  <p className='text-[11px] text-muted-foreground'>
+                    اسم المستخدم مرتبط بمعرف الحساب ولا يمكن تغييره.
+                  </p>
                 )}
               </div>
 
@@ -868,8 +928,13 @@ export default function UsersPage() {
               {/* Role Selection */}
               <div className='space-y-1.5'>
                 <div className='flex items-center justify-between'>
-                  <Label className='text-xs font-semibold'>الدور الوظيفي <span className='text-destructive'>*</span></Label>
-                  <Link href='/dashboard/roles' className='text-primary text-[11px] hover:underline flex items-center gap-0.5'>
+                  <Label className='text-xs font-semibold'>
+                    الدور الوظيفي <span className='text-destructive'>*</span>
+                  </Label>
+                  <Link
+                    href='/dashboard/roles'
+                    className='text-primary text-[11px] hover:underline flex items-center gap-0.5'
+                  >
                     + أدوار مخصصة
                   </Link>
                 </div>
@@ -880,7 +945,14 @@ export default function UsersPage() {
                   }}
                 >
                   <SelectTrigger className='w-full'>
-                    <SelectValue placeholder='اختر الدور الوظيفي' />
+                    <SelectValue placeholder='اختر الدور الوظيفي'>
+                      {formData.roleId
+                        ? (() => {
+                            const r = roles.find((role) => role.id === formData.roleId);
+                            return r ? `${r.display_name} (${r.name})` : 'اختر الدور الوظيفي';
+                          })()
+                        : null}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {roles.map((r) => (
@@ -902,7 +974,12 @@ export default function UsersPage() {
                   }}
                 >
                   <SelectTrigger className='w-full'>
-                    <SelectValue placeholder='كافة الفروع (إدارة عامة)' />
+                    <SelectValue placeholder='كافة الفروع (إدارة عامة)'>
+                      {!formData.branchId || formData.branchId === 'NONE'
+                        ? 'كافة الفروع (إدارة عامة)'
+                        : branches.find((b) => b.id === formData.branchId)?.name ||
+                          'كافة الفروع (إدارة عامة)'}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value='NONE'>كافة الفروع (إدارة عامة)</SelectItem>
@@ -918,13 +995,18 @@ export default function UsersPage() {
               {/* Password */}
               <div className='space-y-1.5'>
                 <Label className='text-xs font-semibold'>
-                  {editingUser ? 'تغيير كلمة المرور (اختياري)' : 'كلمة المرور'} {!editingUser && <span className='text-destructive'>*</span>}
+                  {editingUser ? 'تغيير كلمة المرور (اختياري)' : 'كلمة المرور'}{' '}
+                  {!editingUser && <span className='text-destructive'>*</span>}
                 </Label>
                 <div className='relative'>
                   <Input
                     required={!editingUser}
                     type={showPassword ? 'text' : 'password'}
-                    placeholder={editingUser ? 'اتركه فارغاً للاحتفاظ بكلمة المرور الحالية' : 'أدخل كلمة مرور قوية'}
+                    placeholder={
+                      editingUser
+                        ? 'اتركه فارغاً للاحتفاظ بكلمة المرور الحالية'
+                        : 'أدخل كلمة مرور قوية'
+                    }
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className='pl-9 font-mono'
@@ -964,7 +1046,10 @@ export default function UsersPage() {
         </Sheet>
 
         {/* Delete Confirmation Dialog */}
-        <Dialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <Dialog
+          open={deleteTarget !== null}
+          onOpenChange={(open) => !open && setDeleteTarget(null)}
+        >
           <DialogContent className='sm:max-w-md' dir='rtl'>
             <DialogHeader className='text-right'>
               <DialogTitle className='text-destructive flex items-center gap-2'>
@@ -985,7 +1070,11 @@ export default function UsersPage() {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className='gap-2 sm:justify-start'>
-              <Button variant='outline' onClick={() => setDeleteTarget(null)} disabled={deleteMutation.isPending}>
+              <Button
+                variant='outline'
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleteMutation.isPending}
+              >
                 إلغاء
               </Button>
               <Button

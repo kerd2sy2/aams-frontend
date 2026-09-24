@@ -40,10 +40,22 @@ import { formatRiyadhDate } from '@/lib/aams/riyadh-time';
 import { useLocale } from '@/components/layout/locale-provider';
 
 const PRIORITY_LABELS: Record<string, { label: string; color: string }> = {
-  LOW: { label: 'منخفض', color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' },
-  MEDIUM: { label: 'متوسط', color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300' },
-  HIGH: { label: 'عالي', color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300' },
-  URGENT: { label: 'عاجل / حرج', color: 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300' }
+  LOW: {
+    label: 'منخفض',
+    color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+  },
+  MEDIUM: {
+    label: 'متوسط',
+    color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
+  },
+  HIGH: {
+    label: 'عالي',
+    color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300'
+  },
+  URGENT: {
+    label: 'عاجل / حرج',
+    color: 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300'
+  }
 };
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -100,8 +112,14 @@ export default function MaintenanceRequestsPage() {
   }, [activeTab, priorityFilter]);
 
   useEffect(() => {
-    employeeApi.getAll({ limit: 500 }).then(res => setEmployees(res.data || [])).catch(() => {});
-    vehicleApi.getAll({ limit: 500 }).then(res => setVehicles(res.data || [])).catch(() => {});
+    employeeApi
+      .getAll({ limit: 500 })
+      .then((res) => setEmployees(res.data || []))
+      .catch(() => {});
+    vehicleApi
+      .getAll({ limit: 500 })
+      .then((res) => setVehicles(res.data || []))
+      .catch(() => {});
   }, []);
 
   const handleOpenAdd = () => {
@@ -155,7 +173,9 @@ export default function MaintenanceRequestsPage() {
       setSheetOpen(false);
       fetchRequests();
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'حدث خطأ أثناء حفظ الطلب';
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+        'حدث خطأ أثناء حفظ الطلب';
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -183,7 +203,7 @@ export default function MaintenanceRequestsPage() {
     }
   };
 
-  const filteredRequests = requests.filter(r => {
+  const filteredRequests = requests.filter((r) => {
     if (!search) return true;
     const s = search.toLowerCase();
     return (
@@ -193,92 +213,92 @@ export default function MaintenanceRequestsPage() {
     );
   });
 
-  const openCount = requests.filter(r => r.status === 'OPEN').length;
-  const inProgressCount = requests.filter(r => r.status === 'IN_PROGRESS').length;
-  const resolvedCount = requests.filter(r => r.status === 'RESOLVED' || r.status === 'CLOSED').length;
+  const openCount = requests.filter((r) => r.status === 'OPEN').length;
+  const inProgressCount = requests.filter((r) => r.status === 'IN_PROGRESS').length;
+  const resolvedCount = requests.filter(
+    (r) => r.status === 'RESOLVED' || r.status === 'CLOSED'
+  ).length;
 
   return (
-    <PageContainer>
-      <div className="space-y-6" dir={dir}>
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <Icons.tool className="h-7 w-7 text-indigo-500" />
-              طلبات صيانة الأسطول
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              متابعة وتسجيل أعطال الدبابات والمركبات وحالات الإصلاح
-            </p>
-          </div>
-          <Button onClick={handleOpenAdd} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-bold h-11 px-5 shadow-sm">
-            <Icons.add className="h-5 w-5" />
-            إنشاء طلب صيانة
-          </Button>
-        </div>
-
+    <PageContainer
+      pageTitle='طلبات صيانة الأسطول'
+      pageDescription='متابعة وتسجيل أعطال الدبابات والمركبات وحالات الإصلاح'
+      pageHeaderAction={
+        <Button onClick={handleOpenAdd} className='gap-2 font-bold shadow-xs'>
+          <Icons.add className='size-4' />
+          إنشاء طلب صيانة
+        </Button>
+      }
+    >
+      <div className='flex flex-1 flex-col gap-4' dir={dir}>
         {/* Stats */}
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card className="border-blue-100 bg-blue-50/40 dark:border-blue-950/40 dark:bg-blue-950/20">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-200">طلبات جديدة ومفتوحة</CardTitle>
-              <Icons.alertCircle className="h-4 w-4 text-blue-600" />
+        <div className='grid gap-4 sm:grid-cols-3'>
+          <Card className='border-blue-100 bg-blue-50/40 dark:border-blue-950/40 dark:bg-blue-950/20'>
+            <CardHeader className='flex flex-row items-center justify-between pb-2'>
+              <CardTitle className='text-sm font-medium text-blue-900 dark:text-blue-200'>
+                طلبات جديدة ومفتوحة
+              </CardTitle>
+              <Icons.alertCircle className='h-4 w-4 text-blue-600' />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
-                {openCount} <span className="text-sm font-normal text-slate-500">طلب</span>
+              <div className='text-2xl font-bold text-blue-700 dark:text-blue-400'>
+                {openCount} <span className='text-sm font-normal text-slate-500'>طلب</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-amber-100 bg-amber-50/40 dark:border-amber-950/40 dark:bg-amber-950/20">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-amber-900 dark:text-amber-200">قيد الإصلاح بالورشة</CardTitle>
-              <Icons.wrench className="h-4 w-4 text-amber-600" />
+          <Card className='border-amber-100 bg-amber-50/40 dark:border-amber-950/40 dark:bg-amber-950/20'>
+            <CardHeader className='flex flex-row items-center justify-between pb-2'>
+              <CardTitle className='text-sm font-medium text-amber-900 dark:text-amber-200'>
+                قيد الإصلاح بالورشة
+              </CardTitle>
+              <Icons.wrench className='h-4 w-4 text-amber-600' />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">
-                {inProgressCount} <span className="text-sm font-normal text-slate-500">مركبة</span>
+              <div className='text-2xl font-bold text-amber-700 dark:text-amber-400'>
+                {inProgressCount} <span className='text-sm font-normal text-slate-500'>مركبة</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-emerald-100 bg-emerald-50/40 dark:border-emerald-950/40 dark:bg-emerald-950/20">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-emerald-900 dark:text-emerald-200">تم الإصلاح والجاهزية</CardTitle>
-              <Icons.check className="h-4 w-4 text-emerald-600" />
+          <Card className='border-emerald-100 bg-emerald-50/40 dark:border-emerald-950/40 dark:bg-emerald-950/20'>
+            <CardHeader className='flex flex-row items-center justify-between pb-2'>
+              <CardTitle className='text-sm font-medium text-emerald-900 dark:text-emerald-200'>
+                تم الإصلاح والجاهزية
+              </CardTitle>
+              <Icons.check className='h-4 w-4 text-emerald-600' />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
-                {resolvedCount} <span className="text-sm font-normal text-slate-500">طلب</span>
+              <div className='text-2xl font-bold text-emerald-700 dark:text-emerald-400'>
+                {resolvedCount} <span className='text-sm font-normal text-slate-500'>طلب</span>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Tabs & Filters */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
-            <TabsList className="grid grid-cols-4 w-full md:w-auto">
-              <TabsTrigger value="ALL">الكل</TabsTrigger>
-              <TabsTrigger value="OPEN">مفتوح</TabsTrigger>
-              <TabsTrigger value="IN_PROGRESS">قيد الإصلاح</TabsTrigger>
-              <TabsTrigger value="RESOLVED">تم الحل</TabsTrigger>
+        <div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full md:w-auto'>
+            <TabsList className='grid grid-cols-4 w-full md:w-auto'>
+              <TabsTrigger value='ALL'>الكل</TabsTrigger>
+              <TabsTrigger value='OPEN'>مفتوح</TabsTrigger>
+              <TabsTrigger value='IN_PROGRESS'>قيد الإصلاح</TabsTrigger>
+              <TabsTrigger value='RESOLVED'>تم الحل</TabsTrigger>
             </TabsList>
           </Tabs>
 
-          <div className="flex gap-2">
-            <div className="relative w-full md:w-64">
-              <Icons.search className="absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
+          <div className='flex gap-2'>
+            <div className='relative w-full md:w-64'>
+              <Icons.search className='absolute right-3 top-2.5 h-4 w-4 text-slate-400' />
               <Input
-                placeholder="بحث باللوحة أو العطل..."
+                placeholder='بحث باللوحة أو العطل...'
                 value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pr-9"
+                onChange={(e) => setSearch(e.target.value)}
+                className='pr-9'
               />
             </div>
-            <Button variant="outline" onClick={fetchRequests} title="تحديث">
-              <Icons.refresh className="h-4 w-4" />
+            <Button variant='outline' onClick={fetchRequests} title='تحديث'>
+              <Icons.refresh className='h-4 w-4' />
             </Button>
           </div>
         </div>
@@ -290,118 +310,138 @@ export default function MaintenanceRequestsPage() {
             <CardDescription>متابعة تفاصيل البلاغات والأعطال وحالات جاهزية المركبات</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border overflow-x-auto">
+            <div className='rounded-md border overflow-x-auto'>
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-50/75 dark:bg-slate-900/50">
-                    <TableHead className="text-right">التاريخ</TableHead>
-                    <TableHead className="text-right">الدباب / اللوحة</TableHead>
-                    <TableHead className="text-right">المندوب المُبلغ</TableHead>
-                    <TableHead className="text-right">وصف العطل</TableHead>
-                    <TableHead className="text-right">الأولوية</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                    <TableHead className="text-right">ملاحظات</TableHead>
-                    <TableHead className="text-center">إجراء سريع</TableHead>
-                    <TableHead className="text-center">إجراءات</TableHead>
+                  <TableRow className='bg-slate-50/75 dark:bg-slate-900/50'>
+                    <TableHead className='text-right'>التاريخ</TableHead>
+                    <TableHead className='text-right'>الدباب / اللوحة</TableHead>
+                    <TableHead className='text-right'>المندوب المُبلغ</TableHead>
+                    <TableHead className='text-right'>وصف العطل</TableHead>
+                    <TableHead className='text-right'>الأولوية</TableHead>
+                    <TableHead className='text-right'>الحالة</TableHead>
+                    <TableHead className='text-right'>ملاحظات</TableHead>
+                    <TableHead className='text-center'>إجراء سريع</TableHead>
+                    <TableHead className='text-center'>إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="h-32 text-center text-slate-500">
-                        <Icons.spinner className="h-6 w-6 animate-spin mx-auto mb-2 text-indigo-600" />
+                      <TableCell colSpan={9} className='h-32 text-center text-slate-500'>
+                        <Icons.spinner className='h-6 w-6 animate-spin mx-auto mb-2 text-indigo-600' />
                         جارٍ تحميل طلبات الصيانة...
                       </TableCell>
                     </TableRow>
                   ) : filteredRequests.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="h-32 text-center text-slate-500">
+                      <TableCell colSpan={9} className='h-32 text-center text-slate-500'>
                         لا توجد طلبات صيانة مطابقة
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredRequests.map(r => {
-                      const pri = PRIORITY_LABELS[r.priority] || { label: r.priority, color: 'bg-slate-100' };
-                      const st = STATUS_LABELS[r.status] || { label: r.status, color: 'bg-slate-500 text-white' };
+                    filteredRequests.map((r) => {
+                      const pri = PRIORITY_LABELS[r.priority] || {
+                        label: r.priority,
+                        color: 'bg-slate-100'
+                      };
+                      const st = STATUS_LABELS[r.status] || {
+                        label: r.status,
+                        color: 'bg-slate-500 text-white'
+                      };
                       return (
-                        <TableRow key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
-                          <TableCell className="whitespace-nowrap font-mono text-xs">
+                        <TableRow
+                          key={r.id}
+                          className='hover:bg-slate-50/50 dark:hover:bg-slate-900/50'
+                        >
+                          <TableCell className='whitespace-nowrap font-mono text-xs'>
                             {formatRiyadhDate(r.created_at)}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="secondary" className="font-mono font-bold">
+                            <Badge variant='secondary' className='font-mono font-bold'>
                               🛵 {r.vehicle_plate}
                             </Badge>
                           </TableCell>
                           <TableCell>
                             {r.employee ? (
-                              <span className="font-medium text-slate-900 dark:text-slate-100">{r.employee.name}</span>
+                              <span className='font-medium text-slate-900 dark:text-slate-100'>
+                                {r.employee.name}
+                              </span>
                             ) : (
-                              <span className="text-slate-400">الإدارة</span>
+                              <span className='text-slate-400'>الإدارة</span>
                             )}
                           </TableCell>
-                          <TableCell className="max-w-[240px]">
-                            <span className="font-medium text-slate-800 dark:text-slate-200 block truncate" title={r.issue_description}>
+                          <TableCell className='max-w-[240px]'>
+                            <span
+                              className='font-medium text-slate-800 dark:text-slate-200 block truncate'
+                              title={r.issue_description}
+                            >
                               {r.issue_description}
                             </span>
                           </TableCell>
                           <TableCell>
-                            <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${pri.color}`}>
+                            <span
+                              className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${pri.color}`}
+                            >
                               {pri.label}
                             </span>
                           </TableCell>
                           <TableCell>
-                            <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${st.color}`}>
+                            <span
+                              className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${st.color}`}
+                            >
                               {st.label}
                             </span>
                           </TableCell>
-                          <TableCell className="text-muted-foreground text-xs max-w-[150px] truncate">
+                          <TableCell className='text-muted-foreground text-xs max-w-[150px] truncate'>
                             {r.notes || '—'}
                           </TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className='text-center'>
                             {r.status === 'OPEN' && (
                               <Button
-                                size="sm"
-                                variant="outline"
+                                size='sm'
+                                variant='outline'
                                 onClick={() => handleStatusChange(r.id, 'IN_PROGRESS')}
-                                className="h-7 text-xs text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/30 font-bold"
+                                className='h-7 text-xs text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/30 font-bold'
                               >
                                 تحويل للورشة
                               </Button>
                             )}
                             {r.status === 'IN_PROGRESS' && (
                               <Button
-                                size="sm"
-                                variant="outline"
+                                size='sm'
+                                variant='outline'
                                 onClick={() => handleStatusChange(r.id, 'RESOLVED')}
-                                className="h-7 text-xs text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-bold"
+                                className='h-7 text-xs text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-bold'
                               >
                                 تأكيد الإصلاح
                               </Button>
                             )}
                             {(r.status === 'RESOLVED' || r.status === 'CLOSED') && (
-                              <span className="text-xs text-emerald-600 font-bold">✓ جاهز للعمل</span>
+                              <span className='text-xs text-emerald-600 font-bold'>
+                                ✓ جاهز للعمل
+                              </span>
                             )}
                           </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-1">
+                          <TableCell className='text-center'>
+                            <div className='flex items-center justify-center gap-1'>
                               <Button
-                                variant="ghost"
-                                size="icon"
+                                variant='ghost'
+                                size='icon'
                                 onClick={() => handleOpenEdit(r)}
-                                className="h-8 w-8 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
-                                title="تعديل"
+                                className='h-8 w-8 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30'
+                                title='تعديل'
                               >
-                                <Icons.edit className="h-4 w-4" />
+                                <Icons.edit className='h-4 w-4' />
                               </Button>
                               <Button
-                                variant="ghost"
-                                size="icon"
+                                variant='ghost'
+                                size='icon'
                                 onClick={() => handleDelete(r.id)}
-                                className="h-8 w-8 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                                title="حذف"
+                                className='h-8 w-8 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30'
+                                title='حذف'
                               >
-                                <Icons.trash className="h-4 w-4" />
+                                <Icons.trash className='h-4 w-4' />
                               </Button>
                             </div>
                           </TableCell>
@@ -419,39 +459,42 @@ export default function MaintenanceRequestsPage() {
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetContent
             side={dir === 'rtl' ? 'left' : 'right'}
-            className="w-full sm:max-w-md overflow-y-auto flex flex-col p-6"
+            className='w-full sm:max-w-md overflow-y-auto flex flex-col p-6'
             dir={dir}
           >
-            <SheetHeader className="text-right pb-2">
-              <SheetTitle className="text-lg font-bold flex items-center gap-2 text-indigo-600">
-                <Icons.tool className="h-5 w-5" />
+            <SheetHeader className='text-right pb-2'>
+              <SheetTitle className='text-lg font-bold flex items-center gap-2 text-indigo-600'>
+                <Icons.tool className='h-5 w-5' />
                 {editingReq ? 'تعديل طلب الصيانة' : 'إنشاء طلب صيانة جديد'}
               </SheetTitle>
-              <SheetDescription className="text-xs">
+              <SheetDescription className='text-xs'>
                 أدخل تفاصيل العطل، حدد رقم اللوحة والمندوب المُبلغ ومستوى الأولوية.
               </SheetDescription>
             </SheetHeader>
 
-            <Separator className="my-1" />
+            <Separator className='my-1' />
 
-            <form onSubmit={handleSubmit} className="flex-1 space-y-4 py-2 overflow-y-auto">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">رقم اللوحة / الدباب *</Label>
-                <div className="flex gap-2">
+            <form onSubmit={handleSubmit} className='flex-1 space-y-4 py-2 overflow-y-auto'>
+              <div className='space-y-1.5'>
+                <Label className='text-xs font-semibold'>رقم اللوحة / الدباب *</Label>
+                <div className='flex gap-2'>
                   <Input
-                    placeholder="مثال: 2565"
+                    placeholder='مثال: 2565'
                     value={vehiclePlate}
-                    onChange={e => setVehiclePlate(e.target.value)}
+                    onChange={(e) => setVehiclePlate(e.target.value)}
                     required
-                    className="h-10 font-mono"
+                    className='h-10 font-mono'
                   />
                   {vehicles.length > 0 && (
-                    <Select value={vehiclePlate} onValueChange={(val) => setVehiclePlate(val || '')}>
-                      <SelectTrigger className="w-[120px] h-10 font-mono">
-                        <SelectValue placeholder="الأسطول" />
+                    <Select
+                      value={vehiclePlate}
+                      onValueChange={(val) => setVehiclePlate(val || '')}
+                    >
+                      <SelectTrigger className='w-[120px] h-10 font-mono'>
+                        <SelectValue placeholder='الأسطول' />
                       </SelectTrigger>
                       <SelectContent dir={dir}>
-                        {vehicles.map(v => (
+                        {vehicles.map((v) => (
                           <SelectItem key={v.id} value={v.plate_number}>
                             {v.plate_number}
                           </SelectItem>
@@ -462,21 +505,23 @@ export default function MaintenanceRequestsPage() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">المندوب المُبلغ (اختياري)</Label>
+              <div className='space-y-1.5'>
+                <Label className='text-xs font-semibold'>المندوب المُبلغ (اختياري)</Label>
                 <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
-                  <SelectTrigger className="w-full h-10">
-                    <SelectValue placeholder="اختر المندوب">
+                  <SelectTrigger className='w-full h-10'>
+                    <SelectValue placeholder='اختر المندوب'>
                       {employeeId
                         ? (() => {
-                            const emp = employees.find(e => e.id === employeeId);
-                            return emp ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})` : 'اختر المندوب';
+                            const emp = employees.find((e) => e.id === employeeId);
+                            return emp
+                              ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
+                              : 'اختر المندوب';
                           })()
                         : null}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent dir={dir}>
-                    {employees.map(emp => (
+                    {employees.map((emp) => (
                       <SelectItem key={emp.id} value={emp.id}>
                         {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
                       </SelectItem>
@@ -485,79 +530,79 @@ export default function MaintenanceRequestsPage() {
                 </Select>
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">وصف العطل / المشكلة *</Label>
+              <div className='space-y-1.5'>
+                <Label className='text-xs font-semibold'>وصف العطل / المشكلة *</Label>
                 <Textarea
-                  placeholder="مثال: مشكلة في الفرامل الخلفية وصوت في المحرك..."
+                  placeholder='مثال: مشكلة في الفرامل الخلفية وصوت في المحرك...'
                   value={issueDescription}
-                  onChange={e => setIssueDescription(e.target.value)}
+                  onChange={(e) => setIssueDescription(e.target.value)}
                   required
                   rows={3}
-                  className="resize-none"
+                  className='resize-none'
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">مستوى الأولوية</Label>
+              <div className='grid grid-cols-2 gap-3'>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-semibold'>مستوى الأولوية</Label>
                   <Select value={priority} onValueChange={(val) => setPriority(val || 'MEDIUM')}>
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="الأولوية" />
+                    <SelectTrigger className='h-10'>
+                      <SelectValue placeholder='الأولوية' />
                     </SelectTrigger>
                     <SelectContent dir={dir}>
-                      <SelectItem value="LOW">منخفض</SelectItem>
-                      <SelectItem value="MEDIUM">متوسط</SelectItem>
-                      <SelectItem value="HIGH">عالي</SelectItem>
-                      <SelectItem value="URGENT">حرج / عاجل</SelectItem>
+                      <SelectItem value='LOW'>منخفض</SelectItem>
+                      <SelectItem value='MEDIUM'>متوسط</SelectItem>
+                      <SelectItem value='HIGH'>عالي</SelectItem>
+                      <SelectItem value='URGENT'>حرج / عاجل</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">حالة الطلب</Label>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-semibold'>حالة الطلب</Label>
                   <Select value={status} onValueChange={(val) => setStatus(val || 'OPEN')}>
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="الحالة" />
+                    <SelectTrigger className='h-10'>
+                      <SelectValue placeholder='الحالة' />
                     </SelectTrigger>
                     <SelectContent dir={dir}>
-                      <SelectItem value="OPEN">مفتوح (جديد)</SelectItem>
-                      <SelectItem value="IN_PROGRESS">قيد الإصلاح</SelectItem>
-                      <SelectItem value="RESOLVED">تم الإصلاح</SelectItem>
-                      <SelectItem value="CLOSED">مغلق</SelectItem>
+                      <SelectItem value='OPEN'>مفتوح (جديد)</SelectItem>
+                      <SelectItem value='IN_PROGRESS'>قيد الإصلاح</SelectItem>
+                      <SelectItem value='RESOLVED'>تم الإصلاح</SelectItem>
+                      <SelectItem value='CLOSED'>مغلق</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">ملاحظات إضافية</Label>
+              <div className='space-y-1.5'>
+                <Label className='text-xs font-semibold'>ملاحظات إضافية</Label>
                 <Textarea
-                  placeholder="ملاحظات إضافية عن البلاغ..."
+                  placeholder='ملاحظات إضافية عن البلاغ...'
                   value={notes}
-                  onChange={e => setNotes(e.target.value)}
+                  onChange={(e) => setNotes(e.target.value)}
                   rows={3}
-                  className="resize-none"
+                  className='resize-none'
                 />
               </div>
 
-              <div className="flex items-center gap-3 pt-4">
+              <div className='flex items-center gap-3 pt-4'>
                 <Button
-                  type="submit"
+                  type='submit'
                   disabled={submitting}
-                  className="h-11 flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold gap-2"
+                  className='h-11 flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold gap-2'
                 >
                   {submitting ? (
-                    <Icons.spinner className="h-4 w-4 animate-spin" />
+                    <Icons.spinner className='h-4 w-4 animate-spin' />
                   ) : (
-                    <Icons.save className="h-4 w-4" />
+                    <Icons.save className='h-4 w-4' />
                   )}
                   {editingReq ? 'حفظ التعديلات' : 'إنشاء الطلب'}
                 </Button>
                 <Button
-                  type="button"
-                  variant="outline"
+                  type='button'
+                  variant='outline'
                   onClick={() => setSheetOpen(false)}
-                  className="h-11 px-4 font-bold"
+                  className='h-11 px-4 font-bold'
                 >
                   إلغاء
                 </Button>

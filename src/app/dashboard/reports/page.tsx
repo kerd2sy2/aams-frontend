@@ -829,7 +829,13 @@ export default function ReportsPage() {
                   modal={false}
                 >
                   <SelectTrigger className='h-10 w-full'>
-                    <SelectValue placeholder='جميع المناديب' />
+                    <SelectValue placeholder='جميع المناديب'>
+                      {tempEmployeeId && tempEmployeeId !== ALL_EMPLOYEES
+                        ? (employeeMap[tempEmployeeId] ??
+                          employees.find((e) => e.id === tempEmployeeId)?.name ??
+                          'جميع المناديب')
+                        : 'جميع المناديب'}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={ALL_EMPLOYEES}>جميع المناديب</SelectItem>

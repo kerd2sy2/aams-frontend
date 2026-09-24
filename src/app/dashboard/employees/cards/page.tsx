@@ -19,7 +19,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -34,7 +34,7 @@ import {
   Scissors,
   ArrowRight,
   Filter,
-  Check,
+  Check
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -50,21 +50,21 @@ export default function EmployeeCardsPrintPage() {
   const { data: employeesData, isLoading: employeesLoading } = useOfflineQuery({
     queryKey: ['employees', 'all-for-cards'],
     queryFn: () => employeeApi.getAll({ limit: 1000 }),
-    cacheKey: 'employees_all_cards',
+    cacheKey: 'employees_all_cards'
   });
 
   // Fetch branches
   const { data: branchesData } = useQuery({
     queryKey: ['branches-list'],
     queryFn: () => branchApi.getAll(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000
   });
 
   // Fetch public settings for brand logo and name
   const { data: settings } = useQuery({
     queryKey: ['public-settings'],
     queryFn: () => settingsApi.getPublic(),
-    staleTime: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000
   });
 
   const allEmployees: Employee[] = employeesData?.data || [];
@@ -81,8 +81,7 @@ export default function EmployeeCardsPrintPage() {
         emp.motorcycle_number?.toLowerCase().includes(search.toLowerCase()) ||
         emp.employee_number?.includes(search);
 
-      const matchesBranch =
-        selectedBranch === 'all' || emp.branch_id === selectedBranch;
+      const matchesBranch = selectedBranch === 'all' || emp.branch_id === selectedBranch;
 
       return matchesSearch && matchesBranch;
     });
@@ -200,7 +199,7 @@ export default function EmployeeCardsPrintPage() {
           .a4-grid-container {
             display: grid;
             grid-template-columns: repeat(2, 85.6mm);
-            grid-template-rows: repeat(4, 54.0mm);
+            grid-template-rows: repeat(4, 54mm);
             column-gap: 8mm;
             row-gap: 6mm;
             justify-content: center;
@@ -208,8 +207,8 @@ export default function EmployeeCardsPrintPage() {
           }
           .single-sheet-page {
             width: 85.6mm;
-            height: 54.0mm;
-            max-height: 54.0mm;
+            height: 54mm;
+            max-height: 54mm;
             page-break-after: always;
             break-after: page;
             margin: 0;
@@ -232,30 +231,33 @@ export default function EmployeeCardsPrintPage() {
         }
       `}</style>
 
-      <div className="space-y-6" dir="rtl">
+      <div className='space-y-6' dir='rtl'>
         {/* Header toolbar */}
-        <div className="no-print space-y-4">
+        <div className='no-print space-y-4'>
           <PageHeader
-            category="إدارة وطباعة بطاقات الهوية"
-            title="طباعة بطاقات الهوية القياسية (CR80 ID Cards)"
-            description="حجم البطاقة القياسي 85.6 مم × 54 مم (مطابق لمعيار بطاقات الصراف والائتمان الدولية) مع رمز QR والباركود وشعار الشركة."
+            category='إدارة وطباعة بطاقات الهوية'
+            title='طباعة بطاقات الهوية القياسية (CR80 ID Cards)'
+            description='حجم البطاقة القياسي 85.6 مم × 54 مم (مطابق لمعيار بطاقات الصراف والائتمان الدولية) مع رمز QR والباركود وشعار الشركة.'
             actions={
-              <div className="flex flex-wrap items-center gap-2">
-                <Link href="/dashboard/employees">
-                  <Button variant="outline" size="sm" className="gap-1.5 font-bold">
-                    <ArrowRight className="size-4" />
+              <div className='flex flex-wrap items-center gap-2'>
+                <Link href='/dashboard/employees'>
+                  <Button variant='outline' size='sm' className='gap-1.5 font-bold'>
+                    <ArrowRight className='size-4' />
                     قائمة المناديب
                   </Button>
                 </Link>
 
                 <Button
                   onClick={() => handlePrint()}
-                  className="gap-2 font-bold shadow-md bg-primary hover:bg-primary/90 text-primary-foreground"
-                  size="default"
+                  className='gap-2 font-bold shadow-md bg-primary hover:bg-primary/90 text-primary-foreground'
+                  size='default'
                 >
-                  <Printer className="size-4" />
+                  <Printer className='size-4' />
                   <span>
-                    طباعة {selectedIds.length > 0 ? `المحددة (${selectedIds.length})` : `الكل (${filteredEmployees.length})`}
+                    طباعة{' '}
+                    {selectedIds.length > 0
+                      ? `المحددة (${selectedIds.length})`
+                      : `الكل (${filteredEmployees.length})`}
                   </span>
                 </Button>
               </div>
@@ -263,17 +265,17 @@ export default function EmployeeCardsPrintPage() {
           />
 
           {/* Controls & Filter Card */}
-          <Card className="border-border/70 shadow-xs">
-            <CardContent className="p-4 sm:p-5 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <Card className='border-border/70 shadow-xs'>
+            <CardContent className='p-4 sm:p-5 space-y-4'>
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-3'>
                 {/* Search */}
-                <div className="relative">
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <div className='relative'>
+                  <Search className='absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground' />
                   <Input
-                    placeholder="بحث بالاسم، رقم الهوية، المفتاح، الدراجة..."
+                    placeholder='بحث بالاسم، رقم الهوية، المفتاح، الدراجة...'
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pr-9 h-10 text-right"
+                    className='pr-9 h-10 text-right'
                   />
                 </div>
 
@@ -284,11 +286,17 @@ export default function EmployeeCardsPrintPage() {
                     if (val) setSelectedBranch(val);
                   }}
                 >
-                  <SelectTrigger className="h-10 text-right">
-                    <SelectValue placeholder="تصفية حسب الفرع" />
+                  <SelectTrigger className='h-10 text-right'>
+                    <SelectValue placeholder='تصفية حسب الفرع'>
+                      {selectedBranch === 'all'
+                        ? `جميع الفروع (${allEmployees.length})`
+                        : branches.find(
+                            (b: { id: string; name: string }) => b.id === selectedBranch
+                          )?.name || 'تصفية حسب الفرع'}
+                    </SelectValue>
                   </SelectTrigger>
-                  <SelectContent dir="rtl">
-                    <SelectItem value="all">جميع الفروع ({allEmployees.length})</SelectItem>
+                  <SelectContent dir='rtl'>
+                    <SelectItem value='all'>جميع الفروع ({allEmployees.length})</SelectItem>
                     {branches.map((b: { id: string; name: string }) => (
                       <SelectItem key={b.id} value={b.id}>
                         {b.name}
@@ -304,58 +312,62 @@ export default function EmployeeCardsPrintPage() {
                     if (val === 'a4' || val === 'single') setPrintLayout(val);
                   }}
                 >
-                  <SelectTrigger className="h-10 text-right font-semibold">
-                    <SelectValue />
+                  <SelectTrigger className='h-10 text-right font-semibold'>
+                    <SelectValue>
+                      {printLayout === 'a4'
+                        ? '📄 تخطيط ورقة A4 (8 كروت في الصفحة للقص)'
+                        : '💳 طابعات كروت PVC البلاستيكية (كرت فردي)'}
+                    </SelectValue>
                   </SelectTrigger>
-                  <SelectContent dir="rtl">
-                    <SelectItem value="a4">
-                      📄 تخطيط ورقة A4 (8 كروت في الصفحة للقص)
-                    </SelectItem>
-                    <SelectItem value="single">
-                      💳 طابعات كروت PVC البلاستيكية (كرت فردي)
-                    </SelectItem>
+                  <SelectContent dir='rtl'>
+                    <SelectItem value='a4'>📄 تخطيط ورقة A4 (8 كروت في الصفحة للقص)</SelectItem>
+                    <SelectItem value='single'>💳 طابعات كروت PVC البلاستيكية (كرت فردي)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Selection Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border/60 text-sm">
-                <div className="flex items-center gap-3">
+              <div className='flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border/60 text-sm'>
+                <div className='flex items-center gap-3'>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant='outline'
+                    size='sm'
                     onClick={handleSelectAll}
-                    className="gap-1.5 h-8 font-bold"
+                    className='gap-1.5 h-8 font-bold'
                   >
-                    <CheckSquare className="size-4 text-primary" />
+                    <CheckSquare className='size-4 text-primary' />
                     تحديد الكل ({filteredEmployees.length})
                   </Button>
 
                   {selectedIds.length > 0 && (
                     <Button
-                      variant="ghost"
-                      size="sm"
+                      variant='ghost'
+                      size='sm'
                       onClick={handleDeselectAll}
-                      className="gap-1.5 h-8 text-muted-foreground hover:text-foreground"
+                      className='gap-1.5 h-8 text-muted-foreground hover:text-foreground'
                     >
-                      <Square className="size-4" />
+                      <Square className='size-4' />
                       إلغاء التحديد
                     </Button>
                   )}
 
-                  <span className="text-xs font-semibold text-muted-foreground mr-2">
-                    المحدد: <strong className="text-primary font-bold font-mono">{selectedIds.length || filteredEmployees.length}</strong> بطاقة جاهزة للطباعة
+                  <span className='text-xs font-semibold text-muted-foreground mr-2'>
+                    المحدد:{' '}
+                    <strong className='text-primary font-bold font-mono'>
+                      {selectedIds.length || filteredEmployees.length}
+                    </strong>{' '}
+                    بطاقة جاهزة للطباعة
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-muted-foreground select-none">
+                <div className='flex items-center gap-3'>
+                  <label className='flex items-center gap-2 cursor-pointer text-xs font-medium text-muted-foreground select-none'>
                     <Checkbox
                       checked={showCutLines}
                       onCheckedChange={(c) => setShowCutLines(!!c)}
                     />
-                    <span className="flex items-center gap-1">
-                      <Scissors className="size-3.5" />
+                    <span className='flex items-center gap-1'>
+                      <Scissors className='size-3.5' />
                       إظهار خطوط القص الإرشادية
                     </span>
                   </label>
@@ -366,29 +378,27 @@ export default function EmployeeCardsPrintPage() {
         </div>
 
         {/* Live Grid on Screen */}
-        <div className="no-print space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold flex items-center gap-2 text-foreground">
-              <Grid className="size-4 text-primary" />
+        <div className='no-print space-y-4'>
+          <div className='flex items-center justify-between'>
+            <h2 className='text-base font-bold flex items-center gap-2 text-foreground'>
+              <Grid className='size-4 text-primary' />
               معاينة الكروت الحية ({filteredEmployees.length} موظف)
             </h2>
-            <span className="text-xs text-muted-foreground font-mono">
-              CR80: 85.6mm × 54.0mm
-            </span>
+            <span className='text-xs text-muted-foreground font-mono'>CR80: 85.6mm × 54.0mm</span>
           </div>
 
           {filteredEmployees.length === 0 ? (
-            <Card className="p-12 text-center">
-              <div className="size-16 rounded-2xl bg-muted mx-auto mb-3 flex items-center justify-center text-muted-foreground">
-                <Users className="size-8" />
+            <Card className='p-12 text-center'>
+              <div className='size-16 rounded-2xl bg-muted mx-auto mb-3 flex items-center justify-center text-muted-foreground'>
+                <Users className='size-8' />
               </div>
-              <CardTitle className="text-base">لا توجد بطاقات مطابقة</CardTitle>
-              <CardDescription className="text-xs mt-1">
+              <CardTitle className='text-base'>لا توجد بطاقات مطابقة</CardTitle>
+              <CardDescription className='text-xs mt-1'>
                 جرّب تغيير كلمات البحث أو تصفية الفروع.
               </CardDescription>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'>
               {filteredEmployees.map((emp) => {
                 const isSelected = selectedIds.includes(emp.id);
                 return (
@@ -400,41 +410,37 @@ export default function EmployeeCardsPrintPage() {
                         : 'border-border/80 hover:border-slate-400'
                     }`}
                   >
-                    <div className="p-3 bg-muted/40 border-b border-border flex items-center justify-between gap-2">
-                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-foreground">
+                    <div className='p-3 bg-muted/40 border-b border-border flex items-center justify-between gap-2'>
+                      <label className='flex items-center gap-2 cursor-pointer text-xs font-bold text-foreground'>
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => toggleSelectOne(emp.id)}
                         />
-                        <span className="truncate max-w-[180px]">{emp.name}</span>
+                        <span className='truncate max-w-[180px]'>{emp.name}</span>
                       </label>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className='flex items-center gap-1.5'>
                         <Button
-                          size="sm"
-                          variant="outline"
+                          size='sm'
+                          variant='outline'
                           onClick={() => handlePrint(emp)}
-                          className="h-7 px-2.5 text-xs gap-1 font-bold"
-                          title="طباعة هذا الكرت فقط"
+                          className='h-7 px-2.5 text-xs gap-1 font-bold'
+                          title='طباعة هذا الكرت فقط'
                         >
-                          <Printer className="size-3" />
+                          <Printer className='size-3' />
                           طباعة
                         </Button>
                         <Link href={`/dashboard/employees/${emp.id}`}>
-                          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">
+                          <Button size='sm' variant='ghost' className='h-7 px-2 text-xs'>
                             التفاصيل
                           </Button>
                         </Link>
                       </div>
                     </div>
 
-                    <div className="p-4 bg-slate-100/70 dark:bg-slate-900/60 flex items-center justify-center">
-                      <div className="transform scale-95 sm:scale-100 origin-center transition-transform">
-                        <CR80Card
-                          employee={emp}
-                          settings={settings}
-                          showCutLines={showCutLines}
-                        />
+                    <div className='p-4 bg-slate-100/70 dark:bg-slate-900/60 flex items-center justify-center'>
+                      <div className='transform scale-95 sm:scale-100 origin-center transition-transform'>
+                        <CR80Card employee={emp} settings={settings} showCutLines={showCutLines} />
                       </div>
                     </div>
                   </Card>
@@ -445,21 +451,17 @@ export default function EmployeeCardsPrintPage() {
         </div>
 
         {/* PRINT ONLY SECTION - Paginated 8 cards per sheet */}
-        <div id="print-section" className="hidden print:block">
+        <div id='print-section' className='hidden print:block'>
           {printPages.map((pageEmployees, pageIdx) => (
             <div
               key={`print-sheet-${pageIdx}`}
               className={printLayout === 'a4' ? 'a4-sheet-page' : 'single-sheet-page'}
             >
               {printLayout === 'a4' ? (
-                <div className="a4-grid-container">
+                <div className='a4-grid-container'>
                   {pageEmployees.map((emp) => (
-                    <div key={`print-card-${emp.id}`} className="cr80-print-card-wrapper">
-                      <CR80Card
-                        employee={emp}
-                        settings={settings}
-                        showCutLines={showCutLines}
-                      />
+                    <div key={`print-card-${emp.id}`} className='cr80-print-card-wrapper'>
+                      <CR80Card employee={emp} settings={settings} showCutLines={showCutLines} />
                     </div>
                   ))}
                 </div>

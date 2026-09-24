@@ -236,28 +236,17 @@ export default function DocumentsPage() {
   }).length;
 
   return (
-    <PageContainer>
-      <div className='space-y-6' dir='rtl'>
-        {/* Header */}
-        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-          <div>
-            <h1 className='text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2'>
-              <Icons.fileCertificate className='h-7 w-7 text-emerald-500' />
-              إدارة المستندات والرخص والشهادات
-            </h1>
-            <p className='text-sm text-slate-500 dark:text-slate-400'>
-              متابعة العقود وسندات الأمر ورخص القيادة واستمارات المركبات وتنبيهات الانتهاء
-            </p>
-          </div>
-          <Button
-            onClick={handleOpenAdd}
-            className='bg-emerald-600 hover:bg-emerald-700 text-white gap-2'
-          >
-            <Icons.add className='h-4 w-4' />
-            إضافة مستند جديد
-          </Button>
-        </div>
-
+    <PageContainer
+      pageTitle='إدارة المستندات والرخص والشهادات'
+      pageDescription='متابعة العقود وسندات الأمر ورخص القيادة واستمارات المركبات وتنبيهات الانتهاء'
+      pageHeaderAction={
+        <Button onClick={handleOpenAdd} className='gap-2 font-bold shadow-xs'>
+          <Icons.add className='size-4' />
+          إضافة مستند جديد
+        </Button>
+      }
+    >
+      <div className='flex flex-1 flex-col gap-4' dir='rtl'>
         {/* Stat Cards */}
         <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
           <Card className='border-emerald-100 bg-emerald-50/40 dark:border-emerald-950/40 dark:bg-emerald-950/20'>
