@@ -35,6 +35,7 @@ import {
 import { NativeSelect } from '@/components/ui/native-select';
 import { Switch } from '@/components/ui/switch';
 import { Icons } from '@/components/icons';
+import { ImageUploader } from '@/components/aams/image-uploader';
 import { vehicleApi } from '@/lib/aams/services';
 import { useOfflineQuery } from '@/hooks/use-offline-query';
 import type { Vehicle } from '@/types/aams';
@@ -49,6 +50,7 @@ export default function VehiclesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [oilChangingVehicle, setOilChangingVehicle] = useState<Vehicle | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
 
   // Form State
   const [plateNumber, setPlateNumber] = useState('');
@@ -59,6 +61,7 @@ export default function VehiclesPage() {
   const [currentKm, setCurrentKm] = useState('');
   const [lastOilKm, setLastOilKm] = useState('');
   const [isOdometerBroken, setIsOdometerBroken] = useState(false);
+  const [registrationImage, setRegistrationImage] = useState('');
   const [vehicleStatus, setVehicleStatus] = useState('AVAILABLE');
   const [notes, setNotes] = useState('');
 
@@ -162,6 +165,7 @@ export default function VehiclesPage() {
     setCurrentKm('');
     setLastOilKm('');
     setIsOdometerBroken(false);
+    setRegistrationImage('');
     setVehicleStatus('AVAILABLE');
     setNotes('');
   }
@@ -176,6 +180,7 @@ export default function VehiclesPage() {
     setCurrentKm(String(vehicle.current_km ?? ''));
     setLastOilKm(String(vehicle.last_oil_change_km ?? ''));
     setIsOdometerBroken(Boolean(vehicle.is_odometer_broken));
+    setRegistrationImage(vehicle.registration_image || '');
     setVehicleStatus(vehicle.status || 'AVAILABLE');
     setNotes(vehicle.notes || '');
   }
@@ -196,6 +201,7 @@ export default function VehiclesPage() {
       current_km: parseFloat(currentKm) || 0,
       last_oil_change_km: parseFloat(lastOilKm) || 0,
       is_odometer_broken: isOdometerBroken,
+      registration_image: registrationImage.trim(),
       notes: notes.trim()
     });
   }
@@ -215,6 +221,7 @@ export default function VehiclesPage() {
         current_km: parseFloat(currentKm) || 0,
         last_oil_change_km: parseFloat(lastOilKm) || 0,
         is_odometer_broken: isOdometerBroken,
+        registration_image: registrationImage.trim(),
         status: vehicleStatus,
         notes: notes.trim()
       }
@@ -362,6 +369,7 @@ export default function VehiclesPage() {
                     <TableHead className='text-right'>رقم الدباب / اللوحة</TableHead>
                     <TableHead className='text-right'>النوع والماركة</TableHead>
                     <TableHead className='text-right'>رقم المفتاح</TableHead>
+                    <TableHead className='text-right'>الاستمارة</TableHead>
                     <TableHead className='text-right'>العداد الحالي</TableHead>
                     <TableHead className='text-right'>حالة الزيت</TableHead>
                     <TableHead className='text-right'>الحالة التشغيلية</TableHead>
@@ -371,7 +379,7 @@ export default function VehiclesPage() {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className='h-32 text-center'>
+                      <TableCell colSpan={8} className='h-32 text-center'>
                         <div className='flex flex-col items-center justify-center gap-2'>
                           <Icons.spinner className='size-6 animate-spin text-primary' />
                           <span className='text-sm text-muted-foreground'>
@@ -382,7 +390,7 @@ export default function VehiclesPage() {
                     </TableRow>
                   ) : filteredVehicles.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className='h-32 text-center text-muted-foreground'>
+                      <TableCell colSpan={8} className='h-32 text-center text-muted-foreground'>
                         لا توجد دبابات أو مركبات مطابقة لمعايير البحث
                       </TableCell>
                     </TableRow>
@@ -435,6 +443,34 @@ export default function VehiclesPage() {
                               </Badge>
                             ) : (
                               <span className='text-muted-foreground text-xs'>—</span>
+                            )}
+                          </TableCell>
+
+                          {/* Registration Document */}
+                          <TableCell>
+                            {vehicle.registration_image ? (
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                type='button'
+                                onClick={() =>
+                                  setPreviewImage({
+                                    url: vehicle.registration_image!,
+                                    title: `استمارة المركبة / الدباب (${vehicle.plate_number})`
+                                  })
+                                }
+                                className='h-7 px-2.5 text-xs gap-1.5 border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 shadow-none'
+                              >
+                                <Icons.fileText className='size-3.5' />
+                                <span>عرض الاستمارة</span>
+                              </Button>
+                            ) : (
+                              <Badge
+                                variant='outline'
+                                className='text-[11px] text-muted-foreground border-dashed bg-muted/20'
+                              >
+                                غير مرفقة
+                              </Badge>
                             )}
                           </TableCell>
 
@@ -688,6 +724,16 @@ export default function VehiclesPage() {
                 <Switch checked={isOdometerBroken} onCheckedChange={setIsOdometerBroken} />
               </div>
 
+              <div className='space-y-1.5'>
+                <ImageUploader
+                  value={registrationImage}
+                  onChange={setRegistrationImage}
+                  label='صورة استمارة الدباب / المركبة 📄'
+                  category='registration'
+                  description='ستظهر صورة الاستمارة تلقائياً في وثائق المندوب المرتبط بهذا الدباب في التطبيق'
+                />
+              </div>
+
               <div className='space-y-1'>
                 <label className='text-xs font-medium'>ملاحظات</label>
                 <Input
@@ -816,6 +862,16 @@ export default function VehiclesPage() {
                 <Switch checked={isOdometerBroken} onCheckedChange={setIsOdometerBroken} />
               </div>
 
+              <div className='space-y-1.5'>
+                <ImageUploader
+                  value={registrationImage}
+                  onChange={setRegistrationImage}
+                  label='صورة استمارة الدباب / المركبة 📄'
+                  category='registration'
+                  description='ستظهر صورة الاستمارة تلقائياً في وثائق المندوب المرتبط بهذا الدباب في التطبيق'
+                />
+              </div>
+
               <div className='space-y-1'>
                 <label className='text-xs font-medium'>ملاحظات</label>
                 <Input value={notes} onChange={(e) => setNotes(e.target.value)} />
@@ -899,6 +955,36 @@ export default function VehiclesPage() {
                   <Icons.droplet className='size-4' />
                 )}
                 تأكيد غيار الزيت
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Registration Image Preview Dialog */}
+        <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
+          <DialogContent className='sm:max-w-xl' dir='rtl'>
+            <DialogHeader>
+              <DialogTitle className='text-base font-bold flex items-center gap-2'>
+                <Icons.fileText className='size-5 text-primary' />
+                {previewImage?.title || 'صورة استمارة المركبة'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className='flex items-center justify-center p-3 bg-muted/20 rounded-xl overflow-hidden min-h-[250px]'>
+              {previewImage?.url ? (
+                <img
+                  src={
+                    previewImage.url.startsWith('http') || previewImage.url.startsWith('data:')
+                      ? previewImage.url
+                      : `${process.env.NEXT_PUBLIC_API_URL || ''}${previewImage.url}`
+                  }
+                  alt='استمارة المركبة'
+                  className='max-h-[75vh] w-auto max-w-full rounded-lg object-contain shadow-sm'
+                />
+              ) : null}
+            </div>
+            <DialogFooter className='sm:justify-start'>
+              <Button type='button' variant='outline' onClick={() => setPreviewImage(null)}>
+                إغلاق
               </Button>
             </DialogFooter>
           </DialogContent>

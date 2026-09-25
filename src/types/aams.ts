@@ -450,6 +450,7 @@ export interface Vehicle {
   needs_oil_change?: boolean;
   remaining_oil_km?: number;
   current_driver?: string | null;
+  registration_image?: string;
 }
 
 export interface FuelLog {
