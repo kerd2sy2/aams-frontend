@@ -232,8 +232,51 @@ export const targetWebApi = {
       } as IdentifierPerformance;
     });
 
-    // Only include Ninja and Keeta uploaded identifiers (strictly exclude unwanted/old records)
-    const combined: IdentifierPerformance[] = [...ninjaMerged, ...keetaMerged];
+    // Also include custom identifiers created in localOverrides
+    Object.entries(localOverrides).forEach(([key, ov]: [string, any]) => {
+      if (!ov || (!ov.code && !ov.ninja_id)) return;
+      const targetCode = String(ov.code || ov.ninja_id).trim();
+      const idKey =
+        key.startsWith('ninja_') || key.startsWith('keeta_')
+          ? key
+          : `${(ov.app_name || '').toUpperCase().includes('KEETA') ? 'keeta' : 'ninja'}_${targetCode}`;
+      const exists = combined.some(
+        (c) =>
+          c.id === idKey ||
+          (c.code && String(c.code).trim() === targetCode) ||
+          (c.ninja_id && String(c.ninja_id).trim() === targetCode)
+      );
+      if (!exists) {
+        combined.push({
+          id: idKey,
+          name: ov.name_ar || ov.name_en || `كابتن ${targetCode}`,
+          name_en: ov.name_en || '',
+          name_ar: ov.name_ar || '',
+          avatar: ov.avatar || '',
+          ninja_id: targetCode,
+          national_id: ov.national_id || '',
+          mobile: ov.mobile || '',
+          email: ov.email || '',
+          code: targetCode,
+          app_name: (ov.app_name || '').toUpperCase().includes('KEETA') ? 'KEETA' : 'NINJA',
+          is_blocked: Boolean(ov.is_blocked),
+          blocked_reason: ov.blocked_reason || '',
+          employee_id: ov.employee_id || null,
+          monthly_target: ov.monthly_target || 460,
+          today_orders: 0,
+          week_orders: 0,
+          month_orders: 0,
+          achievement_percent: 0,
+          daily_average: 0,
+          daily_required: 18,
+          remaining_days: 30,
+          status: 'ON_TRACK',
+          projected_monthly_orders: 0,
+          is_qualified: true,
+          is_active: !ov.is_blocked
+        } as IdentifierPerformance);
+      }
+    });
 
     // If backend has dynamic live orders or links for any of these, merge them in
     for (const b of backendList) {

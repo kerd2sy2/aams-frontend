@@ -41,8 +41,11 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import ninjaSeedData from '@/lib/aams/ninja-identifiers-seed.json';
-import { saveDailyReportsBatch } from '@/lib/aams/target-api';
+import { buildCaptainLookup, isNumericOrIdOnly } from '@/lib/aams/captain-lookup';
+import { targetWebApi, saveDailyReportsBatch } from '@/lib/aams/target-api';
+import { employeeApi } from '@/lib/aams/services';
+import type { IdentifierPerformance } from '@/types/target';
+import type { Employee } from '@/types/aams';
 
 interface NinjaOrderRecord {
   id: string;
@@ -63,8 +66,12 @@ interface CaptainSummary {
   captainId: string;
   captainNameAr?: string;
   captainNameEn?: string;
+  displayName: string;
   avatar?: string;
   mobile?: string;
+  employeeName?: string;
+  isLinked?: boolean;
+  avatarFallback: string;
   totalOrders: number;
   deliveredOrders: number;
   canceledOrders: number;
@@ -84,6 +91,28 @@ export default function NinjaDailyReportPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'DELIVERED' | 'CANCELED'>('ALL');
   const [viewMode, setViewMode] = useState<'CAPTAINS' | 'ORDERS'>('CAPTAINS');
+
+  // Master data for Captain resolution (Employees & Identifiers)
+  const [identifiers, setIdentifiers] = useState<IdentifierPerformance[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+
+  // Fetch employees and identifiers on mount
+  React.useEffect(() => {
+    Promise.all([
+      targetWebApi.listIdentifiers().catch(() => []),
+      employeeApi
+        .getAll({ limit: 500 })
+        .then((res) => res.data || [])
+        .catch(() => [])
+    ]).then(([idents, emps]) => {
+      if (Array.isArray(idents)) setIdentifiers(idents);
+      if (Array.isArray(emps)) setEmployees(emps);
+    });
+  }, []);
+
+  const captainLookup = useMemo(() => {
+    return buildCaptainLookup('NINJA', identifiers, employees);
+  }, [identifiers, employees]);
 
   // Load saved reports from Next.js internal API database
   const loadSavedReports = React.useCallback(async (filterDate?: string) => {
@@ -249,29 +278,24 @@ export default function NinjaDailyReportPage() {
     setLoading(false);
   };
 
-  // Build lookup map from Ninja seed data
-  const ninjaSeedMap = useMemo(() => {
-    const map = new Map<string, (typeof ninjaSeedData)[0]>();
-    (ninjaSeedData as any[]).forEach((item) => {
-      if (item.ninja_id) map.set(String(item.ninja_id).trim(), item);
-    });
-    return map;
-  }, []);
-
   // Group by Captains
   const captainsSummary = useMemo(() => {
     const map = new Map<string, CaptainSummary>();
 
     orders.forEach((ord) => {
       const cId = ord.captainId || 'Unknown';
-      const seedItem = ninjaSeedMap.get(String(cId).trim());
+      const info = captainLookup(cId, ord.captainName);
 
       const existing = map.get(cId) || {
         captainId: cId,
-        captainNameAr: seedItem?.name_ar,
-        captainNameEn: seedItem?.name_en || ord.captainName,
-        avatar: seedItem?.avatar,
-        mobile: seedItem?.mobile,
+        captainNameAr: info.captainNameAr,
+        captainNameEn: info.captainNameEn,
+        displayName: info.displayName,
+        avatar: info.avatar,
+        mobile: info.mobile,
+        employeeName: info.employeeName,
+        isLinked: info.isLinked,
+        avatarFallback: info.avatarFallback,
         totalOrders: 0,
         deliveredOrders: 0,
         canceledOrders: 0,
@@ -309,7 +333,7 @@ export default function NinjaDailyReportPage() {
           date: reportDate,
           app: 'NINJA',
           identifier: c.captainId,
-          captainName: c.captainNameAr || c.captainNameEn,
+          captainName: c.captainNameAr || c.captainNameEn || c.displayName,
           deliveredOrders: c.deliveredOrders,
           totalOrders: c.totalOrders,
           totalDistanceKm: c.totalDistanceKm,
@@ -320,7 +344,7 @@ export default function NinjaDailyReportPage() {
     }
 
     return list.sort((a, b) => b.deliveredOrders - a.deliveredOrders);
-  }, [orders, ninjaSeedMap, reportDate]);
+  }, [orders, captainLookup, reportDate, fileName]);
 
   // Overall KPIs
   const totalOrdersCount = orders.length;
@@ -350,7 +374,9 @@ export default function NinjaDailyReportPage() {
         return (
           cap.captainId.toLowerCase().includes(q) ||
           (cap.captainNameAr && cap.captainNameAr.toLowerCase().includes(q)) ||
-          (cap.captainNameEn && cap.captainNameEn.toLowerCase().includes(q))
+          (cap.captainNameEn && cap.captainNameEn.toLowerCase().includes(q)) ||
+          (cap.displayName && cap.displayName.toLowerCase().includes(q)) ||
+          (cap.employeeName && cap.employeeName.toLowerCase().includes(q))
         );
       }
       return true;
@@ -671,41 +697,44 @@ export default function NinjaDailyReportPage() {
                       </TableCell>
                       <TableCell>
                         <div className='flex items-center gap-3'>
-                          <Avatar className='size-10 rounded-full border shadow-xs'>
+                          <Avatar className='size-10 rounded-full border border-border shadow-xs shrink-0'>
                             {cap.avatar ? (
                               <AvatarImage
                                 src={cap.avatar}
-                                alt={cap.captainNameAr || cap.captainNameEn || cap.captainId}
+                                alt={cap.displayName}
                                 className='object-cover'
                               />
                             ) : null}
-                            <AvatarFallback className='text-xs font-bold bg-muted text-muted-foreground'>
-                              {(cap.captainNameAr || cap.captainNameEn || 'C')
-                                .slice(0, 2)
-                                .toUpperCase()}
+                            <AvatarFallback className='text-xs font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400'>
+                              {cap.avatarFallback || 'ن'}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <div className='flex items-center gap-1.5 font-bold text-sm text-foreground'>
-                              <span>
-                                {cap.captainNameAr || cap.captainNameEn || `كابتن ${cap.captainId}`}
-                              </span>
+                              <span>{cap.displayName}</span>
                               {isTopPerformer && (
                                 <Badge className='bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-[10px] px-1.5 py-0'>
                                   🔥 بطل اليوم
                                 </Badge>
                               )}
                             </div>
-                            <div className='flex items-center gap-2 mt-0.5'>
+                            <div className='flex flex-wrap items-center gap-1.5 mt-0.5'>
                               <Badge
                                 variant='outline'
-                                className='font-mono text-[10px] py-0 px-1.5'
+                                className='font-mono text-[10px] py-0 px-1.5 bg-muted/40'
                               >
                                 ID: {cap.captainId}
                               </Badge>
-                              {cap.captainNameEn && cap.captainNameAr && (
-                                <span className='text-[11px] font-mono text-muted-foreground uppercase'>
-                                  {cap.captainNameEn}
+                              {cap.captainNameEn &&
+                                cap.captainNameAr &&
+                                !isNumericOrIdOnly(cap.captainNameEn) && (
+                                  <span className='text-[11px] font-mono text-muted-foreground uppercase'>
+                                    ({cap.captainNameEn})
+                                  </span>
+                                )}
+                              {cap.employeeName && cap.captainNameAr !== cap.employeeName && (
+                                <span className='text-[11px] text-muted-foreground'>
+                                  · المندوب: {cap.employeeName}
                                 </span>
                               )}
                             </div>
@@ -777,29 +806,24 @@ export default function NinjaDailyReportPage() {
                     <TableCell className='font-mono text-xs font-semibold'>{ord.orderId}</TableCell>
                     <TableCell>
                       {(() => {
-                        const seedItem = ninjaSeedMap.get(String(ord.captainId).trim());
+                        const info = captainLookup(ord.captainId, ord.captainName);
                         return (
                           <div className='flex items-center gap-2'>
-                            <Avatar className='size-7 rounded-full border shadow-xs'>
-                              {seedItem?.avatar ? (
+                            <Avatar className='size-7 rounded-full border border-border shadow-xs shrink-0'>
+                              {info.avatar ? (
                                 <AvatarImage
-                                  src={seedItem.avatar}
-                                  alt={seedItem.name_ar || ord.captainName}
+                                  src={info.avatar}
+                                  alt={info.displayName}
                                   className='object-cover'
                                 />
                               ) : null}
-                              <AvatarFallback className='text-[10px] font-bold bg-muted text-muted-foreground'>
-                                {(seedItem?.name_ar || seedItem?.name_en || 'C')
-                                  .slice(0, 2)
-                                  .toUpperCase()}
+                              <AvatarFallback className='text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400'>
+                                {info.avatarFallback}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <div className='font-bold text-xs text-foreground'>
-                                {seedItem?.name_ar ||
-                                  seedItem?.name_en ||
-                                  ord.captainName ||
-                                  `كابتن ${ord.captainId}`}
+                                {info.displayName}
                               </div>
                               <span className='font-mono text-[10px] text-muted-foreground'>
                                 ID: {ord.captainId}

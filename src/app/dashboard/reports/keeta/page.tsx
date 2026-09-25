@@ -33,8 +33,11 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import keetaSeedData from '@/lib/aams/keeta-identifiers-seed.json';
-import { saveDailyReportsBatch } from '@/lib/aams/target-api';
+import { buildCaptainLookup, isNumericOrIdOnly } from '@/lib/aams/captain-lookup';
+import { targetWebApi, saveDailyReportsBatch } from '@/lib/aams/target-api';
+import { employeeApi } from '@/lib/aams/services';
+import type { IdentifierPerformance } from '@/types/target';
+import type { Employee } from '@/types/aams';
 
 import {
   Select,
@@ -61,6 +64,7 @@ interface KeetaRow {
   veryDelayedTasks: number;
   avatar?: string;
   mobile?: string;
+  employeeName?: string;
 }
 
 export default function KeetaDailyReportPage() {
@@ -72,6 +76,28 @@ export default function KeetaDailyReportPage() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [vehicleFilter, setVehicleFilter] = useState<'all' | 'car' | 'bike'>('all');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Master data for Captain resolution (Employees & Identifiers)
+  const [identifiers, setIdentifiers] = useState<IdentifierPerformance[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+
+  // Fetch employees and identifiers on mount
+  React.useEffect(() => {
+    Promise.all([
+      targetWebApi.listIdentifiers().catch(() => []),
+      employeeApi
+        .getAll({ limit: 500 })
+        .then((res) => res.data || [])
+        .catch(() => [])
+    ]).then(([idents, emps]) => {
+      if (Array.isArray(idents)) setIdentifiers(idents);
+      if (Array.isArray(emps)) setEmployees(emps);
+    });
+  }, []);
+
+  const captainLookup = useMemo(() => {
+    return buildCaptainLookup('KEETA', identifiers, employees);
+  }, [identifiers, employees]);
 
   // Load saved reports from database API
   const loadSavedKeetaReports = React.useCallback(async (filterDate?: string) => {
@@ -113,15 +139,6 @@ export default function KeetaDailyReportPage() {
       loadSavedKeetaReports(val);
     }
   };
-
-  // Build lookup map from Keeta seed
-  const captainMap = useMemo(() => {
-    const map = new Map<string, (typeof keetaSeedData)[0]>();
-    keetaSeedData.forEach((item) => {
-      map.set(item.keeta_id, item);
-    });
-    return map;
-  }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
@@ -189,7 +206,7 @@ export default function KeetaDailyReportPage() {
           const name2 = String(r['اسم السائق_1'] || '').trim();
           const combinedNameEn = `${name1} ${name2}`.trim();
 
-          const seedInfo = captainMap.get(rawId);
+          const info = captainLookup(rawId, combinedNameEn);
 
           const accepted = Number(r[' أحجام المهام_المهام المقبولة'] || 0);
           const delivered = Number(r[' أحجام المهام_المهام التي تم تسليمها'] || 0);
@@ -211,8 +228,8 @@ export default function KeetaDailyReportPage() {
           parsedRows.push({
             date: dateVal,
             driverId: rawId,
-            driverNameEn: seedInfo?.name_en || combinedNameEn,
-            driverNameAr: seedInfo?.name_ar,
+            driverNameEn: info.captainNameEn || combinedNameEn,
+            driverNameAr: info.captainNameAr,
             vehicleType: String(r['نوع المركبة'] || 'دراجة'),
             onlineDurationStr: String(
               r['فترة الوردية_وقت اتصال السائقين عبر تطبيق السائق.'] || '-'
@@ -225,8 +242,9 @@ export default function KeetaDailyReportPage() {
             avgDeliveryDurationMinutes: avgDelivery as any,
             delayedTasks: delayed,
             veryDelayedTasks: veryDelayed,
-            avatar: seedInfo?.avatar,
-            mobile: seedInfo?.mobile
+            avatar: info.avatar,
+            mobile: info.mobile,
+            employeeName: info.employeeName
           });
         });
 
@@ -701,12 +719,10 @@ export default function KeetaDailyReportPage() {
                           accepted > 0 ? Math.round((delivered / accepted) * 100) : 0;
 
                         const driverId = String(row.driverId || '');
-                        const nameEn = String(row.driverNameEn || '').trim();
-                        const nameAr = String(row.driverNameAr || '').trim();
-                        const displayName = nameAr || nameEn || `كابتن ${driverId}`;
-                        const initials = (nameEn || nameAr || driverId || 'KT')
-                          .slice(0, 2)
-                          .toUpperCase();
+                        const info = captainLookup(driverId, row.driverNameEn);
+                        const displayName = info.displayName;
+                        const avatar = row.avatar || info.avatar;
+                        const avatarFallback = info.avatarFallback;
 
                         const vType = String(row.vehicleType || '').toLowerCase();
                         const isCar = vType.includes('car') || vType.includes('سيارة');
@@ -720,31 +736,43 @@ export default function KeetaDailyReportPage() {
                             {/* Driver Profile */}
                             <TableCell>
                               <div className='flex items-center gap-3'>
-                                <Avatar className='h-10 w-10 border border-border'>
-                                  {row.avatar ? (
-                                    <AvatarImage src={row.avatar} alt={displayName} />
+                                <Avatar className='h-10 w-10 border border-border shrink-0'>
+                                  {avatar ? (
+                                    <AvatarImage
+                                      src={avatar}
+                                      alt={displayName}
+                                      className='object-cover'
+                                    />
                                   ) : null}
-                                  <AvatarFallback className='bg-emerald-100 text-emerald-800 text-xs font-bold'>
-                                    {initials}
+                                  <AvatarFallback className='bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-xs font-bold'>
+                                    {avatarFallback}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
                                   <div className='font-semibold text-sm flex items-center gap-1.5'>
                                     <span>{displayName}</span>
-                                    {nameAr && nameEn && (
-                                      <span className='text-[11px] text-muted-foreground font-normal'>
-                                        ({nameEn})
-                                      </span>
-                                    )}
+                                    {info.captainNameAr &&
+                                      info.captainNameEn &&
+                                      !isNumericOrIdOnly(info.captainNameEn) && (
+                                        <span className='text-[11px] text-muted-foreground font-normal'>
+                                          ({info.captainNameEn})
+                                        </span>
+                                      )}
                                   </div>
-                                  <div className='flex items-center gap-2 text-xs text-muted-foreground mt-0.5'>
+                                  <div className='flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mt-0.5'>
                                     <Badge
                                       variant='outline'
-                                      className='font-mono text-[10px] py-0 px-1.5'
+                                      className='font-mono text-[10px] py-0 px-1.5 bg-muted/40'
                                     >
-                                      {driverId}
+                                      ID: {driverId}
                                     </Badge>
-                                    {row.mobile && <span>📱 {row.mobile}</span>}
+                                    {info.employeeName &&
+                                      info.captainNameAr !== info.employeeName && (
+                                        <span className='text-[11px] text-muted-foreground'>
+                                          · المندوب: {info.employeeName}
+                                        </span>
+                                      )}
+                                    {info.mobile && <span>📱 {info.mobile}</span>}
                                   </div>
                                 </div>
                               </div>
