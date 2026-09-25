@@ -333,54 +333,61 @@ export default function IdentifiersPage() {
 
   // Filtered List
   const filteredIdentifiers = useMemo(() => {
-    return identifiers.filter((item) => {
-      // App filter
-      if (appFilter !== 'ALL') {
-        const itemApp = (item.app_name || '').toUpperCase();
-        if (appFilter === 'NINJA' && !itemApp.includes('NINJA')) return false;
-        if (appFilter === 'KEETA' && !itemApp.includes('KEETA')) return false;
-        if (appFilter === 'OTHER' && (itemApp.includes('NINJA') || itemApp.includes('KEETA')))
-          return false;
-      }
+    return identifiers
+      .filter((item) => {
+        // App filter
+        if (appFilter !== 'ALL') {
+          const itemApp = (item.app_name || '').toUpperCase();
+          if (appFilter === 'NINJA' && !itemApp.includes('NINJA')) return false;
+          if (appFilter === 'KEETA' && !itemApp.includes('KEETA')) return false;
+          if (appFilter === 'OTHER' && (itemApp.includes('NINJA') || itemApp.includes('KEETA')))
+            return false;
+        }
 
-      // Status filter
-      if (statusFilter === 'BLOCKED' && !item.is_blocked) return false;
-      if (statusFilter === 'ACTIVE' && item.is_blocked) return false;
-      if (statusFilter === 'LINKED' && !item.employee_id) return false;
-      if (statusFilter === 'UNLINKED' && item.employee_id) return false;
+        // Status filter
+        if (statusFilter === 'BLOCKED' && !item.is_blocked) return false;
+        if (statusFilter === 'ACTIVE' && item.is_blocked) return false;
+        if (statusFilter === 'LINKED' && !item.employee_id) return false;
+        if (statusFilter === 'UNLINKED' && item.employee_id) return false;
 
-      // Search query
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
-        const nameMatch = item.name?.toLowerCase().includes(q);
-        const nameArMatch = item.name_ar?.toLowerCase().includes(q);
-        const nameEnMatch = item.name_en?.toLowerCase().includes(q);
-        const codeMatch = item.code?.toLowerCase().includes(q);
-        const ninjaMatch = item.ninja_id?.toLowerCase().includes(q);
-        const natMatch = item.national_id?.toLowerCase().includes(q);
-        const mobileMatch = item.mobile?.toLowerCase().includes(q);
-        const emailMatch = item.email?.toLowerCase().includes(q);
-        const appMatch = item.app_name?.toLowerCase().includes(q);
-        const empNameMatch = item.employee?.name?.toLowerCase().includes(q);
-        const empKeyMatch = item.employee?.key_number?.toLowerCase().includes(q);
+        // Search query
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase().trim();
+          const nameMatch = item.name?.toLowerCase().includes(q);
+          const nameArMatch = item.name_ar?.toLowerCase().includes(q);
+          const nameEnMatch = item.name_en?.toLowerCase().includes(q);
+          const codeMatch = item.code?.toLowerCase().includes(q);
+          const ninjaMatch = item.ninja_id?.toLowerCase().includes(q);
+          const natMatch = item.national_id?.toLowerCase().includes(q);
+          const mobileMatch = item.mobile?.toLowerCase().includes(q);
+          const emailMatch = item.email?.toLowerCase().includes(q);
+          const appMatch = item.app_name?.toLowerCase().includes(q);
+          const empNameMatch = item.employee?.name?.toLowerCase().includes(q);
+          const empKeyMatch = item.employee?.key_number?.toLowerCase().includes(q);
 
-        return (
-          nameMatch ||
-          nameArMatch ||
-          nameEnMatch ||
-          codeMatch ||
-          ninjaMatch ||
-          natMatch ||
-          mobileMatch ||
-          emailMatch ||
-          appMatch ||
-          empNameMatch ||
-          empKeyMatch
-        );
-      }
+          return (
+            nameMatch ||
+            nameArMatch ||
+            nameEnMatch ||
+            codeMatch ||
+            ninjaMatch ||
+            natMatch ||
+            mobileMatch ||
+            emailMatch ||
+            appMatch ||
+            empNameMatch ||
+            empKeyMatch
+          );
+        }
 
-      return true;
-    });
+        return true;
+      })
+      .sort((a, b) => {
+        // Blocked items always sink to the bottom
+        if (a.is_blocked && !b.is_blocked) return 1;
+        if (!a.is_blocked && b.is_blocked) return -1;
+        return 0;
+      });
   }, [identifiers, statusFilter, appFilter, searchQuery]);
 
   return (
