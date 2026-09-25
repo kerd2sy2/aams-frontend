@@ -39,19 +39,58 @@ export function getDailyReportsHistory(): DailyReportCaptainRecord[] {
   }
 }
 
-export function saveDailyReportsBatch(records: DailyReportCaptainRecord[]) {
-  if (typeof window === 'undefined' || !records.length) return;
+export async function saveDailyReportsBatch(
+  records: DailyReportCaptainRecord[],
+  fileName?: string
+): Promise<any> {
+  if (!records.length) return;
+
+  // 1. Save to Local Storage immediately
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = getDailyReportsHistory();
+      const incomingKeys = new Set(records.map((r) => `${r.date}_${r.app}_${r.identifier}`));
+      const retained = existing.filter(
+        (e) => !incomingKeys.has(`${e.date}_${e.app}_${e.identifier}`)
+      );
+      const updated = [...retained, ...records];
+      localStorage.setItem(DAILY_STATS_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to save daily reports to localStorage', e);
+    }
+  }
+
+  // 2. Persist to PostgreSQL backend database via /admin/target/import/confirm
   try {
-    const existing = getDailyReportsHistory();
-    // Filter out existing records for same date + app + identifier to avoid duplicates
-    const incomingKeys = new Set(records.map((r) => `${r.date}_${r.app}_${r.identifier}`));
-    const retained = existing.filter(
-      (e) => !incomingKeys.has(`${e.date}_${e.app}_${e.identifier}`)
-    );
-    const updated = [...retained, ...records];
-    localStorage.setItem(DAILY_STATS_KEY, JSON.stringify(updated));
-  } catch (e) {
-    console.error('Failed to save daily reports batch', e);
+    const reportDate = records[0]?.date || new Date().toISOString().split('T')[0];
+    const appName = records[0]?.app || 'NINJA';
+    const resolvedFileName =
+      fileName || `${appName}_Daily_Report_${reportDate.replace(/-/g, '')}.xlsx`;
+
+    const rows = records.map((r, idx) => ({
+      serial: String(idx + 1),
+      identifier: r.identifier,
+      app: r.app,
+      driver_name: r.captainName || `كابتن ${r.identifier}`,
+      ninja_orders: r.app === 'NINJA' ? r.deliveredOrders : 0,
+      keeta_orders: r.app === 'KEETA' ? r.deliveredOrders : 0,
+      toyo_orders: 0,
+      total_orders: r.deliveredOrders,
+      plate_number: '',
+      notes: r.onlineDurationStr ? `ساعات الاتصال: ${r.onlineDurationStr}` : '',
+      is_duplicate: false
+    }));
+
+    const res = await apiClient.post('/admin/target/import/confirm', {
+      file_name: resolvedFileName,
+      order_date: reportDate,
+      deduplication_action: 'REPLACE_DUPLICATES',
+      rows
+    });
+
+    return res.data;
+  } catch (err) {
+    console.warn('Backend database sync for daily report fallback to localStorage:', err);
   }
 }
 

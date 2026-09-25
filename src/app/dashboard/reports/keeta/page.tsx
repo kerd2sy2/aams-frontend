@@ -180,7 +180,8 @@ export default function KeetaDailyReportPage() {
             delayedOrders: r.delayedTasks,
             punctualityRate: r.punctualityRate,
             avgDeliveryMinutes: r.avgDeliveryDurationMinutes
-          }))
+          })),
+          file.name
         );
       }
 

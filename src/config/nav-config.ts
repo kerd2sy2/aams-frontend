@@ -27,19 +27,7 @@ export const navGroups: NavGroup[] = [
         icon: 'key'
       },
 
-      // 4. تقارير التطبيقات اليومية (نينجا وكيتا)
-      {
-        title: 'Ninja Daily Report',
-        url: '/dashboard/reports/ninja',
-        icon: 'fileText'
-      },
-      {
-        title: 'Keeta Daily Report',
-        url: '/dashboard/reports/keeta',
-        icon: 'bike'
-      },
-
-      // 5. التارچت والمستهدفات
+      // 4. التارچت والمستهدفات
       {
         title: 'Target Dashboard',
         url: '/dashboard/target',

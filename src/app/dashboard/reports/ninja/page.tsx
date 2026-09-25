@@ -226,7 +226,8 @@ export default function NinjaDailyReportPage() {
           totalOrders: c.totalOrders,
           totalDistanceKm: c.totalDistanceKm,
           avgDeliveryMinutes: c.avgTimeMinutes
-        }))
+        })),
+        fileName
       );
     }
 
