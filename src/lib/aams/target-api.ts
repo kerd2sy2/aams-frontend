@@ -94,9 +94,15 @@ export async function saveDailyReportsBatch(
   }
 }
 
-interface LocalOverride {
+export interface LocalOverride {
   name_ar?: string;
   name_en?: string;
+  avatar?: string;
+  mobile?: string;
+  national_id?: string;
+  code?: string;
+  ninja_id?: string;
+  app_name?: string;
   is_blocked?: boolean;
   blocked_reason?: string;
   employee_id?: string | null;
