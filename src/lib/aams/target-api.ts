@@ -13,6 +13,47 @@ import ninjaSeedData from './ninja-identifiers-seed.json';
 import keetaSeedData from './keeta-identifiers-seed.json';
 
 const LOCAL_STORAGE_KEY = 'aams_identifiers_overrides_v1';
+const DAILY_STATS_KEY = 'aams_daily_reports_stats_v1';
+
+export interface DailyReportCaptainRecord {
+  date: string; // YYYY-MM-DD
+  app: 'NINJA' | 'KEETA';
+  identifier: string;
+  captainName?: string;
+  deliveredOrders: number;
+  totalOrders: number;
+  onlineDurationStr?: string;
+  delayedOrders?: number;
+  punctualityRate?: number;
+  avgDeliveryMinutes?: number;
+  totalDistanceKm?: number;
+}
+
+export function getDailyReportsHistory(): DailyReportCaptainRecord[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(DAILY_STATS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveDailyReportsBatch(records: DailyReportCaptainRecord[]) {
+  if (typeof window === 'undefined' || !records.length) return;
+  try {
+    const existing = getDailyReportsHistory();
+    // Filter out existing records for same date + app + identifier to avoid duplicates
+    const incomingKeys = new Set(records.map((r) => `${r.date}_${r.app}_${r.identifier}`));
+    const retained = existing.filter(
+      (e) => !incomingKeys.has(`${e.date}_${e.app}_${e.identifier}`)
+    );
+    const updated = [...retained, ...records];
+    localStorage.setItem(DAILY_STATS_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.error('Failed to save daily reports batch', e);
+  }
+}
 
 interface LocalOverride {
   name_ar?: string;
@@ -171,23 +212,51 @@ export const targetWebApi = {
       }
     }
 
-    // Apply any local overrides to all items
+    // Read uploaded daily reports stats (from Ninja & Keeta daily reports)
+    const dailyHistory = getDailyReportsHistory();
+
+    // Apply any local overrides and uploaded report stats to all items
     const finalResult = combined.map((item) => {
       const ov = localOverrides[item.id] || (item.code ? localOverrides[item.code] : null);
-      if (ov) {
-        return {
-          ...item,
-          name: ov.name_ar || item.name_ar || item.name,
-          name_ar: ov.name_ar !== undefined ? ov.name_ar : item.name_ar,
-          name_en: ov.name_en !== undefined ? ov.name_en : item.name_en,
-          email: item.email,
-          is_blocked: ov.is_blocked !== undefined ? ov.is_blocked : item.is_blocked,
-          blocked_reason: ov.blocked_reason !== undefined ? ov.blocked_reason : item.blocked_reason,
-          employee_id: ov.employee_id !== undefined ? ov.employee_id : item.employee_id,
-          monthly_target: ov.monthly_target !== undefined ? ov.monthly_target : item.monthly_target
-        };
+      const identCode = String(item.code || item.ninja_id || '').trim();
+
+      // Aggregate from daily reports history for this captain
+      const captainDailyRecords = dailyHistory.filter(
+        (d) => String(d.identifier).trim() === identCode
+      );
+
+      let totalReportDelivered = 0;
+      let latestTodayDelivered = item.today_orders || 0;
+
+      if (captainDailyRecords.length > 0) {
+        totalReportDelivered = captainDailyRecords.reduce(
+          (sum, r) => sum + (r.deliveredOrders || 0),
+          0
+        );
+        // Latest date entry
+        captainDailyRecords.sort((a, b) => b.date.localeCompare(a.date));
+        latestTodayDelivered = captainDailyRecords[0].deliveredOrders || 0;
       }
-      return item;
+
+      const totalDelivered = Math.max(item.month_orders || 0, totalReportDelivered);
+      const targetMonthly = (ov && ov.monthly_target) || item.monthly_target || 460;
+      const achievementPercent = targetMonthly > 0 ? (totalDelivered / targetMonthly) * 100 : 0;
+
+      return {
+        ...item,
+        name: (ov && ov.name_ar) || item.name_ar || item.name,
+        name_ar: ov && ov.name_ar !== undefined ? ov.name_ar : item.name_ar,
+        name_en: ov && ov.name_en !== undefined ? ov.name_en : item.name_en,
+        email: item.email,
+        is_blocked: ov && ov.is_blocked !== undefined ? ov.is_blocked : item.is_blocked,
+        blocked_reason:
+          ov && ov.blocked_reason !== undefined ? ov.blocked_reason : item.blocked_reason,
+        employee_id: ov && ov.employee_id !== undefined ? ov.employee_id : item.employee_id,
+        monthly_target: targetMonthly,
+        today_orders: latestTodayDelivered,
+        month_orders: totalDelivered,
+        achievement_percent: +achievementPercent.toFixed(1)
+      };
     });
 
     return finalResult;

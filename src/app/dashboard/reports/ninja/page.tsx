@@ -40,6 +40,9 @@ import {
   Bike
 } from 'lucide-react';
 import Link from 'next/link';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import ninjaSeedData from '@/lib/aams/ninja-identifiers-seed.json';
+import { saveDailyReportsBatch } from '@/lib/aams/target-api';
 
 interface NinjaOrderRecord {
   id: string;
@@ -58,6 +61,10 @@ interface NinjaOrderRecord {
 
 interface CaptainSummary {
   captainId: string;
+  captainNameAr?: string;
+  captainNameEn?: string;
+  avatar?: string;
+  mobile?: string;
   totalOrders: number;
   deliveredOrders: number;
   canceledOrders: number;
@@ -154,14 +161,29 @@ export default function NinjaDailyReportPage() {
     reader.readAsText(file, 'utf-8');
   };
 
+  // Build lookup map from Ninja seed data
+  const ninjaSeedMap = useMemo(() => {
+    const map = new Map<string, (typeof ninjaSeedData)[0]>();
+    (ninjaSeedData as any[]).forEach((item) => {
+      if (item.ninja_id) map.set(String(item.ninja_id).trim(), item);
+    });
+    return map;
+  }, []);
+
   // Group by Captains
   const captainsSummary = useMemo(() => {
     const map = new Map<string, CaptainSummary>();
 
     orders.forEach((ord) => {
       const cId = ord.captainId || 'Unknown';
+      const seedItem = ninjaSeedMap.get(String(cId).trim());
+
       const existing = map.get(cId) || {
         captainId: cId,
+        captainNameAr: seedItem?.name_ar,
+        captainNameEn: seedItem?.name_en || ord.captainName,
+        avatar: seedItem?.avatar,
+        mobile: seedItem?.mobile,
         totalOrders: 0,
         deliveredOrders: 0,
         canceledOrders: 0,
@@ -192,8 +214,24 @@ export default function NinjaDailyReportPage() {
       };
     });
 
+    // Automatically persist to target daily stats history so it reflects in Identifiers and Target
+    if (orders.length > 0 && reportDate) {
+      saveDailyReportsBatch(
+        list.map((c) => ({
+          date: reportDate,
+          app: 'NINJA',
+          identifier: c.captainId,
+          captainName: c.captainNameAr || c.captainNameEn,
+          deliveredOrders: c.deliveredOrders,
+          totalOrders: c.totalOrders,
+          totalDistanceKm: c.totalDistanceKm,
+          avgDeliveryMinutes: c.avgTimeMinutes
+        }))
+      );
+    }
+
     return list.sort((a, b) => b.deliveredOrders - a.deliveredOrders);
-  }, [orders]);
+  }, [orders, ninjaSeedMap, reportDate]);
 
   // Overall KPIs
   const totalOrdersCount = orders.length;
@@ -220,7 +258,11 @@ export default function NinjaDailyReportPage() {
     return captainsSummary.filter((cap) => {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
-        return cap.captainId.toLowerCase().includes(q);
+        return (
+          cap.captainId.toLowerCase().includes(q) ||
+          (cap.captainNameAr && cap.captainNameAr.toLowerCase().includes(q)) ||
+          (cap.captainNameEn && cap.captainNameEn.toLowerCase().includes(q))
+        );
       }
       return true;
     });
@@ -493,7 +535,7 @@ export default function NinjaDailyReportPage() {
               <TableHeader>
                 <TableRow className='bg-muted/50'>
                   <TableHead className='font-semibold text-center w-12'>#</TableHead>
-                  <TableHead className='font-semibold'>معرّف الكابتن (نينجا)</TableHead>
+                  <TableHead className='font-semibold min-w-[220px]'>الكابتن والمعرف</TableHead>
                   <TableHead className='font-semibold text-center'>الطلبات المسلمة</TableHead>
                   <TableHead className='font-semibold text-center'>الملغية</TableHead>
                   <TableHead className='font-semibold text-center'>إجمالي الكيلومترات</TableHead>
@@ -511,14 +553,47 @@ export default function NinjaDailyReportPage() {
                       <TableCell className='text-center font-mono text-xs text-muted-foreground'>
                         {idx + 1}
                       </TableCell>
-                      <TableCell className='font-bold font-mono text-sm text-foreground'>
-                        <div className='flex items-center gap-2'>
-                          <span>{cap.captainId}</span>
-                          {isTopPerformer && (
-                            <Badge className='bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-[10px] px-1.5 py-0'>
-                              🔥 بطل اليوم
-                            </Badge>
-                          )}
+                      <TableCell>
+                        <div className='flex items-center gap-3'>
+                          <Avatar className='size-10 rounded-full border shadow-xs'>
+                            {cap.avatar ? (
+                              <AvatarImage
+                                src={cap.avatar}
+                                alt={cap.captainNameAr || cap.captainNameEn || cap.captainId}
+                                className='object-cover'
+                              />
+                            ) : null}
+                            <AvatarFallback className='text-xs font-bold bg-muted text-muted-foreground'>
+                              {(cap.captainNameAr || cap.captainNameEn || 'C')
+                                .slice(0, 2)
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className='flex items-center gap-1.5 font-bold text-sm text-foreground'>
+                              <span>
+                                {cap.captainNameAr || cap.captainNameEn || `كابتن ${cap.captainId}`}
+                              </span>
+                              {isTopPerformer && (
+                                <Badge className='bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-[10px] px-1.5 py-0'>
+                                  🔥 بطل اليوم
+                                </Badge>
+                              )}
+                            </div>
+                            <div className='flex items-center gap-2 mt-0.5'>
+                              <Badge
+                                variant='outline'
+                                className='font-mono text-[10px] py-0 px-1.5'
+                              >
+                                ID: {cap.captainId}
+                              </Badge>
+                              {cap.captainNameEn && cap.captainNameAr && (
+                                <span className='text-[11px] font-mono text-muted-foreground uppercase'>
+                                  {cap.captainNameEn}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className='text-center font-mono font-bold text-emerald-600 text-sm'>
@@ -584,8 +659,39 @@ export default function NinjaDailyReportPage() {
                 {filteredOrders.slice(0, 100).map((ord) => (
                   <TableRow key={ord.id} className='hover:bg-muted/30'>
                     <TableCell className='font-mono text-xs font-semibold'>{ord.orderId}</TableCell>
-                    <TableCell className='font-mono text-xs font-bold text-primary'>
-                      {ord.captainId}
+                    <TableCell>
+                      {(() => {
+                        const seedItem = ninjaSeedMap.get(String(ord.captainId).trim());
+                        return (
+                          <div className='flex items-center gap-2'>
+                            <Avatar className='size-7 rounded-full border shadow-xs'>
+                              {seedItem?.avatar ? (
+                                <AvatarImage
+                                  src={seedItem.avatar}
+                                  alt={seedItem.name_ar || ord.captainName}
+                                  className='object-cover'
+                                />
+                              ) : null}
+                              <AvatarFallback className='text-[10px] font-bold bg-muted text-muted-foreground'>
+                                {(seedItem?.name_ar || seedItem?.name_en || 'C')
+                                  .slice(0, 2)
+                                  .toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className='font-bold text-xs text-foreground'>
+                                {seedItem?.name_ar ||
+                                  seedItem?.name_en ||
+                                  ord.captainName ||
+                                  `كابتن ${ord.captainId}`}
+                              </div>
+                              <span className='font-mono text-[10px] text-muted-foreground'>
+                                ID: {ord.captainId}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className='text-center'>
                       {ord.status === 'DELIVERED' ? (

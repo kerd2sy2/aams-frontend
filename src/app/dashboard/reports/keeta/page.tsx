@@ -4,7 +4,6 @@ import React, { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import PageContainer from '@/components/layout/page-container';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -30,8 +29,12 @@ import {
   Flame,
   Bike
 } from 'lucide-react';
+import { Button, buttonVariants } from '@/components/ui/button';
+import Link from 'next/link';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import keetaSeedData from '@/lib/aams/keeta-identifiers-seed.json';
+import { saveDailyReportsBatch } from '@/lib/aams/target-api';
 
 interface KeetaRow {
   date: string;
@@ -116,7 +119,10 @@ export default function KeetaDailyReportPage() {
         const rawId = String(r['معرّف السائق'] || '').trim();
         if (!rawId || rawId === 'undefined') return;
 
-        const dateVal = String(r['التاريخ'] || '').trim();
+        let dateVal = String(r['التاريخ'] || '').trim();
+        if (dateVal.length === 8 && !dateVal.includes('-')) {
+          dateVal = `${dateVal.slice(0, 4)}-${dateVal.slice(4, 6)}-${dateVal.slice(6, 8)}`;
+        }
         if (dateVal && !detectedDate) {
           detectedDate = dateVal;
         }
@@ -159,6 +165,25 @@ export default function KeetaDailyReportPage() {
 
       setData(parsedRows);
       setReportDate(detectedDate);
+
+      // Persist to target daily storage history
+      if (parsedRows.length > 0 && detectedDate) {
+        saveDailyReportsBatch(
+          parsedRows.map((r) => ({
+            date: r.date || detectedDate,
+            app: 'KEETA',
+            identifier: r.driverId,
+            captainName: r.driverNameAr || r.driverNameEn,
+            deliveredOrders: r.deliveredTasks,
+            totalOrders: r.acceptedTasks,
+            onlineDurationStr: r.onlineDurationStr,
+            delayedOrders: r.delayedTasks,
+            punctualityRate: r.punctualityRate,
+            avgDeliveryMinutes: r.avgDeliveryDurationMinutes
+          }))
+        );
+      }
+
       toast.success(`تم قراءة تقرير كيتا بنجاح: ${parsedRows.length} كابتن`);
     } catch (err: any) {
       console.error(err);
@@ -265,10 +290,33 @@ export default function KeetaDailyReportPage() {
           </div>
 
           <div className='flex items-center gap-2'>
+            <label
+              htmlFor='keeta-excel-upload'
+              className={cn(
+                buttonVariants({ variant: 'default', size: 'sm' }),
+                'cursor-pointer gap-1.5 h-8 font-medium bg-emerald-600 hover:bg-emerald-700 text-white'
+              )}
+            >
+              <Upload className='size-3.5' />
+              <span>رفع ملف إكسل كيتا</span>
+            </label>
+
+            <Link
+              href='/dashboard/identifiers'
+              className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'h-8 gap-1.5')}
+            >
+              <span>سجل المعرفات</span>
+            </Link>
+
             {data.length > 0 && (
-              <Button variant='outline' size='sm' onClick={handleExportSummary} className='gap-2'>
-                <Download className='h-4 w-4' />
-                تصدير النتائج (Excel)
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={handleExportSummary}
+                className='h-8 gap-1.5'
+              >
+                <Download className='size-3.5' />
+                <span>تصدير (Excel)</span>
               </Button>
             )}
           </div>
@@ -290,21 +338,20 @@ export default function KeetaDailyReportPage() {
             </p>
 
             <div className='flex items-center gap-3'>
-              <label>
-                <Input
-                  type='file'
-                  accept='.xlsx, .xls'
-                  className='hidden'
-                  onChange={handleFileUpload}
-                  disabled={isLoading}
-                />
-                <Button
-                  variant='default'
-                  className='cursor-pointer gap-2 bg-emerald-600 hover:bg-emerald-700'
-                >
-                  <Upload className='h-4 w-4' />
-                  {isLoading ? 'جاري التحميل والمعالجة...' : 'اختر ملف التقرير من جهازك'}
-                </Button>
+              <input
+                id='keeta-excel-upload'
+                type='file'
+                accept='.xlsx, .xls'
+                className='hidden'
+                onChange={handleFileUpload}
+                disabled={isLoading}
+              />
+              <label
+                htmlFor='keeta-excel-upload'
+                className='inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background px-4 py-2 text-sm cursor-pointer gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+              >
+                <Upload className='h-4 w-4' />
+                <span>{isLoading ? 'جاري التحميل والمعالجة...' : 'اختر ملف التقرير من جهازك'}</span>
               </label>
             </div>
 
