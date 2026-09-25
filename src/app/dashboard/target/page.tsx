@@ -688,17 +688,40 @@ export default function TargetDashboardPage() {
                       return (
                         <TableRow key={item.id}>
                           <TableCell className='font-semibold text-foreground'>
-                            <div className='flex items-center gap-2'>
-                              <span>{item.name}</span>
-                              {item.app_name ? (
-                                <Badge variant='outline' className='text-[10px] px-1.5 py-0'>
-                                  {item.app_name}
-                                </Badge>
-                              ) : null}
+                            <div className='flex items-center gap-2.5'>
+                              <div className='relative size-8 shrink-0 overflow-hidden rounded-full border shadow-2xs'>
+                                {item.avatar ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={item.avatar}
+                                    alt={item.name_ar || item.name}
+                                    className='size-full object-cover'
+                                  />
+                                ) : (
+                                  <div className='flex size-full items-center justify-center bg-muted text-[10px] font-bold text-muted-foreground'>
+                                    {(item.name_ar || item.name || 'C').slice(0, 2)}
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <div className='font-bold text-xs text-foreground'>
+                                  {item.name_ar || item.name}
+                                </div>
+                                <div className='flex items-center gap-1.5 mt-0.5'>
+                                  <span className='font-mono text-[10px] text-muted-foreground'>
+                                    ID: {item.code || item.ninja_id || '—'}
+                                  </span>
+                                  {item.app_name ? (
+                                    <Badge variant='outline' className='text-[9px] px-1 py-0 h-4'>
+                                      {item.app_name}
+                                    </Badge>
+                                  ) : null}
+                                </div>
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell className='font-mono text-xs text-muted-foreground'>
-                            {item.code || '—'}
+                            {item.code || item.ninja_id || '—'}
                           </TableCell>
                           <TableCell>
                             {item.employee ? (
