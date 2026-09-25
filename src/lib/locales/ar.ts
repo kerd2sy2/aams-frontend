@@ -49,6 +49,7 @@ const ar: Record<string, string> = {
   Identifiers: 'المعرفات وربط المناديب',
   'Shift Report': 'كشف الشفتات',
   'Daily Report': 'تقرير المشرف اليومي',
+  'Ninja Daily Report': 'تقرير نينجا اليومي',
   Attendance: 'الحضور والانصراف',
   Investigations: 'محاضر الموظفين',
   'All Investigations': 'جميع المحاضر',
