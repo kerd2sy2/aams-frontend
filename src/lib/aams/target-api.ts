@@ -91,6 +91,7 @@ export const targetWebApi = {
           ov.name_ar || seedItem.name_ar || seedItem.name_en || `كابتن نينجا ${seedItem.ninja_id}`,
         name_en: ov.name_en || seedItem.name_en || '',
         name_ar: ov.name_ar || seedItem.name_ar || '',
+        avatar: seedItem.avatar || '',
         ninja_id: seedItem.ninja_id,
         national_id: seedItem.national_id,
         mobile: seedItem.mobile,
@@ -125,6 +126,7 @@ export const targetWebApi = {
           ov.name_ar || seedItem.name_ar || seedItem.name_en || `كابتن كيتا ${seedItem.keeta_id}`,
         name_en: ov.name_en || seedItem.name_en || '',
         name_ar: ov.name_ar || seedItem.name_ar || '',
+        avatar: seedItem.avatar || '',
         ninja_id: seedItem.keeta_id,
         national_id: seedItem.national_id,
         mobile: seedItem.mobile,
@@ -166,6 +168,7 @@ export const targetWebApi = {
         const ov = localOverrides[existing.id] || localOverrides[seedItem.id] || {};
         if (!existing.name_ar) existing.name_ar = ov.name_ar || seedItem.name_ar;
         if (!existing.name_en) existing.name_en = ov.name_en || seedItem.name_en;
+        if (!existing.avatar) existing.avatar = seedItem.avatar;
         if (!existing.app_name) existing.app_name = seedItem.app_name;
         if (!existing.national_id) existing.national_id = seedItem.national_id;
         if (!existing.mobile) existing.mobile = seedItem.mobile;

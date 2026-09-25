@@ -1,6 +1,7 @@
 [
   {
     "ninja_id": "302707",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1786544319752-لقطة_شاشة_2026-08-12_171827.png",
     "name_en": "TAREQ GOMAA",
     "name_ar": "طارق جمعة",
     "national_id": "2641911119",
@@ -8,10 +9,12 @@
     "status": "APPEALED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "302697",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1786543779369-لقطة_شاشة_2026-08-12_170927.png",
     "name_en": "MOHAMED GOUDA",
     "name_ar": "محمد جودة",
     "national_id": "2641911223",
@@ -19,10 +22,12 @@
     "status": "APPEALED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "298185",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1785686209282-لقطة_شاشة_2026-08-02_185635.png",
     "name_en": "GAJI RANA",
     "name_ar": "جاجي رنا",
     "national_id": "2637206885",
@@ -30,10 +35,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "292183",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1784609066031-صوره_ابو_سفيان.jpg",
     "name_en": "ABU SUFYAN",
     "name_ar": "أبو سفيان",
     "national_id": "2633404500",
@@ -41,10 +48,12 @@
     "status": "PENDING",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "291531",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1784502881739-صوره_سلفي_محمد_بركه.jpeg",
     "name_en": "MOHAMEDBARAKA",
     "name_ar": "محمد بركة",
     "national_id": "2559916248",
@@ -52,10 +61,12 @@
     "status": "PENDING",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "289761",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1784137507629-لقطة_شاشة_2026-07-15_204458.png",
     "name_en": "MOHAMED HALIL",
     "name_ar": "محمد خليل",
     "national_id": "2630756282",
@@ -63,21 +74,25 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "279381",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1782310165280-لقطة_شاشة_2026-06-24_170730.png",
     "name_en": "RASHID MAHMOOD",
-    "name_ar": "راشد محمود",
+    "name_ar": "راشد MAHMOOD",
     "national_id": "2636302768",
     "mobile": "573565285",
     "status": "APPEALED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "275273",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781616809889-WhatsApp_Image_2026-06-15_at_11.56.31_PM.jpeg",
     "name_en": "MD FOYSAL",
     "name_ar": "محمد فيصل",
     "national_id": "2628592590",
@@ -85,10 +100,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "275270",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781616429756-WhatsApp_Image_2026-06-15_at_11.48.24_PM.jpeg",
     "name_en": "SOLAYMAN JOWADER",
     "name_ar": "سليمان جويدر",
     "national_id": "2629857612",
@@ -96,21 +113,25 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "275002",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781556418883-WhatsApp_Image_2026-06-15_at_11.18.33_PM_(1).jpeg",
     "name_en": "HASAN RAJA",
-    "name_ar": "حسن رجا",
+    "name_ar": "حسن RAJA",
     "national_id": "2630297311",
     "mobile": "573849195",
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "274997",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781555262277-WhatsApp_Image_2026-06-15_at_11.10.11_PM_(1).jpeg",
     "name_en": "MD RUBEL SEKH",
     "name_ar": "محمد روبيل شيخ",
     "national_id": "2563578042",
@@ -118,21 +139,25 @@
     "status": "APPEALED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "274983",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781553995880-لقطة_شاشة_2026-06-15_225651.png",
     "name_en": "MAHAMUD HASSEN",
-    "name_ar": "محمود حسن",
+    "name_ar": "MAHAMUD حسن",
     "national_id": "2634815092",
     "mobile": "501405804",
     "status": "APPEALED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "274980",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781553457440-WhatsApp_Image_2026-06-15_at_10.48.19_PM.jpeg",
     "name_en": "SAZAL SARDER",
     "name_ar": "سجل سردار",
     "national_id": "2594082246",
@@ -140,10 +165,12 @@
     "status": "PENDING",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "274975",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781552919510-WhatsApp_Image_2026-06-15_at_10.35.03_PM.jpeg",
     "name_en": "NAHID HASSAN",
     "name_ar": "ناهد حسن",
     "national_id": "2632878209",
@@ -151,10 +178,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "274970",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781552540509-WhatsApp_Image_2026-06-15_at_10.34.08_PM.jpeg",
     "name_en": "BELAL MOHAMED",
     "name_ar": "بلال محمد",
     "national_id": "2625434226",
@@ -162,10 +191,12 @@
     "status": "PENDING",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "274968",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781551995912-WhatsApp_Image_2026-06-15_at_10.31.42_PM.jpeg",
     "name_en": "MD ABU MOTALAB",
     "name_ar": "محمد أبو MOTALAB",
     "national_id": "2632389363",
@@ -173,21 +204,25 @@
     "status": "PENDING",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "274917",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781545723841-WhatsApp_Image_2026-06-15_at_8.14.51_PM.jpeg",
     "name_en": "MOHAMMAD SHARIF",
-    "name_ar": "محمد شريف",
+    "name_ar": "محمد SHARIF",
     "national_id": "2630327852",
     "mobile": "563043542",
     "status": "PENDING",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "274747",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781531563446-WhatsApp_Image_2026-06-15_at_4.47.23_PM.jpeg",
     "name_en": "ABU KAWSAR",
     "name_ar": "أبو KAWSAR",
     "national_id": "2628524684",
@@ -195,21 +230,25 @@
     "status": "APPEALED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "261097",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1778607663475-WhatsApp_Image_2026-05-12_at_8.16.44_PM_(1).jpeg",
     "name_en": "KARIM YASSER",
-    "name_ar": "كريم ياسر",
+    "name_ar": "كريم YASSER",
     "national_id": "2632874935",
     "mobile": "539876678",
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "261092",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1778607346181-WhatsApp_Image_2026-05-12_at_8.16.43_PM_(1).jpeg",
     "name_en": "MOSTAFA ABDELAAL",
     "name_ar": "مصطفى ABDELAAL",
     "national_id": "2632785049",
@@ -217,21 +256,25 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "261086",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1778607081508-WhatsApp_Image_2026-05-12_at_8.16.43_PM.jpeg",
     "name_en": "BESHIR KHAMIS",
-    "name_ar": "BESHIR KHAMIS",
+    "name_ar": "بشير KHAMIS",
     "national_id": "2632875510",
     "mobile": "573956470",
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "260963",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1778592106429-WhatsApp_Image_2026-05-12_at_4.20.35_PM.jpeg",
     "name_en": "REHMAN YOUNAS",
     "name_ar": "REHMAN YOUNAS",
     "national_id": "2633404534",
@@ -239,10 +282,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "260761",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1778543256994-WhatsApp_Image_2026-05-12_at_2.46.17_AM.jpeg",
     "name_en": "SHAHADAT BIN RIFAT",
     "name_ar": "SHAHADAT BIN RIFAT",
     "national_id": "2628927739",
@@ -250,10 +295,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "260743",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1778540533731-WhatsApp_Image_2026-05-12_at_2.01.33_AM.jpeg",
     "name_en": "MAHMOUD ISMAIL",
     "name_ar": "محمود إسماعيل",
     "national_id": "2627624295",
@@ -261,21 +308,25 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "260738",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1778539067643-WhatsApp_Image_2026-05-12_at_12.44.46_AM.jpeg",
     "name_en": "HAMMAD HANIF",
-    "name_ar": "HAMMAD HANIF",
+    "name_ar": "HAMMAD حنيف",
     "national_id": "2633404468",
     "mobile": "592099059",
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "260736",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1778538533203-WhatsApp_Image_2026-05-12_at_1.27.01_AM.jpeg",
     "name_en": "HAIBAR SHAIKH",
     "name_ar": "HAIBAR SHAIKH",
     "national_id": "2632878423",
@@ -283,10 +334,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "260694",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1778530585540-صوره_فردين.jpeg",
     "name_en": "FARDIN AHANED",
     "name_ar": "FARDIN AHANED",
     "national_id": "2631587488",
@@ -294,21 +347,25 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "257137",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1777923701840-محمد_أسامة.jpeg",
     "name_en": "MOHAMED OSAMA",
-    "name_ar": "محمد أسامة",
+    "name_ar": "محمد OSAMA",
     "national_id": "2632875585",
     "mobile": "539851814",
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "257127",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1777921754477-صورة_شخصية_حسن_محمود.jpeg",
     "name_en": "HASAN MAHMOUD HASSAN",
     "name_ar": "حسن محمود حسن",
     "national_id": "2632875643",
@@ -316,21 +373,25 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "238650",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1775531570437-صورة_الخولي.jpeg",
     "name_en": "MOSTAFA SALAH TOLBA ELKHOULY",
-    "name_ar": "مصطفى صلاح TOLBA ELKHOULY",
+    "name_ar": "مصطفى SALAH TOLBA ELKHOULY",
     "national_id": "2543859603",
     "mobile": "507443057",
     "status": "REJECTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "220767",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772686593803-صورة_موفيزول.jpg",
     "name_en": "MD MOFIZUL ISLAM",
     "name_ar": "محمد MOFIZUL إسلام",
     "national_id": "2627459957",
@@ -338,21 +399,25 @@
     "status": "APPEALED",
     "city": "UNKNOWN",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "220766",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772686206082-صورة_عبيدول.jpg",
     "name_en": "MD OBIDUL HOSSAIN",
-    "name_ar": "محمد OBIDUL حسين",
+    "name_ar": "محمد OBIDUL HOSSAIN",
     "national_id": "2627188408",
     "mobile": "509351204",
     "status": "ACCEPTED",
     "city": "UNKNOWN",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "220765",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772685692344-صورة_شوهاق.jpg",
     "name_en": "MD SOHAG MOLLA",
     "name_ar": "محمد SOHAG MOLLA",
     "national_id": "2628593580",
@@ -360,10 +425,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "216605",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772195117792-صورة_لابون.png",
     "name_en": "MD LABON SARDER",
     "name_ar": "محمد LABON سردار",
     "national_id": "2624700635",
@@ -371,10 +438,12 @@
     "status": "ACCEPTED",
     "city": "UNKNOWN",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "215985",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772106126832-صورة_ايمون.jpeg",
     "name_en": "MO MEHEDI HASAN EMON",
     "name_ar": "MO MEHEDI حسن EMON",
     "national_id": "2582493024",
@@ -382,10 +451,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "215979",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772105555435-صورة_عدنان.jpeg",
     "name_en": "MUHAMMAD ADNAN ABAD ALI",
     "name_ar": "محمد ADNAN ABAD علي",
     "national_id": "2575492331",
@@ -393,10 +464,12 @@
     "status": "ALREADY_REGISTERED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "215970",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772104898361-صورة_غلام.jpeg",
     "name_en": "GOLAM MOHAMMOD",
     "name_ar": "GOLAM MOHAMMOD",
     "national_id": "2602432456",
@@ -404,21 +477,25 @@
     "status": "PENDING",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "215936",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772099517845-صورة_شوهيل_رانا.jpeg",
     "name_en": "MD SHOHEL",
-    "name_ar": "محمد SHOHEL",
+    "name_ar": "محمد شاهيل",
     "national_id": "2600819654",
     "mobile": "534627894",
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "215929",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772098466181-صورة_حيدر.jpg",
     "name_en": "HAIDER ALI IMRAN HUSSAIN",
     "name_ar": "HAIDER علي IMRAN HUSSAIN",
     "national_id": "2615093357",
@@ -426,10 +503,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "215923",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772098019262-صورة_علي_رفعت.jpg",
     "name_en": "ALI REFAAT MOHAMED IBRAHIM",
     "name_ar": "علي REFAAT محمد إبراهيم",
     "national_id": "2614943328",
@@ -437,10 +516,12 @@
     "status": "ALREADY_REGISTERED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "215919",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772097020138-صورة_محمد_متولي.jpg",
     "name_en": "MOHAMED AHMED MOHAMED ELSEOUDY",
     "name_ar": "محمد أحمد محمد ELSEOUDY",
     "national_id": "2614943351",
@@ -448,43 +529,51 @@
     "status": "ALREADY_REGISTERED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "215911",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772094922189-صوره_محمد_هشام.jpeg",
     "name_en": "MOHAMED HESHAM MOHAMED BARAKA",
-    "name_ar": "محمد هشام محمد بركة",
+    "name_ar": "محمد HESHAM محمد بركة",
     "national_id": "2559916248",
     "mobile": "534553789",
     "status": "ALREADY_REGISTERED",
     "city": "Muzahmiyah",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "215173",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772012369140-لقطة_شاشة_2026-02-25_123842.png",
     "name_en": "ABDULLA AL MAMUN",
-    "name_ar": "ABDULLA ال MAMUN",
+    "name_ar": "ABDULLA AL MAMUN",
     "national_id": "2625624354",
     "mobile": "547895778",
     "status": "PENDING",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "215170",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781555150056-WhatsApp_Image_2026-06-15_at_11.04.04_PM.jpeg",
     "name_en": "MD OMAR FARUK",
-    "name_ar": "محمد عمر FARUK",
+    "name_ar": "محمد OMAR FARUK",
     "national_id": "2624800336",
     "mobile": "541482885",
     "status": "PENDING",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "215163",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781550370469-WhatsApp_Image_2026-06-15_at_9.51.19_PM.jpeg",
     "name_en": "GM MOMINUJJAMAN",
     "name_ar": "GM MOMINUJJAMAN",
     "national_id": "2624799850",
@@ -492,10 +581,12 @@
     "status": "PENDING",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "215158",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1772007896545-صوره_محبوب.jpg",
     "name_en": "MD MAHABUB SARDER",
     "name_ar": "محمد MAHABUB سردار",
     "national_id": "2625051582",
@@ -503,10 +594,12 @@
     "status": "PENDING",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "195595",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1781557149150-WhatsApp_Image_2026-06-15_at_11.44.21_PM.jpeg",
     "name_en": "ABU TALEB",
     "name_ar": "أبو TALEB",
     "national_id": "2602172328",
@@ -514,10 +607,12 @@
     "status": "PENDING",
     "city": "UNKNOWN",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "194612",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1769537756253-صورة_ريمون.jpg",
     "name_en": "MD RIMON",
     "name_ar": "محمد RIMON",
     "national_id": "2623121759",
@@ -525,21 +620,25 @@
     "status": "PENDING",
     "city": "DAMMAM",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "191973",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1769263672104-صورة_رياض_محمد_حسن.jpg",
     "name_en": "RIAD HASAN",
-    "name_ar": "RIAD حسن",
+    "name_ar": "رياض حسن",
     "national_id": "2614943385",
     "mobile": "509848030",
     "status": "ALREADY_REGISTERED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "188927",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1768931519133-WhatsApp_Image_2026-01-18_at_11.25.20_PM_(2).jpeg",
     "name_en": "MD JOSHIM SHEIKH",
     "name_ar": "محمد JOSHIM شيخ",
     "national_id": "2513326054",
@@ -547,21 +646,25 @@
     "status": "PENDING",
     "city": "DAMMAM",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "187238",
-    "name_en": "Mohamed wael",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1768765218817-26bb08af-c54c-4b33-8a09-5a3af08a5a70.jpg",
+    "name_en": "MOHAMED WAEL",
     "name_ar": "محمد WAEL",
     "national_id": "2594207413",
     "mobile": "536625044",
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "130329",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1760289625951-WhatsApp_Image_2025-06-23_at_7.59.26_PM.jpeg",
     "name_en": "AHMEDSADIQ",
     "name_ar": "AHMEDSADIQ",
     "national_id": "1126680931",
@@ -569,10 +672,12 @@
     "status": "PENDING",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "130318",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1760288366657-WhatsApp_Image_2025-10-09_at_9.52.44_PM_(1).jpeg",
     "name_en": "ESSAMASRI",
     "name_ar": "ESSAMASRI",
     "national_id": "1115716563",
@@ -580,10 +685,12 @@
     "status": "PENDING",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "126237",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1759549854568-WhatsApp_Image_2025-10-03_at_5.18.22_AM.jpeg",
     "name_en": "MDJAHIDULISLAM",
     "name_ar": "MDJAHIDULISLAM",
     "national_id": "2614943393",
@@ -591,10 +698,12 @@
     "status": "ALREADY_REGISTERED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "124148",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1759180117996-WhatsApp_Image_2025-09-29_at_11.56.24_PM.jpeg",
     "name_en": "MDNOYONMIA",
     "name_ar": "MDNOYONMIA",
     "national_id": "2611365871",
@@ -602,21 +711,25 @@
     "status": "ALREADY_REGISTERED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "117427",
-    "name_en": "mohamed hesham mohamed baraka",
-    "name_ar": "محمد هشام محمد بركة",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1757829879615-WhatsApp_Image_2025-09-14_at_8.55.26_AM.jpeg",
+    "name_en": "MOHAMED HESHAM MOHAMED BARAKA",
+    "name_ar": "محمد HESHAM محمد بركة",
     "national_id": "2559916248",
     "mobile": "533456239",
     "status": "ALREADY_REGISTERED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "100499",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1753729869561-WhatsApp_Image_2025-07-27_at_11.39.00_PM_(1).jpeg",
     "name_en": "MDSHOHELRAHMAN",
     "name_ar": "MDSHOHELRAHMAN",
     "national_id": "2595483005",
@@ -624,10 +737,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "97623",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1752694380545-WhatsApp_Image_2025-06-12_at_12.41.15_AM_(2).jpeg",
     "name_en": "ALDOSARIFAHAD",
     "name_ar": "ALDOSARIFAHAD",
     "national_id": "1058420272",
@@ -635,10 +750,12 @@
     "status": "ALREADY_REGISTERED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "97619",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1752693659017-WhatsApp_Image_2025-06-12_at_12.41.20_AM_(2).jpeg",
     "name_en": "ALDAWSARIMUBARAK",
     "name_ar": "ALDAWSARIMUBARAK",
     "national_id": "1049377623",
@@ -646,10 +763,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "97611",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1752692503909-WhatsApp_Image_2025-06-03_at_3.18.30_PM_(7).jpeg",
     "name_en": "ALHARBIRAQI",
     "name_ar": "ALHARBIRAQI",
     "national_id": "1132630227",
@@ -657,10 +776,12 @@
     "status": "ALREADY_REGISTERED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "97609",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1752691817364-WhatsApp_Image_2025-06-12_at_12.40.48_AM_(3).jpeg",
     "name_en": "ALDOSARITURKI",
     "name_ar": "ALDOSARITURKI",
     "national_id": "1128737713",
@@ -668,10 +789,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "97589",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1752688894910-WhatsApp_Image_2025-06-16_at_9.04.09_PM_(2).jpeg",
     "name_en": "ALSHANQITIALTAYEB",
     "name_ar": "ALSHANQITIALTAYEB",
     "national_id": "1161718372",
@@ -679,10 +802,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "97580",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1752687813992-WhatsApp_Image_2025-06-03_at_3.15.04_PM_(3).png",
     "name_en": "ALMUTARIAHMED",
     "name_ar": "ALMUTARIAHMED",
     "national_id": "1073062067",
@@ -690,10 +815,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "97574",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1752686715092-WhatsApp_Image_2025-06-12_at_12.41.18_AM_(1).jpeg",
     "name_en": "ALDOSARIHAZA",
     "name_ar": "ALDOSARIHAZA",
     "national_id": "1047504467",
@@ -701,10 +828,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "97568",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1752685598061-WhatsApp_Image_2025-07-16_at_11.42.13_AM_(2).jpeg",
     "name_en": "SHAHINALOM",
     "name_ar": "SHAHINALOM",
     "national_id": "2605807763",
@@ -712,10 +841,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "93560",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1751357604458-WhatsApp_Image_2025-07-01_at_11.08.23_AM.jpeg",
     "name_en": "MDMAHFUJUR",
     "name_ar": "MDMAHFUJUR",
     "national_id": "2607580426",
@@ -723,10 +854,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "90899",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1750355769047-WhatsApp_Image_2025-06-19_at_4.25.33_PM_(1).jpeg",
     "name_en": "FARUKHOSSAIN",
     "name_ar": "FARUKHOSSAIN",
     "national_id": "2606435143",
@@ -734,10 +867,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "87663",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1748625237389-WhatsApp_Image_2025-05-30_at_1.35.01_AM_(2).jpeg",
     "name_en": "MDRUHULAMIN",
     "name_ar": "MDRUHULAMIN",
     "national_id": "2603699816",
@@ -745,10 +880,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "87255",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1748376407083-WhatsApp_Image_2025-05-27_at_8.41.33_PM_(1).jpeg",
     "name_en": "GOLAMMOHAMMOD",
     "name_ar": "GOLAMMOHAMMOD",
     "national_id": "2602432763",
@@ -756,10 +893,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "87254",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1748376159613-WhatsApp_Image_2025-05-27_at_8.40.00_PM_(1).jpeg",
     "name_en": "MDHAFIJUR",
     "name_ar": "MDHAFIJUR",
     "national_id": "2599852148",
@@ -767,10 +906,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "87252",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1748375792080-WhatsApp_Image_2025-05-27_at_8.38.58_PM_(1).jpeg",
     "name_en": "MOHMMADSAHAB",
     "name_ar": "MOHMMADSAHAB",
     "national_id": "2600361972",
@@ -778,10 +919,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "87250",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1748375056984-WhatsApp_Image_2025-05-27_at_8.37.26_PM_(1).jpeg",
     "name_en": "SHAFIQULISLAM",
     "name_ar": "SHAFIQULISLAM",
     "national_id": "2600764332",
@@ -789,10 +932,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "87089",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1748284817673-WhatsApp_Image_2025-05-26_at_9.26.47_PM.jpeg",
     "name_en": "MDSHAFIKUL",
     "name_ar": "MDSHAFIKUL",
     "national_id": "2601589134",
@@ -800,10 +945,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "86529",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747998089996-WhatsApp_Image_2025-05-22_at_11.59.18_PM_(4).jpeg",
     "name_en": "MDSHOHEL",
     "name_ar": "MDSHOHEL",
     "national_id": "2600819698",
@@ -811,10 +958,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "86526",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747997728989-WhatsApp_Image_2025-05-22_at_11.59.16_PM_(1).jpeg",
     "name_en": "MDMONIR",
     "name_ar": "MDMONIR",
     "national_id": "2600811125",
@@ -822,10 +971,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "86520",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747994502993-WhatsApp_Image_2025-05-22_at_11.59.15_PM_(1).jpeg",
     "name_en": "AKRAMULHAQUE",
     "name_ar": "AKRAMULHAQUE",
     "national_id": "2600255448",
@@ -833,10 +984,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "86518",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747994220792-WhatsApp_Image_2025-05-22_at_11.59.18_PM_(2).jpeg",
     "name_en": "ZOHIRULISLAM",
     "name_ar": "ZOHIRULISLAM",
     "national_id": "2600810671",
@@ -844,10 +997,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "86517",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747993374583-WhatsApp_Image_2025-05-22_at_11.59.14_PM_(1).jpeg",
     "name_en": "MDSHAHIDUL",
     "name_ar": "MDSHAHIDUL",
     "national_id": "2600809830",
@@ -855,10 +1010,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "86516",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747993027076-WhatsApp_Image_2025-05-22_at_11.59.13_PM_(4).jpeg",
     "name_en": "SHEKHNURE",
     "name_ar": "SHEKHNURE",
     "national_id": "2600810861",
@@ -866,10 +1023,12 @@
     "status": "ACCEPTED",
     "city": "Al Qatif",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "86515",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747992488963-WhatsApp_Image_2025-05-22_at_11.59.13_PM.jpeg",
     "name_en": "ALAMIN",
     "name_ar": "ALAMIN",
     "national_id": "2600830034",
@@ -877,10 +1036,12 @@
     "status": "ACCEPTED",
     "city": "Al Qatif",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "85382",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747446141186-WhatsApp_Image_2025-05-17_at_3.27.58_AM_(2).jpeg",
     "name_en": "RAHMOTULLAH",
     "name_ar": "RAHMOTULLAH",
     "national_id": "2600293472",
@@ -888,10 +1049,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "85381",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747445752523-WhatsApp_Image_2025-05-17_at_3.27.59_AM_(4).jpeg",
     "name_en": "RASELMOLLAH",
     "name_ar": "RASELMOLLAH",
     "national_id": "2600821165",
@@ -899,10 +1062,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "85379",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747444686347-WhatsApp_Image_2025-05-17_at_3.27.59_AM_(1).jpeg",
     "name_en": "AKASHCHANDRA",
     "name_ar": "AKASHCHANDRA",
     "national_id": "2600820928",
@@ -910,10 +1075,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "85286",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747395023981-WhatsApp_Image_2025-05-16_at_1.58.08_PM_(2).jpeg",
     "name_en": "SHAABANMOHAMED",
     "name_ar": "SHAABANMOHAMED",
     "national_id": "2540597487",
@@ -921,10 +1088,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "85283",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747393704586-WhatsApp_Image_2025-05-16_at_1.57.02_PM_(3).jpeg",
     "name_en": "WASIMMOHMMED",
     "name_ar": "WASIMMOHMMED",
     "national_id": "2594434231",
@@ -932,10 +1101,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "85252",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747350932817-WhatsApp_Image_2025-05-14_at_2.55.00_PM_(2).jpeg",
     "name_en": "EMADSILAN",
     "name_ar": "EMADSILAN",
     "national_id": "2075804571",
@@ -943,10 +1114,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "85116",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1747269091291-WhatsApp_Image_2025-05-15_at_3.09.45_AM_(1).jpeg",
     "name_en": "YAHAKHALED",
     "name_ar": "YAHAKHALED",
     "national_id": "2600987602",
@@ -954,10 +1127,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "84040",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1746652616241-WhatsApp_Image_2025-05-08_at_12.04.36_AM_(1).jpeg",
     "name_en": "SAZZAHOSSAIN",
     "name_ar": "SAZZAHOSSAIN",
     "national_id": "2549677074",
@@ -965,10 +1140,12 @@
     "status": "ALREADY_REGISTERED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "83337",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1746204551965-WhatsApp_Image_2025-05-02_at_12.15.21_AM_(1).jpeg",
     "name_en": "SHARIFAHMED",
     "name_ar": "SHARIFAHMED",
     "national_id": "2601521434",
@@ -976,10 +1153,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "83332",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1746203887244-WhatsApp_Image_2025-05-02_at_12.15.08_AM_(1).jpeg",
     "name_en": "MAHMUDULHASAN",
     "name_ar": "MAHMUDULHASAN",
     "national_id": "2600467787",
@@ -987,10 +1166,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "83329",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1746202949292-WhatsApp_Image_2025-05-02_at_12.14.51_AM_(1).jpeg",
     "name_en": "EBRAHIMMOLIA",
     "name_ar": "EBRAHIMMOLIA",
     "national_id": "2601052562",
@@ -998,10 +1179,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "83326",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1746202218337-WhatsApp_Image_2025-05-02_at_12.16.39_AM.jpeg",
     "name_en": "HABIBULLABABUL",
     "name_ar": "HABIBULLABABUL",
     "national_id": "2600830018",
@@ -1009,10 +1192,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "83324",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1746201498581-WhatsApp_Image_2025-05-02_at_12.13.27_AM_(3).jpeg",
     "name_en": "MDRASEL",
     "name_ar": "MDRASEL",
     "national_id": "2600292854",
@@ -1020,10 +1205,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "83323",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1746199961910-WhatsApp_Image_2025-05-02_at_12.13.18_AM_(1).jpeg",
     "name_en": "MOHAMDAIL",
     "name_ar": "MOHAMDAIL",
     "national_id": "2586043529",
@@ -1031,10 +1218,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "83320",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1746199098976-WhatsApp_Image_2025-05-02_at_12.14.10_AM_(1).jpeg",
     "name_en": "NASIRAILSAHIB",
     "name_ar": "NASIRAILSAHIB",
     "national_id": "2595745585",
@@ -1042,10 +1231,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "83318",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1746197756335-WhatsApp_Image_2025-05-02_at_12.16.04_AM_(1).jpeg",
     "name_en": "ISMAILHOSSAIN",
     "name_ar": "ISMAILHOSSAIN",
     "national_id": "2601602705",
@@ -1053,32 +1244,38 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "81130",
-    "name_en": "KhaledMohamed",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1744998094890-WhatsApp_Image_2025-04-18_at_8.40.45_PM.jpeg",
+    "name_en": "KHALEDMOHAMED",
     "name_ar": "KHALEDMOHAMED",
     "national_id": "1097882300",
     "mobile": "535954682",
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "81011",
-    "name_en": "Fahadahmed",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1744914373464-WhatsApp_Image_2025-04-17_at_9.25.45_PM.jpeg",
+    "name_en": "FAHADAHMED",
     "name_ar": "FAHADAHMED",
     "national_id": "1093400735",
     "mobile": "552924289",
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "80110",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1744533846989-WhatsApp_Image_2025-04-13_at_1.47.49_AM_(4).jpeg",
     "name_en": "ABDULSALAM",
     "name_ar": "ABDULSALAM",
     "national_id": "28589424932",
@@ -1086,10 +1283,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "80108",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1744532845602-WhatsApp_Image_2025-04-13_at_1.43.19_AM.jpeg",
     "name_en": "RAMZIFUADSAAD",
     "name_ar": "RAMZIFUADSAAD",
     "national_id": "2586720696",
@@ -1097,10 +1296,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "80104",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1744531846480-WhatsApp_Image_2025-04-13_at_1.47.49_AM.jpeg",
     "name_en": "HAITHMSHARAF",
     "name_ar": "HAITHMSHARAF",
     "national_id": "2579336492",
@@ -1108,10 +1309,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "78751",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1743924411423-WhatsApp_Image_2025-04-06_at_7.07.43_AM_(1).jpeg",
     "name_en": "SHAKILKHAN",
     "name_ar": "SHAKILKHAN",
     "national_id": "2584747089",
@@ -1119,10 +1322,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "78400",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1743742003346-WhatsApp_Image_2025-02-03_at_10.45.40_AM.jpeg",
     "name_en": "OSSAMAROUBL",
     "name_ar": "OSSAMAROUBL",
     "national_id": "2558199416",
@@ -1130,10 +1335,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70758",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739919595941-a5e5f962-9551-4e99-acab-8d6d8e88e0ac.jpg",
     "name_en": "TAREKSAYED",
     "name_ar": "TAREKSAYED",
     "national_id": "2558063877",
@@ -1141,10 +1348,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70724",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739903677465-25a0123e-7473-40cc-bc44-3c0c4c09d938.jpg",
     "name_en": "DELOWARHOSSAIN",
     "name_ar": "DELOWARHOSSAIN",
     "national_id": "2569600022",
@@ -1152,10 +1361,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70515",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739823435608-d447c80a-f543-4946-8030-44aee81ada30.jpg",
     "name_en": "MDRAKIB",
     "name_ar": "MDRAKIB",
     "national_id": "2570685491",
@@ -1163,10 +1374,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70514",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739823166561-4a8e4b24-2e5e-4e9f-a1e8-8e3ec5278dc1.jpg",
     "name_en": "MAGEDMOHAMED",
     "name_ar": "MAGEDMOHAMED",
     "national_id": "2558190357",
@@ -1174,10 +1387,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70512",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739822988714-4e94a92e-e1c8-47c9-967d-49189b2b7af6.jpg",
     "name_en": "MDJAHANGIR",
     "name_ar": "MDJAHANGIR",
     "national_id": "2571263496",
@@ -1185,10 +1400,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70509",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739822420619-c44004ab-9eb4-421e-8e0b-5c251998d8cb.jpg",
     "name_en": "HANIFMD",
     "name_ar": "HANIFMD",
     "national_id": "2571022215",
@@ -1196,10 +1413,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70507",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739822159652-e1b9df9a-fd1f-4c92-b171-1ca265291423.jpg",
     "name_en": "MDRUBEL",
     "name_ar": "MDRUBEL",
     "national_id": "2570490058",
@@ -1207,10 +1426,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70505",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739821948279-74257dda-5500-4500-8ae1-5b518b580a2f.jpg",
     "name_en": "MDMUKARAM",
     "name_ar": "MDMUKARAM",
     "national_id": "2569393479",
@@ -1218,10 +1439,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70504",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739821684176-70a9c898-c0e6-4083-8849-6987f415cf05.jpg",
     "name_en": "SAHERMOHAMED",
     "name_ar": "SAHERMOHAMED",
     "national_id": "2558063448",
@@ -1229,10 +1452,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70502",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739821373043-fda26afc-7e73-4a94-9313-d5f062c1471f.jpg",
     "name_en": "SAIDNAEEM",
     "name_ar": "SAIDNAEEM",
     "national_id": "2557526874",
@@ -1240,10 +1465,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70500",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739821113029-e596e8d5-60fd-4ed3-8b91-dcfcc3a16eea.jpg",
     "name_en": "TAREKABDELAMIR",
     "name_ar": "TAREKABDELAMIR",
     "national_id": "2567253253",
@@ -1251,21 +1478,25 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70498",
-    "name_en": "kerolsrefat",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739820759365-710cdadc-85a9-4eac-aefc-be0476d2e9b0.jpg",
+    "name_en": "KEROLSREFAT",
     "name_ar": "KEROLSREFAT",
     "national_id": "2543591438",
     "mobile": "535956482",
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70495",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739820326700-7a0603d5-e6d6-4f26-aa66-3859b0950a07.jpg",
     "name_en": "MOSTAFAYASSER",
     "name_ar": "MOSTAFAYASSER",
     "national_id": "2575011578",
@@ -1273,10 +1504,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70492",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739820153507-6814f69e-e7bd-4d5e-b222-a75749a3697f.jpg",
     "name_en": "MOHAMEDIBRAHIM",
     "name_ar": "محمد إبراهيم",
     "national_id": "2577274109",
@@ -1284,10 +1517,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70488",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739819711173-553a0fac-d31a-49ad-9f25-b47894c77ed5.jpg",
     "name_en": "MOSTAFAASEM",
     "name_ar": "MOSTAFAASEM",
     "national_id": "2558903049",
@@ -1295,10 +1530,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70486",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739819257585-00f2b341-39df-4ec7-934e-e62c882a7531.jpg",
     "name_en": "ISLAMABOUILELLA",
     "name_ar": "ISLAMABOUILELLA",
     "national_id": "2576800094",
@@ -1306,10 +1543,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70481",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739818823674-2c743982-875a-45d7-8c22-b45070874e3e.jpg",
     "name_en": "MAHMOUDABDALLA",
     "name_ar": "MAHMOUDABDALLA",
     "national_id": "2558161408",
@@ -1317,10 +1556,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70476",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739818398548-7b7cf902-d238-41de-a7d5-3a4c40a04cb4.jpg",
     "name_en": "AHMEDMOHAMED",
     "name_ar": "AHMEDMOHAMED",
     "national_id": "2567253725",
@@ -1328,10 +1569,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70472",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739817203131-52cb2f2a-3147-43ce-92f0-54d0bedd35a9.jpg",
     "name_en": "NADERELSAYED",
     "name_ar": "NADERELSAYED",
     "national_id": "2545125235",
@@ -1339,10 +1582,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "70468",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1739815984485-aec72e1a-e47b-4463-abf4-4a21a2c37170.jpg",
     "name_en": "BILLALHOSSAIN",
     "name_ar": "BILLALHOSSAIN",
     "national_id": "2570490157",
@@ -1350,10 +1595,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "63628",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1736986399587-WhatsApp_Image_2025-01-15_at_10.11.10_PM.jpeg",
     "name_en": "ESLAMATEFZARABY",
     "name_ar": "ESLAMATEFZARABY",
     "national_id": "0543496520",
@@ -1361,10 +1608,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "63386",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1736890684469-WhatsApp_Image_2025-01-14_at_5.50.04_PM.jpeg",
     "name_en": "MOHAMEDSAYDSALEM",
     "name_ar": "محمد SAYDSALEM",
     "national_id": "532612152",
@@ -1372,10 +1621,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "63208",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1736854175198-WhatsApp_Image_2025-01-01_at_7.15.59_PM.jpeg",
     "name_en": "ABDALLARAMADANMOUSTAFA",
     "name_ar": "ABDALLARAMADANMOUSTAFA",
     "national_id": "566396486",
@@ -1383,21 +1634,25 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "63155",
-    "name_en": "MOHAMEDSAMIRElHUSSIENY",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1736814539284-WhatsApp_Image_2025-01-01_at_7.19.16_PM.jpeg",
+    "name_en": "MOHAMEDSAMIRELHUSSIENY",
     "name_ar": "محمد SAMIRELHUSSIENY",
     "national_id": "561220756",
     "mobile": "561220756",
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "62865",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1736724725981-WhatsApp_Image_2025-01-13_at_12.57.39_AM.jpeg",
     "name_en": "MOHAMEDATWAABDELHAMID",
     "name_ar": "محمد ATWAABDELHAMID",
     "national_id": "2558902694",
@@ -1405,10 +1660,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "62864",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1736723364204-WhatsApp_Image_2023-11-21_at_8.14.50_PM.jpeg",
     "name_en": "MOHAMEDAHMEDHASSAN",
     "name_ar": "محمد AHMEDHASSAN",
     "national_id": "2558063638",
@@ -1416,10 +1673,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "62855",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1736718872906-WhatsApp_Image_2025-01-12_at_10.00.52_PM_(2).jpeg",
     "name_en": "AMMARMOHAMEDAHMED",
     "name_ar": "AMMARMOHAMEDAHMED",
     "national_id": "567551180",
@@ -1427,10 +1686,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "62853",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1736717623108-WhatsApp_Image_2024-03-18_at_3.29.20_PM.jpeg",
     "name_en": "YOUSSEFMOHAMEDAHMED",
     "name_ar": "YOUSSEFMOHAMEDAHMED",
     "national_id": "2567253394",
@@ -1438,21 +1699,25 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "60927",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1735774546180-WhatsApp_Image_2025-01-01_at_7.19.16_PM.jpeg",
     "name_en": "MOHAMEDSAMIR",
-    "name_ar": "محمد سمير",
+    "name_ar": "محمد SAMIR",
     "national_id": "2571663299",
     "mobile": "531642653",
     "status": "ALREADY_REGISTERED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "60925",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1735772766755-WhatsApp_Image_2025-01-01_at_7.15.59_PM.jpeg",
     "name_en": "ABDALLARAMADAN",
     "name_ar": "ABDALLARAMADAN",
     "national_id": "2572119572",
@@ -1460,10 +1725,12 @@
     "status": "ALREADY_REGISTERED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "60415",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1735558675091-WhatsApp_Image_2024-04-26_at_11.17.02_PM.jpeg",
     "name_en": "MDSHAFIQULISLAM",
     "name_ar": "MDSHAFIQULISLAM",
     "national_id": "2570917290",
@@ -1471,10 +1738,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "59849",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1735164993789-WhatsApp_Image_2024-07-09_at_8.39.06_PM.jpeg",
     "name_en": "OSAMAMOHAMED",
     "name_ar": "OSAMAMOHAMED",
     "national_id": "2577274208",
@@ -1482,10 +1751,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "57509",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1734147702659-WhatsApp_Image_2024-12-13_at_11.33.56_PM.jpeg",
     "name_en": "AHMEDMOHAMED",
     "name_ar": "AHMEDMOHAMED",
     "national_id": "2543859629",
@@ -1493,10 +1764,12 @@
     "status": "ACCEPTED",
     "city": "Dammam",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "54508",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732710849806-WhatsApp_Image_2024-06-03_at_10.51.47_PM.jpeg",
     "name_en": "MOSTAFASALHTOLBA",
     "name_ar": "MOSTAFASALHTOLBA",
     "national_id": "2543859603",
@@ -1504,10 +1777,12 @@
     "status": "ACCEPTED",
     "city": "Dammam",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "54506",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732710180541-WhatsApp_Image_2024-06-23_at_9.33.37_PM.jpeg",
     "name_en": "ABOUELKIRAHMED",
     "name_ar": "ABOUELKIRAHMED",
     "national_id": "2562140786",
@@ -1515,10 +1790,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "54429",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732650419178-WhatsApp_Image_2024-11-26_at_5.05.34_PM.jpeg",
     "name_en": "MOHMAEDHESHAM",
     "name_ar": "MOHMAEDHESHAM",
     "national_id": "255916248",
@@ -1526,10 +1803,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53250",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732115439208-WhatsApp_Image_2024-04-23_at_1.09.05_PM.jpeg",
     "name_en": "OMARSABERMOHAMED",
     "name_ar": "OMARSABERMOHAMED",
     "national_id": "2570504478",
@@ -1537,10 +1816,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53247",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732114637241-WhatsApp_Image_2024-06-05_at_8.52.27_PM.jpeg",
     "name_en": "MDISMAILHOSSAIN",
     "name_ar": "MDISMAILHOSSAIN",
     "national_id": "2571034277",
@@ -1548,10 +1829,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53245",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732114182778-WhatsApp_Image_2024-07-23_at_10.50.45_AM.jpeg",
     "name_en": "MAHMOUDASHOUR",
     "name_ar": "MAHMOUDASHOUR",
     "national_id": "2577448844",
@@ -1559,10 +1842,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53244",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732113763960-WhatsApp_Image_2024-07-10_at_12.10.10_AM.jpeg",
     "name_en": "AHMEDMOHAMED",
     "name_ar": "AHMEDMOHAMED",
     "national_id": "2577273952",
@@ -1570,10 +1855,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53243",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732113282325-WhatsApp_Image_2024-05-20_at_3.31.19_PM.jpeg",
     "name_en": "RAJUAHMEDHARAJ",
     "name_ar": "RAJUAHMEDHARAJ",
     "national_id": "2571413398",
@@ -1581,10 +1868,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53241",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732112638587-WhatsApp_Image_2024-05-01_at_12.20.32_PM_(1).jpeg",
     "name_en": "MDMIJANURRAHMAN",
     "name_ar": "MDMIJANURRAHMAN",
     "national_id": "2569340306",
@@ -1592,10 +1881,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53233",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732111788561-WhatsApp_Image_2024-07-23_at_10.59.23_AM_(1).jpeg",
     "name_en": "ALIAHMEDALI",
     "name_ar": "ALIAHMEDALI",
     "national_id": "2577448588",
@@ -1603,10 +1894,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53230",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732110825855-WhatsApp_Image_2024-04-24_at_1.38.59_PM.jpeg",
     "name_en": "IBRAHEMABDELSATTAR",
     "name_ar": "IBRAHEMABDELSATTAR",
     "national_id": "2570504627",
@@ -1614,10 +1907,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53225",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732110299897-WhatsApp_Image_2024-09-12_at_2.15.48_AM.jpeg",
     "name_en": "MDHAMIDUL",
     "name_ar": "MDHAMIDUL",
     "national_id": "2569939339",
@@ -1625,10 +1920,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53214",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732109214004-اقامة_مصطفى_محمد_.jpeg",
     "name_en": "MOSTAFAMOHAMED",
     "name_ar": "MOSTAFAMOHAMED",
     "national_id": "2543048645",
@@ -1636,10 +1933,12 @@
     "status": "ACCEPTED",
     "city": "Dammam",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53120",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732071394684-WhatsApp_Image_2024-11-10_at_2.51.57_AM.jpeg",
     "name_en": "AKASHAKUNJEE",
     "name_ar": "AKASHAKUNJEE",
     "national_id": "2542722331",
@@ -1647,10 +1946,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53116",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732069485237-WhatsApp_Image_2024-10-02_at_10.18.16_PM.jpeg",
     "name_en": "MUHAMMADADNA",
     "name_ar": "MUHAMMADADNA",
     "national_id": "2575492331",
@@ -1658,10 +1959,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53115",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732068430945-WhatsApp_Image_2024-10-30_at_12.54.28_AM.jpeg",
     "name_en": "MDASORSARDIR",
     "name_ar": "MDASORSARDIR",
     "national_id": "2542723057",
@@ -1669,10 +1972,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53113",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732067478597-WhatsApp_Image_2024-11-05_at_10.11.09_PM.jpeg",
     "name_en": "MDABUHURAIRA",
     "name_ar": "MDABUHURAIRA",
     "national_id": "2533622409",
@@ -1680,10 +1985,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53112",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732065806483-WhatsApp_Image_2024-10-15_at_9.37.39_PM.jpeg",
     "name_en": "SAYEDAHMED",
     "name_ar": "SAYEDAHMED",
     "national_id": "2584664482",
@@ -1691,10 +1998,12 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53111",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732063951974-WhatsApp_Image_2024-11-20_at_3.22.02_AM.jpeg",
     "name_en": "MDMEHDI",
     "name_ar": "MDMEHDI",
     "national_id": "2582493017",
@@ -1702,21 +2011,25 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53109",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732061414999-WhatsApp_Image_2024-10-15_at_9.36.17_PM.jpeg",
     "name_en": "MOHAMEDRAGAB",
-    "name_ar": "محمد رجب",
+    "name_ar": "محمد RAGAB",
     "national_id": "2584663963",
     "mobile": "550859964",
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53107",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732059883556-WhatsApp_Image_2024-07-04_at_10.30.39_PM.jpeg",
     "name_en": "ABDALLANABIL",
     "name_ar": "ABDALLANABIL",
     "national_id": "2576800078",
@@ -1724,10 +2037,12 @@
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53105",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732058992757-WhatsApp_Image_2024-11-17_at_2.49.13_PM.jpeg",
     "name_en": "ELSAYEDABDELKADER",
     "name_ar": "ELSAYEDABDELKADER",
     "national_id": "2545124907",
@@ -1735,17 +2050,20 @@
     "status": "ACCEPTED",
     "city": "JEDDAH",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   },
   {
     "ninja_id": "53064",
+    "avatar": "https://s3.eu-west-1.amazonaws.com/samurai-files/PROFILE_PIC/1732033742829-WhatsApp_Image_2024-11-19_at_6.59.01_PM.jpeg",
     "name_en": "MOHAMEDSABRI",
-    "name_ar": "محمد SABRI",
+    "name_ar": "محمد صبري",
     "national_id": "2543679506",
     "mobile": "536813391",
     "status": "ACCEPTED",
     "city": "TAIF",
     "platform": "Ninja Restaurant",
+    "app_name": "NINJA",
     "is_blocked": false
   }
 ]

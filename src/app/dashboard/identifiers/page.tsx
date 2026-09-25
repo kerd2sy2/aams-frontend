@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
   Table,
   TableHeader,
@@ -45,28 +45,20 @@ import {
   Plus,
   CheckCircle2,
   AlertTriangle,
-  Clock,
   Ban,
-  ShieldAlert,
   ShieldCheck,
   Edit2,
   Check,
   X,
   Phone,
   CreditCard,
-  Building2
+  Building2,
+  UserCheck
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function IdentifiersPage() {
   const { t, dir } = useLocale();
-
-  // Current Month State (e.g. "2026-09")
-  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
-    const d = new Date();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    return `${d.getFullYear()}-${m}`;
-  });
 
   const [identifiers, setIdentifiers] = useState<IdentifierPerformance[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -96,38 +88,35 @@ export default function IdentifiersPage() {
   const [identNinjaId, setIdentNinjaId] = useState('');
   const [identNationalId, setIdentNationalId] = useState('');
   const [identMobile, setIdentMobile] = useState('');
+  const [identAvatar, setIdentAvatar] = useState('');
   const [identAppName, setIdentAppName] = useState('NINJA');
-  const [identMonthlyTarget, setIdentMonthlyTarget] = useState('460');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('NONE');
   const [identIsBlocked, setIdentIsBlocked] = useState(false);
   const [identBlockedReason, setIdentBlockedReason] = useState('');
 
   // Load Identifiers & Employees
-  const loadData = useCallback(
-    async (isRefresh = false) => {
-      if (isRefresh) setRefreshing(true);
-      else setLoading(true);
+  const loadData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
 
-      try {
-        const [identsRes, empsRes] = await Promise.all([
-          targetWebApi.listIdentifiers({ month: selectedMonth }).catch(() => []),
-          employeeApi
-            .getAll({ limit: 500 })
-            .then((res) => res.data || [])
-            .catch(() => [])
-        ]);
+    try {
+      const [identsRes, empsRes] = await Promise.all([
+        targetWebApi.listIdentifiers().catch(() => []),
+        employeeApi
+          .getAll({ limit: 500 })
+          .then((res) => res.data || [])
+          .catch(() => [])
+      ]);
 
-        setIdentifiers(Array.isArray(identsRes) ? identsRes : []);
-        setEmployees(Array.isArray(empsRes) ? empsRes : []);
-      } catch (err: any) {
-        toast.error('فشل في جلب بيانات المعرفات والمناديب');
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    },
-    [selectedMonth]
-  );
+      setIdentifiers(Array.isArray(identsRes) ? identsRes : []);
+      setEmployees(Array.isArray(empsRes) ? empsRes : []);
+    } catch (err: any) {
+      toast.error('فشل في جلب بيانات المعرفات والمناديب');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -143,8 +132,8 @@ export default function IdentifiersPage() {
     setIdentNinjaId('');
     setIdentNationalId('');
     setIdentMobile('');
+    setIdentAvatar('');
     setIdentAppName('NINJA');
-    setIdentMonthlyTarget('460');
     setSelectedEmployeeId('NONE');
     setIdentIsBlocked(false);
     setIdentBlockedReason('');
@@ -161,8 +150,8 @@ export default function IdentifiersPage() {
     setIdentNinjaId(item.ninja_id || item.code || '');
     setIdentNationalId(item.national_id || '');
     setIdentMobile(item.mobile || '');
+    setIdentAvatar(item.avatar || '');
     setIdentAppName(item.app_name || 'NINJA');
-    setIdentMonthlyTarget(String(item.monthly_target || 460));
     setSelectedEmployeeId(item.employee_id || 'NONE');
     setIdentIsBlocked(Boolean(item.is_blocked));
     setIdentBlockedReason(item.blocked_reason || '');
@@ -201,7 +190,7 @@ export default function IdentifiersPage() {
       setIdentifiers((prev) =>
         prev.map((i) => (i.id === item.id ? { ...i, name_ar: val, name: val } : i))
       );
-      toast.success('تم تحديث الاسم بالعربي بنجاح');
+      toast.success('تم حفظ الاسم بالعربي بنجاح');
       setEditingArId(null);
     } catch {
       toast.error('فشل حفظ الاسم بالعربي');
@@ -300,8 +289,8 @@ export default function IdentifiersPage() {
         ninja_id: identNinjaId.trim() || identCode.trim(),
         national_id: identNationalId.trim(),
         mobile: identMobile.trim(),
+        avatar: identAvatar.trim(),
         app_name: identAppName,
-        monthly_target: parseFloat(identMonthlyTarget) || 460,
         employee_id: empId,
         is_blocked: identIsBlocked,
         blocked_reason: identIsBlocked ? identBlockedReason.trim() || 'محظور من الإدارة' : ''
@@ -326,11 +315,16 @@ export default function IdentifiersPage() {
 
   // Stats calculation
   const totalCount = identifiers.length;
+  const ninjaCount = identifiers.filter((i) =>
+    (i.app_name || '').toUpperCase().includes('NINJA')
+  ).length;
+  const keetaCount = identifiers.filter((i) =>
+    (i.app_name || '').toUpperCase().includes('KEETA')
+  ).length;
   const blockedCount = identifiers.filter((i) => Boolean(i.is_blocked)).length;
   const activeCount = totalCount - blockedCount;
   const linkedCount = identifiers.filter((i) => Boolean(i.employee_id)).length;
   const unlinkedCount = totalCount - linkedCount;
-  const achievedTargetCount = identifiers.filter((i) => i.status === 'TARGET_ACHIEVED').length;
 
   // Filtered List
   const filteredIdentifiers = useMemo(() => {
@@ -384,18 +378,10 @@ export default function IdentifiersPage() {
 
   return (
     <PageContainer
-      pageTitle='إدارة معرفات المناديب والتطبيقات'
-      pageDescription='إدارة جميع معرفات نينجا والتطبيقات، تعديل الأسماء بالعربي والإنجليزي، ربط المناديب، وحظر المعرفات لتجنب ربطها في الشفتات'
+      pageTitle='سجل المعرفات والتطبيقات'
+      pageDescription='إدارة جميع معرفات كباتن التطبيقات (نينجا وكيتا)، تعديل الأسماء بالعربي والإنجليزي، ربط المندوب، والتحكم في حظر المعرفات'
       pageHeaderAction={
         <div className='flex items-center gap-2'>
-          {/* Month Selector */}
-          <Input
-            type='month'
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className='h-8 w-36 text-xs font-mono'
-          />
-
           {/* Refresh Button */}
           <Button
             variant='outline'
@@ -408,18 +394,10 @@ export default function IdentifiersPage() {
             تحديث
           </Button>
 
-          {/* Target Dashboard Link */}
-          <Link
-            href='/dashboard/target'
-            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'h-8 gap-1.5')}
-          >
-            <span>لوحة التارچت</span>
-          </Link>
-
           {/* Add Identifier Button */}
           <Button size='sm' onClick={handleOpenCreate} className='gap-1.5 h-8 font-medium'>
             <Plus className='size-4' />
-            إضافة معرف
+            إضافة معرف جديد
           </Button>
         </div>
       }
@@ -439,7 +417,9 @@ export default function IdentifiersPage() {
             </CardHeader>
             <CardContent>
               <div className='text-2xl font-bold tracking-tight font-mono'>{totalCount}</div>
-              <p className='text-muted-foreground text-xs mt-1'>معرف مسجل بالنظام</p>
+              <p className='text-muted-foreground text-xs mt-1'>
+                {ninjaCount} نينجا · {keetaCount} كيتا
+              </p>
             </CardContent>
           </Card>
 
@@ -457,7 +437,7 @@ export default function IdentifiersPage() {
               <div className='text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 font-mono'>
                 {activeCount}
               </div>
-              <p className='text-muted-foreground text-xs mt-1'>جاهزة للاستخدام بالدوام</p>
+              <p className='text-muted-foreground text-xs mt-1'>تظهر في منسدلة بدء الدوام</p>
             </CardContent>
           </Card>
 
@@ -475,7 +455,7 @@ export default function IdentifiersPage() {
               <div className='text-2xl font-bold tracking-tight text-destructive font-mono'>
                 {blockedCount}
               </div>
-              <p className='text-muted-foreground text-xs mt-1'>محجوبة من منسدلة بدء الدوام</p>
+              <p className='text-muted-foreground text-xs mt-1'>محجوبة وممنوعة من الدوام</p>
             </CardContent>
           </Card>
 
@@ -483,10 +463,10 @@ export default function IdentifiersPage() {
           <Card>
             <CardHeader className='flex flex-row items-center justify-between pb-2'>
               <CardTitle className='text-xs font-medium text-muted-foreground'>
-                مرتبط بمناديب
+                مرتبط بمندوب
               </CardTitle>
               <div className='bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg'>
-                <LinkIcon className='size-4' />
+                <UserCheck className='size-4' />
               </div>
             </CardHeader>
             <CardContent>
@@ -494,7 +474,7 @@ export default function IdentifiersPage() {
                 {linkedCount}
               </div>
               <p className='text-muted-foreground text-xs mt-1'>
-                {totalCount > 0 ? Math.round((linkedCount / totalCount) * 100) : 0}% من الإجمالي
+                {totalCount > 0 ? Math.round((linkedCount / totalCount) * 100) : 0}% معينة لمندوب
               </p>
             </CardContent>
           </Card>
@@ -513,7 +493,7 @@ export default function IdentifiersPage() {
               <div className='text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400 font-mono'>
                 {unlinkedCount}
               </div>
-              <p className='text-muted-foreground text-xs mt-1'>تحتاج تعيين مندوب</p>
+              <p className='text-muted-foreground text-xs mt-1'>متاحة لتعيين مندوب</p>
             </CardContent>
           </Card>
         </div>
@@ -538,12 +518,7 @@ export default function IdentifiersPage() {
                 className='h-8 text-xs font-semibold'
                 onClick={() => setAppFilter('NINJA')}
               >
-                🥷 نينجا (
-                {
-                  identifiers.filter((i) => (i.app_name || '').toUpperCase().includes('NINJA'))
-                    .length
-                }
-                )
+                🥷 نينجا ({ninjaCount})
               </Button>
               <Button
                 size='sm'
@@ -551,19 +526,14 @@ export default function IdentifiersPage() {
                 className='h-8 text-xs font-semibold'
                 onClick={() => setAppFilter('KEETA')}
               >
-                🛵 كيتا (
-                {
-                  identifiers.filter((i) => (i.app_name || '').toUpperCase().includes('KEETA'))
-                    .length
-                }
-                )
+                🛵 كيتا ({keetaCount})
               </Button>
             </div>
 
             <div className='relative w-full sm:w-80'>
               <Icons.search className='text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2' />
               <Input
-                placeholder='بحث بالاسم العربي، الإنجليزي، الهوية، أو الكود...'
+                placeholder='بحث بالاسم العربي، الإنجليزي، الهوية، أو المعرف...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className='h-9 ps-9 text-xs'
@@ -622,17 +592,15 @@ export default function IdentifiersPage() {
           <Table>
             <TableHeader>
               <TableRow className='bg-muted/50'>
+                <TableHead className='font-semibold w-[60px] text-center'>الصورة</TableHead>
                 <TableHead className='font-semibold min-w-[200px]'>
                   الاسم بالعربي (قابل للتعديل)
                 </TableHead>
                 <TableHead className='font-semibold min-w-[170px]'>الاسم بالإنجليزي</TableHead>
-                <TableHead className='font-semibold'>معرف التطبيق / الكود</TableHead>
+                <TableHead className='font-semibold'>معرّف التطبيق</TableHead>
                 <TableHead className='font-semibold'>رقم الهوية / الجوال</TableHead>
-                <TableHead className='font-semibold min-w-[210px]'>
-                  المندوب المرتبط (المسؤول عن التارچت)
-                </TableHead>
-                <TableHead className='font-semibold text-center'>حالة المعرف (الحظر)</TableHead>
-                <TableHead className='font-semibold'>التارچت الشهري</TableHead>
+                <TableHead className='font-semibold min-w-[210px]'>المندوب المرتبط</TableHead>
+                <TableHead className='font-semibold text-center'>حظر المعرف</TableHead>
                 <TableHead className='font-semibold text-center'>إجراءات</TableHead>
               </TableRow>
             </TableHeader>
@@ -642,7 +610,7 @@ export default function IdentifiersPage() {
                   <TableCell colSpan={8} className='text-center py-12'>
                     <Icons.spinner className='size-6 animate-spin mx-auto text-primary' />
                     <div className='text-xs text-muted-foreground mt-2'>
-                      جاري تحميل بيانات المعرفات (نينجا)...
+                      جاري تحميل بيانات المعرفات والصور...
                     </div>
                   </TableCell>
                 </TableRow>
@@ -659,6 +627,8 @@ export default function IdentifiersPage() {
                 filteredIdentifiers.map((item) => {
                   const isBlocked = Boolean(item.is_blocked);
                   const isEditingThisAr = editingArId === item.id;
+                  const isNinja = (item.app_name || '').toUpperCase().includes('NINJA');
+                  const isKeeta = (item.app_name || '').toUpperCase().includes('KEETA');
 
                   return (
                     <TableRow
@@ -668,6 +638,22 @@ export default function IdentifiersPage() {
                         isBlocked && 'bg-destructive/5 dark:bg-destructive/10'
                       )}
                     >
+                      {/* Captain Photo (Avatar) */}
+                      <TableCell className='text-center p-2'>
+                        <Avatar className='size-11 rounded-full border shadow-xs mx-auto'>
+                          {item.avatar ? (
+                            <AvatarImage
+                              src={item.avatar}
+                              alt={item.name_en || item.name || 'Captain'}
+                              className='object-cover'
+                            />
+                          ) : null}
+                          <AvatarFallback className='text-xs font-bold bg-muted text-muted-foreground'>
+                            {(item.name_ar || item.name_en || 'C').slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </TableCell>
+
                       {/* Arabic Name with Inline Quick Edit */}
                       <TableCell className='font-medium text-foreground'>
                         {isEditingThisAr ? (
@@ -732,19 +718,34 @@ export default function IdentifiersPage() {
 
                       {/* English Name */}
                       <TableCell>
-                        <span className='font-mono text-xs uppercase text-muted-foreground'>
+                        <span className='font-mono text-xs uppercase text-muted-foreground font-medium'>
                           {item.name_en || '—'}
                         </span>
                       </TableCell>
 
-                      {/* Code / Ninja ID */}
+                      {/* Application Identifier & App Badge */}
                       <TableCell>
-                        <div className='flex items-center gap-1.5'>
-                          <Badge variant='outline' className='font-mono text-[11px] px-1.5 py-0'>
-                            {item.app_name || 'NINJA'}
-                          </Badge>
-                          <span className='font-mono text-xs font-bold text-primary'>
-                            #{item.ninja_id || item.code || item.id}
+                        <div className='flex flex-col gap-1'>
+                          <div className='flex items-center gap-1.5'>
+                            <Badge
+                              variant='outline'
+                              className={cn(
+                                'font-mono text-[10px] px-1.5 py-0 font-bold',
+                                isNinja &&
+                                  'border-purple-500/30 text-purple-600 dark:text-purple-400 bg-purple-500/10',
+                                isKeeta &&
+                                  'border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10'
+                              )}
+                            >
+                              {isNinja
+                                ? '🥷 NINJA'
+                                : isKeeta
+                                  ? '🛵 KEETA'
+                                  : item.app_name || 'تطبيق'}
+                            </Badge>
+                          </div>
+                          <span className='font-mono text-xs font-bold text-foreground'>
+                            {item.ninja_id || item.code || item.id}
                           </span>
                         </div>
                       </TableCell>
@@ -832,15 +833,10 @@ export default function IdentifiersPage() {
                           ) : (
                             <>
                               <ShieldCheck className='size-3.5 text-emerald-600' />
-                              <span>نشط (حظر؟)</span>
+                              <span>متاح (حظر)</span>
                             </>
                           )}
                         </Button>
-                      </TableCell>
-
-                      {/* Monthly Target */}
-                      <TableCell className='font-mono font-bold text-foreground'>
-                        {item.monthly_target || 460}
                       </TableCell>
 
                       {/* Actions */}
@@ -872,7 +868,7 @@ export default function IdentifiersPage() {
                 {editingIdentifier ? 'تعديل المعرف وبيانات الكابتن' : 'إضافة معرف جديد'}
               </SheetTitle>
               <SheetDescription>
-                تعديل الاسم بالعربي والإنجليزي، معرف نينجا، ربط المندوب، والتحكم في الحظر
+                تعديل الاسم بالعربي والإنجليزي، معرف التطبيق، الصورة، ربط المندوب، والتحكم في الحظر
               </SheetDescription>
             </SheetHeader>
 
@@ -891,14 +887,14 @@ export default function IdentifiersPage() {
                     required
                   />
                   <p className='text-[11px] text-muted-foreground'>
-                    يمكنك تعديل هذا الاسم بحرية ليطابق اسم المندوب في ملفاتك.
+                    يمكنك تعديل هذا الاسم بحرية ليطابق اسم المندوب في ملفاتك وسجلاتك.
                   </p>
                 </div>
 
                 {/* English Name */}
                 <div className='space-y-1.5'>
                   <Label className='text-xs font-medium text-muted-foreground'>
-                    الاسم بالإنجليزي (كما في تطبيق نينجا)
+                    الاسم بالإنجليزي (كما في التطبيق)
                   </Label>
                   <Input
                     placeholder='مثال: TAREQ GOMAA'
@@ -908,11 +904,11 @@ export default function IdentifiersPage() {
                   />
                 </div>
 
-                {/* Ninja ID & App */}
+                {/* Application ID & App */}
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                   <div className='space-y-1.5'>
                     <Label className='text-xs font-medium text-muted-foreground'>
-                      معرف نينجا / الكود *
+                      معرّف التطبيق (الكود) *
                     </Label>
                     <Input
                       placeholder='مثال: 302707'
@@ -941,6 +937,26 @@ export default function IdentifiersPage() {
                         <SelectItem value='OTHER'>أخرى</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+
+                {/* Captain Avatar URL */}
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    رابط صورة المندوب / الكابتن (URL)
+                  </Label>
+                  <div className='flex items-center gap-2'>
+                    <Avatar className='size-10 rounded-full border shrink-0'>
+                      {identAvatar ? <AvatarImage src={identAvatar} /> : null}
+                      <AvatarFallback>صورة</AvatarFallback>
+                    </Avatar>
+                    <Input
+                      placeholder='https://...'
+                      value={identAvatar}
+                      onChange={(e) => setIdentAvatar(e.target.value)}
+                      className='text-xs font-mono flex-1'
+                      dir='ltr'
+                    />
                   </div>
                 </div>
 
@@ -979,7 +995,7 @@ export default function IdentifiersPage() {
                         حظر هذا المعرف
                       </Label>
                       <p className='text-[11px] text-muted-foreground'>
-                        عند تفعيل الحظر، لن يظهر المعرف في منسدلة بدء الدوام ولن يمكن استخدامه.
+                        عند تفعيل الحظر، يتم حجب المعرف من منسدلة بدء الدوام ولن يمكن ربطه بالشفتات.
                       </p>
                     </div>
                     <Button
@@ -1005,29 +1021,10 @@ export default function IdentifiersPage() {
                   )}
                 </div>
 
-                {/* Target Monthly Orders */}
-                <div className='space-y-1.5'>
-                  <Label className='text-xs font-medium text-muted-foreground'>
-                    المستهدف الشهري (التارچت بالطلبات) *
-                  </Label>
-                  <Input
-                    type='number'
-                    min='1'
-                    placeholder='460'
-                    value={identMonthlyTarget}
-                    onChange={(e) => setIdentMonthlyTarget(e.target.value)}
-                    className='font-mono'
-                    required
-                  />
-                  <p className='text-[11px] text-muted-foreground'>
-                    التارچت الافتراضي 460 طلب شهرياً (بمعدل ~18 طلب يومياً).
-                  </p>
-                </div>
-
                 {/* Linked Employee */}
                 <div className='space-y-1.5'>
                   <Label className='text-xs font-medium text-muted-foreground'>
-                    المندوب المسؤول عن هذا المعرف *
+                    المندوب المرتبط بهذا المعرف
                   </Label>
                   <Select
                     value={selectedEmployeeId}
@@ -1056,10 +1053,6 @@ export default function IdentifiersPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className='text-[11px] text-muted-foreground'>
-                    عند ربط المعرف بالمندوب، سيتم احتساب جميع طلبات هذا المعرف ضمن أداء وتارچت
-                    المندوب في لوحة التارچت مباشرة.
-                  </p>
                 </div>
               </div>
 

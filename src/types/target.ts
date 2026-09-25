@@ -41,6 +41,7 @@ export interface IdentifierPerformance {
   name: string;
   name_en?: string;
   name_ar?: string;
+  avatar?: string;
   ninja_id?: string;
   national_id?: string;
   mobile?: string;

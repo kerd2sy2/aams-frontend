@@ -20,15 +20,18 @@ export const navGroups: NavGroup[] = [
         ]
       },
 
-      // 3. التارچت والمستهدفات
+      // 3. المعرفات (مستقلة بذاتها)
       {
-        title: 'Target & Identifiers',
-        url: '#',
-        icon: 'chartBar',
-        items: [
-          { title: 'Target Dashboard', url: '/dashboard/target' },
-          { title: 'Identifiers', url: '/dashboard/identifiers' }
-        ]
+        title: 'Identifiers',
+        url: '/dashboard/identifiers',
+        icon: 'key'
+      },
+
+      // 4. التارچت والمستهدفات
+      {
+        title: 'Target Dashboard',
+        url: '/dashboard/target',
+        icon: 'chartBar'
       },
 
       // 3. محاضر الموظفين
