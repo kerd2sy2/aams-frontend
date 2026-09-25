@@ -238,6 +238,9 @@ export const targetWebApi = {
       } as IdentifierPerformance;
     });
 
+    // Only include Ninja and Keeta uploaded identifiers (strictly exclude unwanted/old records)
+    const combined: IdentifierPerformance[] = [...ninjaMerged, ...keetaMerged];
+
     // Also include custom identifiers created in localOverrides
     Object.entries(localOverrides).forEach(([key, ov]: [string, any]) => {
       if (!ov || (!ov.code && !ov.ninja_id)) return;
