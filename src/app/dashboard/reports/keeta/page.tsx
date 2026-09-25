@@ -55,13 +55,64 @@ interface KeetaRow {
   mobile?: string;
 }
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+
 export default function KeetaDailyReportPage() {
   const [data, setData] = useState<KeetaRow[]>([]);
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
+  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('ALL');
   const [fileName, setFileName] = useState<string>('');
   const [reportDate, setReportDate] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [vehicleFilter, setVehicleFilter] = useState<'all' | 'car' | 'bike'>('all');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Load saved reports from database API
+  const loadSavedKeetaReports = React.useCallback(async (filterDate?: string) => {
+    try {
+      setIsLoading(true);
+      const url =
+        filterDate && filterDate !== 'ALL'
+          ? `/api/reports/keeta?date=${encodeURIComponent(filterDate)}`
+          : '/api/reports/keeta';
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.availableDates) {
+          setAvailableDates(json.availableDates);
+        }
+        if (json.records && Array.isArray(json.records) && json.records.length > 0) {
+          setData(json.records);
+          setReportDate(json.date || json.latestDate || '');
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load saved keeta reports:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadSavedKeetaReports();
+  }, [loadSavedKeetaReports]);
+
+  // Handle Date Filter Change
+  const handleDateFilterChange = (dateVal: any) => {
+    const val = dateVal || 'ALL';
+    setSelectedDateFilter(val);
+    if (val === 'ALL') {
+      loadSavedKeetaReports();
+    } else {
+      loadSavedKeetaReports(val);
+    }
+  };
 
   // Build lookup map from Keeta seed
   const captainMap = useMemo(() => {
@@ -166,8 +217,37 @@ export default function KeetaDailyReportPage() {
       setData(parsedRows);
       setReportDate(detectedDate);
 
-      // Persist to target daily storage history
+      // Persist to target daily storage history and Next.js database
       if (parsedRows.length > 0 && detectedDate) {
+        setSelectedDateFilter(detectedDate);
+
+        // 1. Save to database API
+        try {
+          const saveRes = await fetch('/api/reports/keeta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: file.name,
+              reportDate: detectedDate,
+              records: parsedRows
+            })
+          });
+
+          if (saveRes.ok) {
+            const saveJson = await saveRes.json();
+            toast.success(
+              saveJson.message ||
+                `تم حفظ ${parsedRows.length} كابتن بنجاح في قاعدة البيانات ليوم ${detectedDate}`
+            );
+            if (!availableDates.includes(detectedDate)) {
+              setAvailableDates((prev) => [detectedDate, ...prev].sort().reverse());
+            }
+          }
+        } catch (dbErr) {
+          console.error('Failed to post to /api/reports/keeta:', dbErr);
+        }
+
+        // 2. Also sync to Target API
         saveDailyReportsBatch(
           parsedRows.map((r) => ({
             date: r.date || detectedDate,
@@ -459,6 +539,26 @@ export default function KeetaDailyReportPage() {
                 </div>
 
                 <div className='flex flex-wrap items-center gap-2 w-full md:w-auto'>
+                  {/* Date Filter */}
+                  {availableDates.length > 0 && (
+                    <div className='flex items-center gap-1.5'>
+                      <Clock className='size-3.5 text-muted-foreground' />
+                      <Select value={selectedDateFilter} onValueChange={handleDateFilterChange}>
+                        <SelectTrigger className='h-8 w-36 text-xs font-mono'>
+                          <SelectValue placeholder='تصفية باليوم' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value='ALL'>أحدث تقرير</SelectItem>
+                          {availableDates.map((d) => (
+                            <SelectItem key={d} value={d} className='font-mono'>
+                              {d}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
                   {/* Vehicle Filters */}
                   <div className='flex items-center bg-muted p-1 rounded-lg'>
                     <Button
@@ -488,7 +588,7 @@ export default function KeetaDailyReportPage() {
                   </div>
 
                   {/* Search */}
-                  <div className='relative w-full md:w-64'>
+                  <div className='relative w-full md:w-60'>
                     <Search className='absolute right-3 top-2.5 h-4 w-4 text-muted-foreground' />
                     <Input
                       placeholder='بحث بالمعرف أو الاسم أو الجوال...'

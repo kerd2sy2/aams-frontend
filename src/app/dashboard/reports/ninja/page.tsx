@@ -75,14 +75,58 @@ interface CaptainSummary {
 
 export default function NinjaDailyReportPage() {
   const [reportDate, setReportDate] = useState<string>('');
+  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('ALL');
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [fileName, setFileName] = useState<string>('');
   const [orders, setOrders] = useState<NinjaOrderRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [savingDb, setSavingDb] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'DELIVERED' | 'CANCELED'>('ALL');
   const [viewMode, setViewMode] = useState<'CAPTAINS' | 'ORDERS'>('CAPTAINS');
 
-  // Handle CSV File Upload
+  // Load saved reports from Next.js internal API database
+  const loadSavedReports = React.useCallback(async (filterDate?: string) => {
+    try {
+      setLoading(true);
+      const url =
+        filterDate && filterDate !== 'ALL'
+          ? `/api/reports/ninja?date=${encodeURIComponent(filterDate)}`
+          : '/api/reports/ninja';
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.availableDates) {
+          setAvailableDates(data.availableDates);
+        }
+        if (data.orders && Array.isArray(data.orders) && data.orders.length > 0) {
+          setOrders(data.orders);
+          setReportDate(data.date || data.latestDate || '');
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load saved ninja reports:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadSavedReports();
+  }, [loadSavedReports]);
+
+  // Handle Date Filter Change
+  const handleDateFilterChange = (dateVal: any) => {
+    const val = dateVal || 'ALL';
+    setSelectedDateFilter(val);
+    if (val === 'ALL') {
+      loadSavedReports();
+    } else {
+      loadSavedReports(val);
+    }
+  };
+
+  // Handle CSV File Upload & Save directly to DB
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -91,7 +135,7 @@ export default function NinjaDailyReportPage() {
     setFileName(file.name);
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const text = event.target?.result as string;
         if (!text) {
@@ -147,10 +191,43 @@ export default function NinjaDailyReportPage() {
         }
 
         setOrders(parsedOrders);
-        if (detectedDate) setReportDate(detectedDate);
-        toast.success(
-          `تم استيراد ${parsedOrders.length} طلب بنجاح ليوم ${detectedDate || 'المحدد'}`
-        );
+        if (detectedDate) {
+          setReportDate(detectedDate);
+          setSelectedDateFilter(detectedDate);
+        }
+
+        // Save to Database API
+        setSavingDb(true);
+        try {
+          const saveRes = await fetch('/api/reports/ninja', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: file.name,
+              reportDate: detectedDate || new Date().toISOString().split('T')[0],
+              orders: parsedOrders
+            })
+          });
+
+          if (saveRes.ok) {
+            const saveJson = await saveRes.json();
+            toast.success(
+              saveJson.message ||
+                `تم حفظ ${parsedOrders.length} طلب بنجاح في قاعدة البيانات ليوم ${detectedDate}`
+            );
+            // Refresh available dates list
+            if (detectedDate && !availableDates.includes(detectedDate)) {
+              setAvailableDates((prev) => [detectedDate, ...prev].sort().reverse());
+            }
+          } else {
+            toast.error('حدث خطأ أثناء حفظ الملف في قاعدة البيانات');
+          }
+        } catch (dbErr: any) {
+          console.error(dbErr);
+          toast.error('تعذر الاتصال بخادم الحفظ');
+        } finally {
+          setSavingDb(false);
+        }
       } catch (err: any) {
         toast.error('حدث خطأ أثناء قراءة ملف CSV');
       } finally {
@@ -481,9 +558,29 @@ export default function NinjaDailyReportPage() {
           </div>
 
           <div className='flex items-center gap-2'>
+            {/* Filter by Date */}
+            {availableDates.length > 0 && (
+              <div className='flex items-center gap-1.5'>
+                <Clock className='size-3.5 text-muted-foreground' />
+                <Select value={selectedDateFilter} onValueChange={handleDateFilterChange}>
+                  <SelectTrigger className='h-8 w-36 text-xs font-mono'>
+                    <SelectValue placeholder='تصفية باليوم' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='ALL'>أحدث تقرير</SelectItem>
+                    {availableDates.map((d) => (
+                      <SelectItem key={d} value={d} className='font-mono'>
+                        {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {viewMode === 'ORDERS' && (
               <Select value={statusFilter} onValueChange={(val: any) => setStatusFilter(val)}>
-                <SelectTrigger className='h-8 w-32 text-xs'>
+                <SelectTrigger className='h-8 w-28 text-xs'>
                   <SelectValue placeholder='حالة الطلب' />
                 </SelectTrigger>
                 <SelectContent>
@@ -494,7 +591,7 @@ export default function NinjaDailyReportPage() {
               </Select>
             )}
 
-            <div className='relative w-full sm:w-72'>
+            <div className='relative w-full sm:w-64'>
               <Search className='text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2' />
               <Input
                 placeholder='بحث برقم المعرف أو الطلب...'
