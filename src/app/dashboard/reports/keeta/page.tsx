@@ -36,6 +36,14 @@ import { cn } from '@/lib/utils';
 import keetaSeedData from '@/lib/aams/keeta-identifiers-seed.json';
 import { saveDailyReportsBatch } from '@/lib/aams/target-api';
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+
 interface KeetaRow {
   date: string;
   driverId: string;
@@ -54,14 +62,6 @@ interface KeetaRow {
   avatar?: string;
   mobile?: string;
 }
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
 
 export default function KeetaDailyReportPage() {
   const [data, setData] = useState<KeetaRow[]>([]);
@@ -277,20 +277,33 @@ export default function KeetaDailyReportPage() {
   // KPIs
   const stats = useMemo(() => {
     const totalDrivers = data.length;
-    const totalAccepted = data.reduce((sum, r) => sum + r.acceptedTasks, 0);
-    const totalDelivered = data.reduce((sum, r) => sum + r.deliveredTasks, 0);
-    const totalRejected = data.reduce((sum, r) => sum + r.rejectedTasks, 0);
-    const totalDelayed = data.reduce((sum, r) => sum + r.delayedTasks, 0);
+    const totalAccepted = data.reduce((sum, r) => sum + (Number(r.acceptedTasks) || 0), 0);
+    const totalDelivered = data.reduce((sum, r) => sum + (Number(r.deliveredTasks) || 0), 0);
+    const totalRejected = data.reduce((sum, r) => sum + (Number(r.rejectedTasks) || 0), 0);
+    const totalDelayed = data.reduce((sum, r) => sum + (Number(r.delayedTasks) || 0), 0);
 
     const completionRate = totalAccepted > 0 ? (totalDelivered / totalAccepted) * 100 : 0;
+
+    const driversWithDuration = data.filter(
+      (r) =>
+        r.avgDeliveryDurationMinutes !== null &&
+        r.avgDeliveryDurationMinutes !== undefined &&
+        Number(r.avgDeliveryDurationMinutes) > 0
+    );
     const avgDuration =
-      data.length > 0
-        ? data.reduce((sum, r) => sum + r.avgDeliveryDurationMinutes, 0) / data.length
+      driversWithDuration.length > 0
+        ? driversWithDuration.reduce((sum, r) => sum + Number(r.avgDeliveryDurationMinutes), 0) /
+          driversWithDuration.length
         : 0;
 
+    const driversWithPunctuality = data.filter(
+      (r) => r.punctualityRate !== null && r.punctualityRate !== undefined
+    );
     const avgPunctuality =
-      data.length > 0
-        ? (data.reduce((sum, r) => sum + r.punctualityRate, 0) / data.length) * 100
+      driversWithPunctuality.length > 0
+        ? (driversWithPunctuality.reduce((sum, r) => sum + Number(r.punctualityRate), 0) /
+            driversWithPunctuality.length) *
+          100
         : 0;
 
     return {
@@ -307,20 +320,28 @@ export default function KeetaDailyReportPage() {
 
   // Filtered rows
   const filteredData = useMemo(() => {
+    const query = (searchTerm || '').trim().toLowerCase();
     return data.filter((row) => {
+      const driverIdStr = String(row.driverId || '').trim();
+      const nameEnStr = String(row.driverNameEn || '').toLowerCase();
+      const nameArStr = String(row.driverNameAr || '').toLowerCase();
+      const mobileStr = String(row.mobile || '').trim();
+
       const matchSearch =
-        row.driverId.includes(searchTerm) ||
-        row.driverNameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (row.driverNameAr && row.driverNameAr.includes(searchTerm)) ||
-        (row.mobile && row.mobile.includes(searchTerm));
+        !query ||
+        driverIdStr.includes(query) ||
+        nameEnStr.includes(query) ||
+        nameArStr.includes(query) ||
+        mobileStr.includes(query);
+
+      const vType = String(row.vehicleType || '').toLowerCase();
+      const isCar = vType.includes('car') || vType.includes('سيارة');
 
       let matchVehicle = true;
       if (vehicleFilter === 'car') {
-        matchVehicle =
-          row.vehicleType.toLowerCase().includes('car') || row.vehicleType.includes('سيارة');
+        matchVehicle = isCar;
       } else if (vehicleFilter === 'bike') {
-        matchVehicle =
-          !row.vehicleType.toLowerCase().includes('car') && !row.vehicleType.includes('سيارة');
+        matchVehicle = !isCar;
       }
 
       return matchSearch && matchVehicle;
@@ -331,19 +352,25 @@ export default function KeetaDailyReportPage() {
     if (data.length === 0) return;
     const ws = XLSX.utils.json_to_sheet(
       data.map((d) => ({
-        'معرّف السائق': d.driverId,
+        'معرّف السائق': d.driverId || '',
         'الاسم بالعربي': d.driverNameAr || '',
-        'الاسم بالإنجليزي': d.driverNameEn,
+        'الاسم بالإنجليزي': d.driverNameEn || '',
         'رقم الجوال': d.mobile || '',
-        'نوع المركبة': d.vehicleType,
-        'ساعات الاتصال': d.onlineDurationStr,
-        'ساعات الذروة': d.peakHoursStr,
-        'المهام المقبولة': d.acceptedTasks,
-        'المهام المسلمة': d.deliveredTasks,
-        'المهام المرفوضة': d.rejectedTasks,
-        'المهام المتأخرة': d.delayedTasks,
-        'نسبة التسليم بالوقت المحدد %': (d.punctualityRate * 100).toFixed(1) + '%',
-        'متوسط وقت التوصيل (دقيقة)': d.avgDeliveryDurationMinutes.toFixed(1)
+        'نوع المركبة': d.vehicleType || '',
+        'ساعات الاتصال': d.onlineDurationStr || '',
+        'ساعات الذروة': d.peakHoursStr || '',
+        'المهام المقبولة': Number(d.acceptedTasks) || 0,
+        'المهام المسلمة': Number(d.deliveredTasks) || 0,
+        'المهام المرفوضة': Number(d.rejectedTasks) || 0,
+        'المهام المتأخرة': Number(d.delayedTasks) || 0,
+        'نسبة التسليم بالوقت المحدد %':
+          d.punctualityRate !== null && d.punctualityRate !== undefined
+            ? `${(Number(d.punctualityRate) * 100).toFixed(1)}%`
+            : '-',
+        'متوسط وقت التوصيل (دقيقة)':
+          d.avgDeliveryDurationMinutes !== null && d.avgDeliveryDurationMinutes !== undefined
+            ? Number(d.avgDeliveryDurationMinutes).toFixed(1)
+            : '-'
       }))
     );
     const wb = XLSX.utils.book_new();
@@ -486,7 +513,7 @@ export default function KeetaDailyReportPage() {
                 </div>
                 <div className='text-2xl font-bold text-emerald-600'>{stats.totalDelivered}</div>
                 <p className='text-[11px] text-emerald-600/80 mt-0.5'>
-                  نسبة الإنجاز: {stats.completionRate.toFixed(1)}%
+                  نسبة الإنجاز: {(Number(stats.completionRate) || 0).toFixed(1)}%
                 </p>
               </CardContent>
             </Card>
@@ -498,7 +525,7 @@ export default function KeetaDailyReportPage() {
                   <Clock className='h-4 w-4 text-purple-500' />
                 </div>
                 <div className='text-2xl font-bold text-purple-600'>
-                  {stats.avgPunctuality.toFixed(1)}%
+                  {(Number(stats.avgPunctuality) || 0).toFixed(1)}%
                 </div>
                 <p className='text-[11px] text-muted-foreground mt-0.5'>في الوقت المحدد</p>
               </CardContent>
@@ -522,7 +549,8 @@ export default function KeetaDailyReportPage() {
                   <Clock className='h-4 w-4 text-cyan-500' />
                 </div>
                 <div className='text-2xl font-bold text-cyan-600'>
-                  {stats.avgDuration.toFixed(1)} <span className='text-xs font-normal'>دقيقة</span>
+                  {(Number(stats.avgDuration) || 0).toFixed(1)}{' '}
+                  <span className='text-xs font-normal'>دقيقة</span>
                 </div>
                 <p className='text-[11px] text-muted-foreground mt-0.5'>لكل طلب مكتمل</p>
               </CardContent>
@@ -547,13 +575,16 @@ export default function KeetaDailyReportPage() {
                   {availableDates.length > 0 && (
                     <div className='flex items-center gap-1.5'>
                       <Clock className='size-3.5 text-muted-foreground' />
-                      <Select value={selectedDateFilter} onValueChange={handleDateFilterChange}>
+                      <Select
+                        value={selectedDateFilter || 'ALL'}
+                        onValueChange={handleDateFilterChange}
+                      >
                         <SelectTrigger className='h-8 w-36 text-xs font-mono'>
                           <SelectValue placeholder='تصفية باليوم' />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value='ALL'>أحدث تقرير</SelectItem>
-                          {availableDates.map((d) => (
+                          {availableDates.filter(Boolean).map((d) => (
                             <SelectItem key={d} value={d} className='font-mono'>
                               {d}
                             </SelectItem>
@@ -632,13 +663,24 @@ export default function KeetaDailyReportPage() {
                       </TableRow>
                     ) : (
                       filteredData.map((row, idx) => {
+                        const accepted = Number(row.acceptedTasks) || 0;
+                        const delivered = Number(row.deliveredTasks) || 0;
                         const completion =
-                          row.acceptedTasks > 0
-                            ? Math.round((row.deliveredTasks / row.acceptedTasks) * 100)
-                            : 0;
+                          accepted > 0 ? Math.round((delivered / accepted) * 100) : 0;
+
+                        const driverId = String(row.driverId || '');
+                        const nameEn = String(row.driverNameEn || '').trim();
+                        const nameAr = String(row.driverNameAr || '').trim();
+                        const displayName = nameAr || nameEn || `كابتن ${driverId}`;
+                        const initials = (nameEn || nameAr || driverId || 'KT')
+                          .slice(0, 2)
+                          .toUpperCase();
+
+                        const vType = String(row.vehicleType || '').toLowerCase();
+                        const isCar = vType.includes('car') || vType.includes('سيارة');
 
                         return (
-                          <TableRow key={row.driverId + idx} className='hover:bg-muted/30'>
+                          <TableRow key={driverId + '_' + idx} className='hover:bg-muted/30'>
                             <TableCell className='text-center text-xs text-muted-foreground'>
                               {idx + 1}
                             </TableCell>
@@ -648,18 +690,18 @@ export default function KeetaDailyReportPage() {
                               <div className='flex items-center gap-3'>
                                 <Avatar className='h-10 w-10 border border-border'>
                                   {row.avatar ? (
-                                    <AvatarImage src={row.avatar} alt={row.driverNameEn} />
+                                    <AvatarImage src={row.avatar} alt={displayName} />
                                   ) : null}
                                   <AvatarFallback className='bg-emerald-100 text-emerald-800 text-xs font-bold'>
-                                    {row.driverNameEn.slice(0, 2).toUpperCase()}
+                                    {initials}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
                                   <div className='font-semibold text-sm flex items-center gap-1.5'>
-                                    <span>{row.driverNameAr || row.driverNameEn}</span>
-                                    {row.driverNameAr && (
+                                    <span>{displayName}</span>
+                                    {nameAr && nameEn && (
                                       <span className='text-[11px] text-muted-foreground font-normal'>
-                                        ({row.driverNameEn})
+                                        ({nameEn})
                                       </span>
                                     )}
                                   </div>
@@ -668,7 +710,7 @@ export default function KeetaDailyReportPage() {
                                       variant='outline'
                                       className='font-mono text-[10px] py-0 px-1.5'
                                     >
-                                      {row.driverId}
+                                      {driverId}
                                     </Badge>
                                     {row.mobile && <span>📱 {row.mobile}</span>}
                                   </div>
@@ -679,11 +721,7 @@ export default function KeetaDailyReportPage() {
                             {/* Vehicle */}
                             <TableCell>
                               <Badge variant='secondary' className='text-xs gap-1'>
-                                {row.vehicleType.toLowerCase().includes('car') ? (
-                                  <span>🚗 سيارة</span>
-                                ) : (
-                                  <span>🛵 دراجة</span>
-                                )}
+                                {isCar ? <span>🚗 سيارة</span> : <span>🛵 دراجة</span>}
                               </Badge>
                             </TableCell>
 
@@ -691,7 +729,7 @@ export default function KeetaDailyReportPage() {
                             <TableCell>
                               <div className='flex items-center gap-1 font-medium text-xs'>
                                 <Clock className='h-3.5 w-3.5 text-muted-foreground' />
-                                <span>{row.onlineDurationStr}</span>
+                                <span>{row.onlineDurationStr || '-'}</span>
                               </div>
                             </TableCell>
 
@@ -699,13 +737,13 @@ export default function KeetaDailyReportPage() {
                             <TableCell>
                               <div className='flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium'>
                                 <Flame className='h-3.5 w-3.5' />
-                                <span>{row.peakHoursStr}</span>
+                                <span>{row.peakHoursStr || '-'}</span>
                               </div>
                             </TableCell>
 
                             {/* Accepted Tasks */}
                             <TableCell className='text-center font-bold text-foreground'>
-                              {row.acceptedTasks}
+                              {accepted}
                             </TableCell>
 
                             {/* Delivered Tasks */}
@@ -714,7 +752,7 @@ export default function KeetaDailyReportPage() {
                                 variant='outline'
                                 className='bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 font-bold'
                               >
-                                {row.deliveredTasks}
+                                {delivered}
                               </Badge>
                             </TableCell>
 
@@ -729,7 +767,7 @@ export default function KeetaDailyReportPage() {
                                 <div className='w-14 bg-muted h-1.5 rounded-full overflow-hidden'>
                                   <div
                                     className={`h-full ${completion >= 90 ? 'bg-emerald-500' : completion >= 80 ? 'bg-blue-500' : 'bg-amber-500'}`}
-                                    style={{ width: `${completion}%` }}
+                                    style={{ width: `${Math.min(100, completion)}%` }}
                                   />
                                 </div>
                               </div>
@@ -738,13 +776,15 @@ export default function KeetaDailyReportPage() {
                             {/* Punctuality % */}
                             <TableCell className='text-center'>
                               <span className='text-xs font-semibold text-purple-600 dark:text-purple-400'>
-                                {(row.punctualityRate * 100).toFixed(1)}%
+                                {row.punctualityRate !== null && row.punctualityRate !== undefined
+                                  ? `${(Number(row.punctualityRate) * 100).toFixed(1)}%`
+                                  : '-'}
                               </span>
                             </TableCell>
 
                             {/* Delayed */}
                             <TableCell className='text-center'>
-                              {row.delayedTasks > 0 ? (
+                              {Number(row.delayedTasks) > 0 ? (
                                 <Badge variant='destructive' className='text-xs px-2 py-0'>
                                   {row.delayedTasks} متأخر
                                 </Badge>
@@ -755,7 +795,10 @@ export default function KeetaDailyReportPage() {
 
                             {/* Avg Delivery Duration */}
                             <TableCell className='text-center text-xs font-medium'>
-                              {row.avgDeliveryDurationMinutes.toFixed(1)} دقيقة
+                              {row.avgDeliveryDurationMinutes !== null &&
+                              row.avgDeliveryDurationMinutes !== undefined
+                                ? `${Number(row.avgDeliveryDurationMinutes).toFixed(1)} دقيقة`
+                                : '-'}
                             </TableCell>
                           </TableRow>
                         );
