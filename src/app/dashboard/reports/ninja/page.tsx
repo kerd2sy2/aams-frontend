@@ -128,28 +128,32 @@ export default function NinjaDailyReportPage() {
 
   // Handle CSV File Upload & Save directly to DB
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    if (!files.length) return;
+    processCsvFiles(files);
+  };
 
+  const processCsvFiles = async (files: File[]) => {
     setLoading(true);
-    setFileName(file.name);
+    setSavingDb(true);
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
+    let allNewDates: string[] = [];
+    let lastOrders: NinjaOrderRecord[] = [];
+    let lastDetectedDate = '';
+    let totalOrdersProcessed = 0;
+    let successfulFiles = 0;
+
+    setFileName(
+      files.length === 1 ? files[0].name : `${files.length} ملفات مرفوعة (أحدثها: ${files[0].name})`
+    );
+
+    for (const file of files) {
       try {
-        const text = event.target?.result as string;
-        if (!text) {
-          toast.error('الملف فارغ أو غير صالح');
-          setLoading(false);
-          return;
-        }
+        const text = await file.text();
+        if (!text) continue;
 
         const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-        if (lines.length <= 1) {
-          toast.error('لا توجد بيانات كافية في الملف');
-          setLoading(false);
-          return;
-        }
+        if (lines.length <= 1) continue;
 
         const parsedOrders: NinjaOrderRecord[] = [];
         let detectedDate = '';
@@ -190,52 +194,59 @@ export default function NinjaDailyReportPage() {
           });
         }
 
-        setOrders(parsedOrders);
-        if (detectedDate) {
-          setReportDate(detectedDate);
-          setSelectedDateFilter(detectedDate);
-        }
-
-        // Save to Database API
-        setSavingDb(true);
-        try {
-          const saveRes = await fetch('/api/reports/ninja', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              fileName: file.name,
-              reportDate: detectedDate || new Date().toISOString().split('T')[0],
-              orders: parsedOrders
-            })
-          });
-
-          if (saveRes.ok) {
-            const saveJson = await saveRes.json();
-            toast.success(
-              saveJson.message ||
-                `تم حفظ ${parsedOrders.length} طلب بنجاح في قاعدة البيانات ليوم ${detectedDate}`
-            );
-            // Refresh available dates list
-            if (detectedDate && !availableDates.includes(detectedDate)) {
-              setAvailableDates((prev) => [detectedDate, ...prev].sort().reverse());
-            }
-          } else {
-            toast.error('حدث خطأ أثناء حفظ الملف في قاعدة البيانات');
+        if (parsedOrders.length > 0) {
+          const fileDate = detectedDate || new Date().toISOString().split('T')[0];
+          if (!allNewDates.includes(fileDate)) {
+            allNewDates.push(fileDate);
           }
-        } catch (dbErr: any) {
-          console.error(dbErr);
-          toast.error('تعذر الاتصال بخادم الحفظ');
-        } finally {
-          setSavingDb(false);
-        }
-      } catch (err: any) {
-        toast.error('حدث خطأ أثناء قراءة ملف CSV');
-      } finally {
-        setLoading(false);
-      }
-    };
+          lastOrders = parsedOrders;
+          lastDetectedDate = fileDate;
+          totalOrdersProcessed += parsedOrders.length;
+          successfulFiles++;
 
-    reader.readAsText(file, 'utf-8');
+          // Save batch to Database API
+          try {
+            await fetch('/api/reports/ninja', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                fileName: file.name,
+                reportDate: fileDate,
+                orders: parsedOrders
+              })
+            });
+          } catch (dbErr) {
+            console.error(`Failed to post ${file.name} to /api/reports/ninja:`, dbErr);
+          }
+        }
+      } catch (err) {
+        console.error(`Error reading ${file.name}:`, err);
+      }
+    }
+
+    if (successfulFiles > 0) {
+      setAvailableDates((prev) => {
+        const combined = Array.from(new Set([...allNewDates, ...prev])).filter(Boolean);
+        return combined.sort().reverse();
+      });
+
+      if (lastDetectedDate) {
+        setReportDate(lastDetectedDate);
+        setSelectedDateFilter(lastDetectedDate);
+        setOrders(lastOrders);
+      }
+
+      toast.success(
+        files.length === 1
+          ? `تم حفظ تقرير نينجا بنجاح في قاعدة البيانات (${totalOrdersProcessed} طلب)`
+          : `تم قراءة وحفظ ${successfulFiles} ملفات نينجا بنجاح (${totalOrdersProcessed} طلب)`
+      );
+    } else {
+      toast.error('لم يتم العثور على بيانات كافية في الملفات المحددة');
+    }
+
+    setSavingDb(false);
+    setLoading(false);
   };
 
   // Build lookup map from Ninja seed data
@@ -373,6 +384,7 @@ export default function NinjaDailyReportPage() {
             id='ninja-csv-upload'
             type='file'
             accept='.csv,text/csv'
+            multiple
             className='hidden'
             onChange={handleFileUpload}
           />
@@ -385,7 +397,7 @@ export default function NinjaDailyReportPage() {
             )}
           >
             <Upload className='size-3.5' />
-            <span>رفع ملف CSV نينجا</span>
+            <span>رفع ملفات CSV نينجا</span>
           </label>
 
           <Link
@@ -423,7 +435,7 @@ export default function NinjaDailyReportPage() {
                 <p className='text-xs text-muted-foreground mt-0.5'>
                   {reportDate
                     ? `تاريخ بيانات التقرير: ${reportDate} · تم حفظ الطلبات بالكامل في قاعدة البيانات ومطابقتها بالتاريخ الفعلي`
-                    : 'قم برفع ملف CSV اليومي الصادر من منصة نينجا ليتم حفظه تلقائياً في قاعدة البيانات وتفريغ إحصائيات الكباتن والطلبات'}
+                    : 'قم برفع ملف أو عدة ملفات CSV صادرة من منصة نينجا ليتم حفظها تلقائياً في قاعدة البيانات وتفريغ إحصائيات الكباتن والطلبات'}
                 </p>
               </div>
             </div>
@@ -437,7 +449,7 @@ export default function NinjaDailyReportPage() {
                 )}
               >
                 <Upload className='size-3.5' />
-                <span>اختر ملف آخر</span>
+                <span>اختر ملف أو عدة ملفات</span>
               </label>
             </div>
           </CardContent>
@@ -618,8 +630,8 @@ export default function NinjaDailyReportPage() {
               </div>
               <h3 className='font-bold text-base text-foreground'>لا توجد بيانات معروضة حالياً</h3>
               <p className='text-xs text-muted-foreground max-w-sm'>
-                يرجى الضغط على زر &quot;رفع ملف CSV نينجا&quot; في أعلى الصفحة لاختيار ملف التقرير
-                اليومي وتفريغه فوراً.
+                يرجى الضغط على زر &quot;رفع ملفات CSV نينجا&quot; في أعلى الصفحة لاختيار ملف أو عدة
+                ملفات وتفريغها وحفظها في قاعدة البيانات فوراً.
               </p>
               <label
                 htmlFor='ninja-csv-upload'
@@ -628,7 +640,7 @@ export default function NinjaDailyReportPage() {
                   'cursor-pointer mt-2'
                 )}
               >
-                اختيار ملف التقرير
+                اختيار ملفات التقارير
               </label>
             </CardContent>
           </Card>

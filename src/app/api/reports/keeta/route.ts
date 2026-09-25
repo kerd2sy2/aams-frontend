@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
     );
 
     const newBatch: KeetaReportBatch = {
-      id: `keeta_${Date.now()}`,
+      id: `keeta_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       fileName: fileName || `Keeta_${dateStr}.xlsx`,
       reportDate: dateStr,
       uploadedAt: new Date().toISOString(),

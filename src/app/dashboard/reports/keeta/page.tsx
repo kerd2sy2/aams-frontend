@@ -124,154 +124,181 @@ export default function KeetaDailyReportPage() {
   }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processExcelFile(file);
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    if (!files.length) return;
+    processExcelFiles(files);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (!file) return;
-    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
-      toast.error('يرجى اختيار ملف Excel بصيغة .xlsx أو .xls');
+    const files = e.dataTransfer.files
+      ? Array.from(e.dataTransfer.files).filter(
+          (f) => f.name.endsWith('.xlsx') || f.name.endsWith('.xls')
+        )
+      : [];
+    if (!files.length) {
+      toast.error('يرجى اختيار ملفات Excel بصيغة .xlsx أو .xls');
       return;
     }
-    processExcelFile(file);
+    processExcelFiles(files);
   };
 
-  const processExcelFile = async (file: File) => {
+  const processExcelFiles = async (files: File[]) => {
     setIsLoading(true);
-    setFileName(file.name);
+    let allNewDates: string[] = [];
+    let lastParsedRows: KeetaRow[] = [];
+    let lastDetectedDate = '';
+    let totalCaptainsProcessed = 0;
+    let successfulFiles = 0;
 
-    try {
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
+    setFileName(
+      files.length === 1 ? files[0].name : `${files.length} ملفات مرفوعة (أحدثها: ${files[0].name})`
+    );
 
-      // Fix Keeta export range limitation
-      if (sheet && !sheet['!ref']?.includes(':AB')) {
-        // Expand ref to cover up to 100 rows and AB columns
-        sheet['!ref'] = 'A1:AB100';
-      }
+    for (const file of files) {
+      try {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
 
-      const rows: any[] = XLSX.utils.sheet_to_json(sheet);
-      if (!rows || rows.length === 0) {
-        toast.error('الملف فارغ أو لا يحتوي على بيانات صالحة');
-        setIsLoading(false);
-        return;
-      }
-
-      const parsedRows: KeetaRow[] = [];
-      let detectedDate = '';
-
-      rows.forEach((r) => {
-        const rawId = String(r['معرّف السائق'] || '').trim();
-        if (!rawId || rawId === 'undefined') return;
-
-        let dateVal = String(r['التاريخ'] || '').trim();
-        if (dateVal.length === 8 && !dateVal.includes('-')) {
-          dateVal = `${dateVal.slice(0, 4)}-${dateVal.slice(4, 6)}-${dateVal.slice(6, 8)}`;
-        }
-        if (dateVal && !detectedDate) {
-          detectedDate = dateVal;
+        // Fix Keeta export range limitation
+        if (sheet && !sheet['!ref']?.includes(':AB')) {
+          sheet['!ref'] = 'A1:AB100';
         }
 
-        const name1 = String(r['اسم السائق'] || '').trim();
-        const name2 = String(r['اسم السائق_1'] || '').trim();
-        const combinedNameEn = `${name1} ${name2}`.trim();
+        const rows: any[] = XLSX.utils.sheet_to_json(sheet);
+        if (!rows || rows.length === 0) continue;
 
-        const seedInfo = captainMap.get(rawId);
+        const parsedRows: KeetaRow[] = [];
+        let detectedDate = '';
 
-        const accepted = Number(r[' أحجام المهام_المهام المقبولة'] || 0);
-        const delivered = Number(r[' أحجام المهام_المهام التي تم تسليمها'] || 0);
-        const rejected = Number(r[' أحجام المهام_ المهام المرفوضة'] || 0);
-        const delayed = Number(r['تجربة التوصيل_مهام الطلبات المتأخرة'] || 0);
-        const veryDelayed = Number(r['تجربة التوصيل_مهام الطلبات المتأخرة جدًا'] || 0);
-        const punctuality = Number(
-          r['تجربة التوصيل_نسبة الطلبات التي تم تسليمها في الوقت المحدد (D)'] || 0
-        );
-        const avgDelivery = Number(r['تجربة التوصيل_متوسط مدة التوصيل لكل طلب مكتمل'] || 0);
+        rows.forEach((r) => {
+          const rawId = String(r['معرّف السائق'] || '').trim();
+          if (!rawId || rawId === 'undefined') return;
 
-        parsedRows.push({
-          date: dateVal,
-          driverId: rawId,
-          driverNameEn: seedInfo?.name_en || combinedNameEn,
-          driverNameAr: seedInfo?.name_ar,
-          vehicleType: String(r['نوع المركبة'] || 'دراجة'),
-          onlineDurationStr: String(r['فترة الوردية_وقت اتصال السائقين عبر تطبيق السائق.'] || '-'),
-          peakHoursStr: String(r['فترة الوردية_ساعات الاتصال في وقت الذروة'] || '-'),
-          acceptedTasks: accepted,
-          deliveredTasks: delivered,
-          rejectedTasks: rejected,
-          punctualityRate: punctuality,
-          avgDeliveryDurationMinutes: avgDelivery,
-          delayedTasks: delayed,
-          veryDelayedTasks: veryDelayed,
-          avatar: seedInfo?.avatar,
-          mobile: seedInfo?.mobile
+          let dateVal = String(r['التاريخ'] || '').trim();
+          if (dateVal.length === 8 && !dateVal.includes('-')) {
+            dateVal = `${dateVal.slice(0, 4)}-${dateVal.slice(4, 6)}-${dateVal.slice(6, 8)}`;
+          }
+          if (dateVal && !detectedDate) {
+            detectedDate = dateVal;
+          }
+
+          const name1 = String(r['اسم السائق'] || '').trim();
+          const name2 = String(r['اسم السائق_1'] || '').trim();
+          const combinedNameEn = `${name1} ${name2}`.trim();
+
+          const seedInfo = captainMap.get(rawId);
+
+          const accepted = Number(r[' أحجام المهام_المهام المقبولة'] || 0);
+          const delivered = Number(r[' أحجام المهام_المهام التي تم تسليمها'] || 0);
+          const rejected = Number(r[' أحجام المهام_ المهام المرفوضة'] || 0);
+          const delayed = Number(r['تجربة التوصيل_مهام الطلبات المتأخرة'] || 0);
+          const veryDelayed = Number(r['تجربة التوصيل_مهام الطلبات المتأخرة جدًا'] || 0);
+          const punctualityRaw =
+            r['تجربة التوصيل_نسبة الطلبات التي تم تسليمها في الوقت المحدد (D)'];
+          const punctuality =
+            punctualityRaw !== undefined && punctualityRaw !== '' && punctualityRaw !== null
+              ? Number(punctualityRaw)
+              : null;
+          const avgDeliveryRaw = r['تجربة التوصيل_متوسط مدة التوصيل لكل طلب مكتمل'];
+          const avgDelivery =
+            avgDeliveryRaw !== undefined && avgDeliveryRaw !== '' && avgDeliveryRaw !== null
+              ? Number(avgDeliveryRaw)
+              : null;
+
+          parsedRows.push({
+            date: dateVal,
+            driverId: rawId,
+            driverNameEn: seedInfo?.name_en || combinedNameEn,
+            driverNameAr: seedInfo?.name_ar,
+            vehicleType: String(r['نوع المركبة'] || 'دراجة'),
+            onlineDurationStr: String(
+              r['فترة الوردية_وقت اتصال السائقين عبر تطبيق السائق.'] || '-'
+            ),
+            peakHoursStr: String(r['فترة الوردية_ساعات الاتصال في وقت الذروة'] || '-'),
+            acceptedTasks: accepted,
+            deliveredTasks: delivered,
+            rejectedTasks: rejected,
+            punctualityRate: punctuality as any,
+            avgDeliveryDurationMinutes: avgDelivery as any,
+            delayedTasks: delayed,
+            veryDelayedTasks: veryDelayed,
+            avatar: seedInfo?.avatar,
+            mobile: seedInfo?.mobile
+          });
         });
+
+        if (parsedRows.length > 0) {
+          const fileDate = detectedDate || new Date().toISOString().split('T')[0];
+          if (!allNewDates.includes(fileDate)) {
+            allNewDates.push(fileDate);
+          }
+          lastParsedRows = parsedRows;
+          lastDetectedDate = fileDate;
+          totalCaptainsProcessed += parsedRows.length;
+          successfulFiles++;
+
+          // 1. Save to database API
+          try {
+            await fetch('/api/reports/keeta', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                fileName: file.name,
+                reportDate: fileDate,
+                records: parsedRows
+              })
+            });
+          } catch (dbErr) {
+            console.error(`Failed to post ${file.name} to /api/reports/keeta:`, dbErr);
+          }
+
+          // 2. Also sync to Target API
+          saveDailyReportsBatch(
+            parsedRows.map((r) => ({
+              date: r.date || fileDate,
+              app: 'KEETA',
+              identifier: r.driverId,
+              captainName: r.driverNameAr || r.driverNameEn,
+              deliveredOrders: r.deliveredTasks,
+              totalOrders: r.acceptedTasks,
+              onlineDurationStr: r.onlineDurationStr,
+              delayedOrders: r.delayedTasks,
+              punctualityRate: r.punctualityRate ?? undefined,
+              avgDeliveryMinutes: r.avgDeliveryDurationMinutes ?? undefined
+            })),
+            file.name
+          );
+        }
+      } catch (fileErr) {
+        console.error(`Error processing file ${file.name}:`, fileErr);
+      }
+    }
+
+    if (successfulFiles > 0) {
+      setAvailableDates((prev) => {
+        const combined = Array.from(new Set([...allNewDates, ...prev])).filter(Boolean);
+        return combined.sort().reverse();
       });
 
-      setData(parsedRows);
-      setReportDate(detectedDate);
-
-      // Persist to target daily storage history and Next.js database
-      if (parsedRows.length > 0 && detectedDate) {
-        setSelectedDateFilter(detectedDate);
-
-        // 1. Save to database API
-        try {
-          const saveRes = await fetch('/api/reports/keeta', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              fileName: file.name,
-              reportDate: detectedDate,
-              records: parsedRows
-            })
-          });
-
-          if (saveRes.ok) {
-            const saveJson = await saveRes.json();
-            toast.success(
-              saveJson.message ||
-                `تم حفظ ${parsedRows.length} كابتن بنجاح في قاعدة البيانات ليوم ${detectedDate}`
-            );
-            if (!availableDates.includes(detectedDate)) {
-              setAvailableDates((prev) => [detectedDate, ...prev].sort().reverse());
-            }
-          }
-        } catch (dbErr) {
-          console.error('Failed to post to /api/reports/keeta:', dbErr);
-        }
-
-        // 2. Also sync to Target API
-        saveDailyReportsBatch(
-          parsedRows.map((r) => ({
-            date: r.date || detectedDate,
-            app: 'KEETA',
-            identifier: r.driverId,
-            captainName: r.driverNameAr || r.driverNameEn,
-            deliveredOrders: r.deliveredTasks,
-            totalOrders: r.acceptedTasks,
-            onlineDurationStr: r.onlineDurationStr,
-            delayedOrders: r.delayedTasks,
-            punctualityRate: r.punctualityRate,
-            avgDeliveryMinutes: r.avgDeliveryDurationMinutes
-          })),
-          file.name
-        );
+      if (lastDetectedDate) {
+        setReportDate(lastDetectedDate);
+        setSelectedDateFilter(lastDetectedDate);
+        setData(lastParsedRows);
       }
 
-      toast.success(`تم قراءة تقرير كيتا بنجاح: ${parsedRows.length} كابتن`);
-    } catch (err: any) {
-      console.error(err);
-      toast.error('حدث خطأ أثناء قراءة ملف Excel: ' + (err.message || 'خطأ غير معروف'));
-    } finally {
-      setIsLoading(false);
+      toast.success(
+        files.length === 1
+          ? `تم حفظ تقرير كيتا بنجاح (${totalCaptainsProcessed} كابتن)`
+          : `تم قراءة وحفظ ${successfulFiles} ملفات كيتا بنجاح في قاعدة البيانات (${totalCaptainsProcessed} سجل)`
+      );
+    } else {
+      toast.error('لم يتم العثور على بيانات صالحة في الملفات المحددة');
     }
+
+    setIsLoading(false);
   };
 
   // KPIs
@@ -406,7 +433,7 @@ export default function KeetaDailyReportPage() {
               )}
             >
               <Upload className='size-3.5' />
-              <span>رفع ملف إكسل كيتا</span>
+              <span>رفع ملفات كيتا (Excel)</span>
             </label>
 
             <Link
@@ -440,9 +467,11 @@ export default function KeetaDailyReportPage() {
             <div className='p-4 rounded-full bg-emerald-500/10 text-emerald-600 mb-3'>
               <FileSpreadsheet className='h-8 w-8' />
             </div>
-            <h3 className='font-semibold text-lg mb-1'>اسحب وأفلت تقرير كيتا اليومي (Excel) هنا</h3>
+            <h3 className='font-semibold text-lg mb-1'>
+              اسحب وأفلت تقارير كيتا (Excel) هنا (ملف واحد أو عدة ملفات)
+            </h3>
             <p className='text-sm text-muted-foreground mb-4 max-w-md'>
-              يدعم ملفات إكسل الصادرة من كيتا مباشرة (مثل: 20260925_085106_a589d6cd.xlsx)
+              يدعم رفع أكثر من ملف في وقت واحد، حيث يتم حفظ كل ملف بتاريخه تلقائياً في قاعدة البيانات
             </p>
 
             <div className='flex items-center gap-3'>
@@ -450,6 +479,7 @@ export default function KeetaDailyReportPage() {
                 id='keeta-excel-upload'
                 type='file'
                 accept='.xlsx, .xls'
+                multiple
                 className='hidden'
                 onChange={handleFileUpload}
                 disabled={isLoading}
@@ -459,7 +489,9 @@ export default function KeetaDailyReportPage() {
                 className='inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background px-4 py-2 text-sm cursor-pointer gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
               >
                 <Upload className='h-4 w-4' />
-                <span>{isLoading ? 'جاري التحميل والمعالجة...' : 'اختر ملف التقرير من جهازك'}</span>
+                <span>
+                  {isLoading ? 'جاري التحميل والمعالجة...' : 'اختر ملف أو عدة ملفات من جهازك'}
+                </span>
               </label>
             </div>
 

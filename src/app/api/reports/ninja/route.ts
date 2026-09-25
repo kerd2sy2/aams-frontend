@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     const captainIds = new Set(orders.map((o: any) => o.captainId));
 
     const newBatch: NinjaReportBatch = {
-      id: `ninja_${Date.now()}`,
+      id: `ninja_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       fileName: fileName || `Ninja_${dateStr}.csv`,
       reportDate: dateStr,
       uploadedAt: new Date().toISOString(),
