@@ -50,6 +50,7 @@ const ar: Record<string, string> = {
   'Shift Report': 'كشف الشفتات',
   'Daily Report': 'تقرير المشرف اليومي',
   'Ninja Daily Report': 'تقرير نينجا اليومي',
+  'Keeta Daily Report': 'تقرير كيتا اليومي',
   Attendance: 'الحضور والانصراف',
   Investigations: 'محاضر الموظفين',
   'All Investigations': 'جميع المحاضر',
