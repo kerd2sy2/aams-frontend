@@ -103,7 +103,7 @@ interface LocalOverride {
   monthly_target?: number;
 }
 
-function getLocalOverrides(): Record<string, LocalOverride> {
+export function getLocalOverrides(): Record<string, LocalOverride> {
   if (typeof window === 'undefined') return {};
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
