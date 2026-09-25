@@ -45,6 +45,7 @@ export interface IdentifierPerformance {
   ninja_id?: string;
   national_id?: string;
   mobile?: string;
+  email?: string;
   app_name?: string;
   code?: string;
   is_blocked?: boolean;

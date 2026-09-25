@@ -53,7 +53,8 @@ import {
   Phone,
   CreditCard,
   Building2,
-  UserCheck
+  UserCheck,
+  Mail
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -88,6 +89,7 @@ export default function IdentifiersPage() {
   const [identNinjaId, setIdentNinjaId] = useState('');
   const [identNationalId, setIdentNationalId] = useState('');
   const [identMobile, setIdentMobile] = useState('');
+  const [identEmail, setIdentEmail] = useState('');
   const [identAvatar, setIdentAvatar] = useState('');
   const [identAppName, setIdentAppName] = useState('NINJA');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('NONE');
@@ -132,6 +134,7 @@ export default function IdentifiersPage() {
     setIdentNinjaId('');
     setIdentNationalId('');
     setIdentMobile('');
+    setIdentEmail('');
     setIdentAvatar('');
     setIdentAppName('NINJA');
     setSelectedEmployeeId('NONE');
@@ -150,6 +153,7 @@ export default function IdentifiersPage() {
     setIdentNinjaId(item.ninja_id || item.code || '');
     setIdentNationalId(item.national_id || '');
     setIdentMobile(item.mobile || '');
+    setIdentEmail(item.email || '');
     setIdentAvatar(item.avatar || '');
     setIdentAppName(item.app_name || 'NINJA');
     setSelectedEmployeeId(item.employee_id || 'NONE');
@@ -289,6 +293,7 @@ export default function IdentifiersPage() {
         ninja_id: identNinjaId.trim() || identCode.trim(),
         national_id: identNationalId.trim(),
         mobile: identMobile.trim(),
+        email: identEmail.trim(),
         avatar: identAvatar.trim(),
         app_name: identAppName,
         employee_id: empId,
@@ -354,6 +359,7 @@ export default function IdentifiersPage() {
         const ninjaMatch = item.ninja_id?.toLowerCase().includes(q);
         const natMatch = item.national_id?.toLowerCase().includes(q);
         const mobileMatch = item.mobile?.toLowerCase().includes(q);
+        const emailMatch = item.email?.toLowerCase().includes(q);
         const appMatch = item.app_name?.toLowerCase().includes(q);
         const empNameMatch = item.employee?.name?.toLowerCase().includes(q);
         const empKeyMatch = item.employee?.key_number?.toLowerCase().includes(q);
@@ -366,6 +372,7 @@ export default function IdentifiersPage() {
           ninjaMatch ||
           natMatch ||
           mobileMatch ||
+          emailMatch ||
           appMatch ||
           empNameMatch ||
           empKeyMatch
@@ -598,7 +605,7 @@ export default function IdentifiersPage() {
                 </TableHead>
                 <TableHead className='font-semibold min-w-[170px]'>الاسم بالإنجليزي</TableHead>
                 <TableHead className='font-semibold'>معرّف التطبيق</TableHead>
-                <TableHead className='font-semibold'>رقم الهوية / الجوال</TableHead>
+                <TableHead className='font-semibold'>الهوية / الجوال / البريد</TableHead>
                 <TableHead className='font-semibold min-w-[210px]'>المندوب المرتبط</TableHead>
                 <TableHead className='font-semibold text-center'>حظر المعرف</TableHead>
                 <TableHead className='font-semibold text-center'>إجراءات</TableHead>
@@ -750,22 +757,30 @@ export default function IdentifiersPage() {
                         </div>
                       </TableCell>
 
-                      {/* National ID & Mobile */}
+                      {/* National ID, Mobile & Email */}
                       <TableCell>
-                        <div className='space-y-0.5 text-xs font-mono text-muted-foreground'>
+                        <div className='space-y-1 text-xs font-mono text-muted-foreground'>
                           {item.national_id && (
                             <div className='flex items-center gap-1'>
-                              <CreditCard className='size-3 text-muted-foreground' />
+                              <CreditCard className='size-3 text-muted-foreground shrink-0' />
                               <span>{item.national_id}</span>
                             </div>
                           )}
                           {item.mobile && (
                             <div className='flex items-center gap-1 text-[11px]'>
-                              <Phone className='size-3 text-muted-foreground' />
+                              <Phone className='size-3 text-muted-foreground shrink-0' />
                               <span dir='ltr'>+966 {item.mobile}</span>
                             </div>
                           )}
-                          {!item.national_id && !item.mobile && (
+                          {item.email && (
+                            <div className='flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 font-sans truncate max-w-[180px]'>
+                              <Mail className='size-3 shrink-0' />
+                              <span title={item.email} className='truncate'>
+                                {item.email}
+                              </span>
+                            </div>
+                          )}
+                          {!item.national_id && !item.mobile && !item.email && (
                             <span className='text-muted-foreground'>—</span>
                           )}
                         </div>
@@ -984,6 +999,22 @@ export default function IdentifiersPage() {
                       dir='ltr'
                     />
                   </div>
+                </div>
+
+                {/* Email Address */}
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground flex items-center gap-1.5'>
+                    <Mail className='size-3 text-muted-foreground' />
+                    البريد الإلكتروني
+                  </Label>
+                  <Input
+                    type='email'
+                    placeholder='مثال: captain@aams-logistic.com'
+                    value={identEmail}
+                    onChange={(e) => setIdentEmail(e.target.value)}
+                    className='font-sans'
+                    dir='ltr'
+                  />
                 </div>
 
                 {/* Block Status Toggle */}

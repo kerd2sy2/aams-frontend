@@ -95,6 +95,7 @@ export const targetWebApi = {
         ninja_id: seedItem.ninja_id,
         national_id: seedItem.national_id,
         mobile: seedItem.mobile,
+        email: seedItem.email || '',
         code: seedItem.ninja_id,
         app_name: 'NINJA',
         is_blocked: ov.is_blocked !== undefined ? ov.is_blocked : Boolean(seedItem.is_blocked),
@@ -130,6 +131,7 @@ export const targetWebApi = {
         ninja_id: seedItem.keeta_id,
         national_id: seedItem.national_id,
         mobile: seedItem.mobile,
+        email: seedItem.email || '',
         code: seedItem.keeta_id,
         app_name: 'KEETA',
         is_blocked: ov.is_blocked !== undefined ? ov.is_blocked : Boolean(seedItem.is_blocked),
@@ -150,33 +152,22 @@ export const targetWebApi = {
       } as IdentifierPerformance;
     });
 
-    // Combine backend items with seed items
-    const combined: IdentifierPerformance[] = [...backendList];
-    const allSeeds = [...ninjaMerged, ...keetaMerged];
+    // Only include Ninja and Keeta uploaded identifiers (strictly exclude unwanted/old records)
+    const combined: IdentifierPerformance[] = [...ninjaMerged, ...keetaMerged];
 
-    for (const seedItem of allSeeds) {
-      // Find matching item in backend if any
-      const existing = combined.find(
-        (b) =>
-          (b.code && b.code === seedItem.code) ||
-          (b.ninja_id && b.ninja_id === seedItem.ninja_id) ||
-          (b.name && seedItem.name_en && b.name.toLowerCase() === seedItem.name_en.toLowerCase())
+    // If backend has dynamic live orders or links for any of these, merge them in
+    for (const b of backendList) {
+      const match = combined.find(
+        (c) =>
+          (c.code && b.code && c.code === b.code) ||
+          (c.ninja_id && b.ninja_id && c.ninja_id === b.ninja_id)
       );
-
-      if (existing) {
-        // Apply overrides to existing
-        const ov = localOverrides[existing.id] || localOverrides[seedItem.id] || {};
-        if (!existing.name_ar) existing.name_ar = ov.name_ar || seedItem.name_ar;
-        if (!existing.name_en) existing.name_en = ov.name_en || seedItem.name_en;
-        if (!existing.avatar) existing.avatar = seedItem.avatar;
-        if (!existing.app_name) existing.app_name = seedItem.app_name;
-        if (!existing.national_id) existing.national_id = seedItem.national_id;
-        if (!existing.mobile) existing.mobile = seedItem.mobile;
-        if (ov.is_blocked !== undefined) existing.is_blocked = ov.is_blocked;
-        if (ov.blocked_reason) existing.blocked_reason = ov.blocked_reason;
-        if (ov.employee_id !== undefined) existing.employee_id = ov.employee_id;
-      } else {
-        combined.push(seedItem);
+      if (match) {
+        if (b.today_orders) match.today_orders = b.today_orders;
+        if (b.week_orders) match.week_orders = b.week_orders;
+        if (b.month_orders) match.month_orders = b.month_orders;
+        if (b.employee_id && match.employee_id === null) match.employee_id = b.employee_id;
+        if (b.employee) match.employee = b.employee;
       }
     }
 
@@ -189,6 +180,7 @@ export const targetWebApi = {
           name: ov.name_ar || item.name_ar || item.name,
           name_ar: ov.name_ar !== undefined ? ov.name_ar : item.name_ar,
           name_en: ov.name_en !== undefined ? ov.name_en : item.name_en,
+          email: item.email,
           is_blocked: ov.is_blocked !== undefined ? ov.is_blocked : item.is_blocked,
           blocked_reason: ov.blocked_reason !== undefined ? ov.blocked_reason : item.blocked_reason,
           employee_id: ov.employee_id !== undefined ? ov.employee_id : item.employee_id,
