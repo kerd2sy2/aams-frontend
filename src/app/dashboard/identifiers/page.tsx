@@ -39,7 +39,23 @@ import { useLocale } from '@/components/layout/locale-provider';
 import { Icons } from '@/components/icons';
 import type { IdentifierPerformance } from '@/types/target';
 import type { Employee } from '@/types/aams';
-import { Users, Link as LinkIcon, Plus, CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
+import {
+  Users,
+  Link as LinkIcon,
+  Plus,
+  CheckCircle2,
+  AlertTriangle,
+  Clock,
+  Ban,
+  ShieldAlert,
+  ShieldCheck,
+  Edit2,
+  Check,
+  X,
+  Phone,
+  CreditCard,
+  Building2
+} from 'lucide-react';
 import Link from 'next/link';
 
 export default function IdentifiersPage() {
@@ -57,7 +73,15 @@ export default function IdentifiersPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'LINKED' | 'UNLINKED'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<
+    'ALL' | 'ACTIVE' | 'BLOCKED' | 'LINKED' | 'UNLINKED'
+  >('ALL');
+  const [appFilter, setAppFilter] = useState<'ALL' | 'NINJA' | 'KEETA' | 'OTHER'>('ALL');
+
+  // Inline Editing State for Arabic Name
+  const [editingArId, setEditingArId] = useState<string | null>(null);
+  const [editingArValue, setEditingArValue] = useState<string>('');
+  const [savingAr, setSavingAr] = useState(false);
 
   // Sheet States
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -66,10 +90,17 @@ export default function IdentifiersPage() {
 
   // Form Fields
   const [identName, setIdentName] = useState('');
+  const [identNameAr, setIdentNameAr] = useState('');
+  const [identNameEn, setIdentNameEn] = useState('');
   const [identCode, setIdentCode] = useState('');
+  const [identNinjaId, setIdentNinjaId] = useState('');
+  const [identNationalId, setIdentNationalId] = useState('');
+  const [identMobile, setIdentMobile] = useState('');
   const [identAppName, setIdentAppName] = useState('NINJA');
   const [identMonthlyTarget, setIdentMonthlyTarget] = useState('460');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('NONE');
+  const [identIsBlocked, setIdentIsBlocked] = useState(false);
+  const [identBlockedReason, setIdentBlockedReason] = useState('');
 
   // Load Identifiers & Employees
   const loadData = useCallback(
@@ -106,22 +137,112 @@ export default function IdentifiersPage() {
   const handleOpenCreate = () => {
     setEditingIdentifier(null);
     setIdentName('');
+    setIdentNameAr('');
+    setIdentNameEn('');
     setIdentCode('');
+    setIdentNinjaId('');
+    setIdentNationalId('');
+    setIdentMobile('');
     setIdentAppName('NINJA');
     setIdentMonthlyTarget('460');
     setSelectedEmployeeId('NONE');
+    setIdentIsBlocked(false);
+    setIdentBlockedReason('');
     setSheetOpen(true);
   };
 
   // Open Edit / Link Sheet
   const handleOpenEdit = (item: IdentifierPerformance) => {
     setEditingIdentifier(item);
-    setIdentName(item.name || '');
+    setIdentName(item.name || item.name_ar || item.name_en || '');
+    setIdentNameAr(item.name_ar || '');
+    setIdentNameEn(item.name_en || '');
     setIdentCode(item.code || '');
+    setIdentNinjaId(item.ninja_id || item.code || '');
+    setIdentNationalId(item.national_id || '');
+    setIdentMobile(item.mobile || '');
     setIdentAppName(item.app_name || 'NINJA');
     setIdentMonthlyTarget(String(item.monthly_target || 460));
     setSelectedEmployeeId(item.employee_id || 'NONE');
+    setIdentIsBlocked(Boolean(item.is_blocked));
+    setIdentBlockedReason(item.blocked_reason || '');
     setSheetOpen(true);
+  };
+
+  // Fast inline edit save for Arabic Name
+  const startInlineEditAr = (item: IdentifierPerformance) => {
+    setEditingArId(item.id);
+    setEditingArValue(item.name_ar || item.name || '');
+  };
+
+  const cancelInlineEditAr = () => {
+    setEditingArId(null);
+    setEditingArValue('');
+  };
+
+  const saveInlineEditAr = async (item: IdentifierPerformance) => {
+    const val = editingArValue.trim();
+    if (!val) {
+      toast.error('يرجى كتابة الاسم بالعربي');
+      return;
+    }
+
+    setSavingAr(true);
+    try {
+      await targetWebApi.updateIdentifier(item.id, {
+        name_ar: val,
+        name: val,
+        name_en: item.name_en,
+        code: item.code,
+        ninja_id: item.ninja_id,
+        is_blocked: item.is_blocked
+      });
+
+      setIdentifiers((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, name_ar: val, name: val } : i))
+      );
+      toast.success('تم تحديث الاسم بالعربي بنجاح');
+      setEditingArId(null);
+    } catch {
+      toast.error('فشل حفظ الاسم بالعربي');
+    } finally {
+      setSavingAr(false);
+    }
+  };
+
+  // Toggle Block / Unblock directly
+  const handleToggleBlock = async (item: IdentifierPerformance) => {
+    const nextBlocked = !item.is_blocked;
+    try {
+      await targetWebApi.toggleBlockIdentifier(
+        item.id,
+        nextBlocked,
+        nextBlocked ? 'تم الحظر بواسطة الإدارة' : ''
+      );
+
+      setIdentifiers((prev) =>
+        prev.map((i) =>
+          i.id === item.id
+            ? {
+                ...i,
+                is_blocked: nextBlocked,
+                blocked_reason: nextBlocked ? 'تم الحظر بواسطة الإدارة' : '',
+                is_active: !nextBlocked
+              }
+            : i
+        )
+      );
+
+      if (nextBlocked) {
+        toast.warning(
+          `تم حظر المعرف (${item.ninja_id || item.code || item.name}) لن يظهر في ربط الشفتات`
+        );
+      } else {
+        toast.success(`تم فك حظر المعرف (${item.ninja_id || item.code || item.name}) بنجاح`);
+      }
+    } catch {
+      toast.error('فشل تغيير حالة الحظر للمعرف');
+    }
   };
 
   // Fast Link inline change
@@ -161,8 +282,9 @@ export default function IdentifiersPage() {
   // Handle Form Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!identName.trim()) {
-      toast.error('يرجى إدخال اسم المعرف');
+    const finalName = identNameAr.trim() || identName.trim() || identNameEn.trim();
+    if (!finalName) {
+      toast.error('يرجى إدخال اسم المعرف (بالعربي أو بالإنجليزي)');
       return;
     }
 
@@ -170,23 +292,26 @@ export default function IdentifiersPage() {
     const empId = selectedEmployeeId === 'NONE' ? null : selectedEmployeeId;
 
     try {
+      const payload = {
+        name: finalName,
+        name_ar: identNameAr.trim(),
+        name_en: identNameEn.trim(),
+        code: identCode.trim() || identNinjaId.trim(),
+        ninja_id: identNinjaId.trim() || identCode.trim(),
+        national_id: identNationalId.trim(),
+        mobile: identMobile.trim(),
+        app_name: identAppName,
+        monthly_target: parseFloat(identMonthlyTarget) || 460,
+        employee_id: empId,
+        is_blocked: identIsBlocked,
+        blocked_reason: identIsBlocked ? identBlockedReason.trim() || 'محظور من الإدارة' : ''
+      };
+
       if (editingIdentifier) {
-        await targetWebApi.updateIdentifier(editingIdentifier.id, {
-          name: identName.trim(),
-          code: identCode.trim(),
-          app_name: identAppName,
-          monthly_target: parseFloat(identMonthlyTarget) || 460,
-          employee_id: empId
-        });
+        await targetWebApi.updateIdentifier(editingIdentifier.id, payload);
         toast.success('تم تحديث بيانات المعرف بنجاح');
       } else {
-        await targetWebApi.createIdentifier({
-          name: identName.trim(),
-          code: identCode.trim(),
-          app_name: identAppName,
-          monthly_target: parseFloat(identMonthlyTarget) || 460,
-          employee_id: empId
-        });
+        await targetWebApi.createIdentifier(payload);
         toast.success('تمت إضافة المعرف الجديد بنجاح');
       }
 
@@ -201,6 +326,8 @@ export default function IdentifiersPage() {
 
   // Stats calculation
   const totalCount = identifiers.length;
+  const blockedCount = identifiers.filter((i) => Boolean(i.is_blocked)).length;
+  const activeCount = totalCount - blockedCount;
   const linkedCount = identifiers.filter((i) => Boolean(i.employee_id)).length;
   const unlinkedCount = totalCount - linkedCount;
   const achievedTargetCount = identifiers.filter((i) => i.status === 'TARGET_ACHIEVED').length;
@@ -208,7 +335,18 @@ export default function IdentifiersPage() {
   // Filtered List
   const filteredIdentifiers = useMemo(() => {
     return identifiers.filter((item) => {
+      // App filter
+      if (appFilter !== 'ALL') {
+        const itemApp = (item.app_name || '').toUpperCase();
+        if (appFilter === 'NINJA' && !itemApp.includes('NINJA')) return false;
+        if (appFilter === 'KEETA' && !itemApp.includes('KEETA')) return false;
+        if (appFilter === 'OTHER' && (itemApp.includes('NINJA') || itemApp.includes('KEETA')))
+          return false;
+      }
+
       // Status filter
+      if (statusFilter === 'BLOCKED' && !item.is_blocked) return false;
+      if (statusFilter === 'ACTIVE' && item.is_blocked) return false;
       if (statusFilter === 'LINKED' && !item.employee_id) return false;
       if (statusFilter === 'UNLINKED' && item.employee_id) return false;
 
@@ -216,21 +354,38 @@ export default function IdentifiersPage() {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const nameMatch = item.name?.toLowerCase().includes(q);
+        const nameArMatch = item.name_ar?.toLowerCase().includes(q);
+        const nameEnMatch = item.name_en?.toLowerCase().includes(q);
         const codeMatch = item.code?.toLowerCase().includes(q);
+        const ninjaMatch = item.ninja_id?.toLowerCase().includes(q);
+        const natMatch = item.national_id?.toLowerCase().includes(q);
+        const mobileMatch = item.mobile?.toLowerCase().includes(q);
         const appMatch = item.app_name?.toLowerCase().includes(q);
         const empNameMatch = item.employee?.name?.toLowerCase().includes(q);
         const empKeyMatch = item.employee?.key_number?.toLowerCase().includes(q);
-        return nameMatch || codeMatch || appMatch || empNameMatch || empKeyMatch;
+
+        return (
+          nameMatch ||
+          nameArMatch ||
+          nameEnMatch ||
+          codeMatch ||
+          ninjaMatch ||
+          natMatch ||
+          mobileMatch ||
+          appMatch ||
+          empNameMatch ||
+          empKeyMatch
+        );
       }
 
       return true;
     });
-  }, [identifiers, statusFilter, searchQuery]);
+  }, [identifiers, statusFilter, appFilter, searchQuery]);
 
   return (
     <PageContainer
-      pageTitle='المعرفات وربط المناديب'
-      pageDescription='إدارة المعرفات وربط كل معرف بالمندوب المسؤول عنه لحساب وتحقيق التارچت والمستهدفات'
+      pageTitle='إدارة معرفات المناديب والتطبيقات'
+      pageDescription='إدارة جميع معرفات نينجا والتطبيقات، تعديل الأسماء بالعربي والإنجليزي، ربط المناديب، وحظر المعرفات لتجنب ربطها في الشفتات'
       pageHeaderAction={
         <div className='flex items-center gap-2'>
           {/* Month Selector */}
@@ -249,42 +404,31 @@ export default function IdentifiersPage() {
             disabled={refreshing}
             className='gap-1.5 h-8'
           >
-            <Icons.refresh
-              className={`size-3.5 ${refreshing ? 'animate-spin text-primary' : ''}`}
-            />
-            <span className='hidden sm:inline'>{t('Refresh', 'تحديث')}</span>
+            <Icons.spinner className={cn('size-3.5', refreshing && 'animate-spin')} />
+            تحديث
           </Button>
 
-          {/* Link to Target Dashboard */}
+          {/* Target Dashboard Link */}
           <Link
             href='/dashboard/target'
-            className={cn(
-              buttonVariants({ variant: 'outline', size: 'sm' }),
-              'h-8 gap-1.5 text-xs'
-            )}
+            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'h-8 gap-1.5')}
           >
-            <Icons.chartBar className='size-3.5 text-primary' />
-            <span className='hidden sm:inline'>لوحة متابعة التارچت</span>
+            <span>لوحة التارچت</span>
           </Link>
 
           {/* Add Identifier Button */}
-          <Button size='sm' onClick={handleOpenCreate} className='gap-1.5 h-8 font-semibold'>
-            <Plus className='size-3.5' />
-            <span>إضافة معرف جديد</span>
+          <Button size='sm' onClick={handleOpenCreate} className='gap-1.5 h-8 font-medium'>
+            <Plus className='size-4' />
+            إضافة معرف
           </Button>
         </div>
       }
     >
-      <div className='flex flex-1 flex-col gap-4' dir={dir}>
-        {/* KPI Cards */}
-        <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-2 gap-3 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-4 md:gap-4'>
+      <div className='space-y-6'>
+        {/* KPI Summary Cards */}
+        <div className='grid grid-cols-2 md:grid-cols-5 gap-3'>
           {/* Total Identifiers Card */}
-          <Card
-            className={`cursor-pointer transition-all hover:shadow-sm ${
-              statusFilter === 'ALL' ? 'ring-2 ring-primary bg-primary/10' : ''
-            }`}
-            onClick={() => setStatusFilter('ALL')}
-          >
+          <Card>
             <CardHeader className='flex flex-row items-center justify-between pb-2'>
               <CardTitle className='text-xs font-medium text-muted-foreground'>
                 إجمالي المعرفات
@@ -294,46 +438,72 @@ export default function IdentifiersPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold tracking-tight text-foreground font-mono'>
-                {totalCount}
-              </div>
-              <p className='text-muted-foreground text-xs mt-1'>معرف مسجل لشهر {selectedMonth}</p>
+              <div className='text-2xl font-bold tracking-tight font-mono'>{totalCount}</div>
+              <p className='text-muted-foreground text-xs mt-1'>معرف مسجل بالنظام</p>
             </CardContent>
           </Card>
 
-          {/* Linked Identifiers Card */}
-          <Card
-            className={`cursor-pointer transition-all hover:shadow-sm ${
-              statusFilter === 'LINKED' ? 'ring-2 ring-emerald-500 bg-emerald-500/10' : ''
-            }`}
-            onClick={() => setStatusFilter('LINKED')}
-          >
+          {/* Active Identifiers Card */}
+          <Card>
             <CardHeader className='flex flex-row items-center justify-between pb-2'>
               <CardTitle className='text-xs font-medium text-muted-foreground'>
-                مرتبطة بمناديب
+                معرفات نشطة (متاحة)
               </CardTitle>
               <div className='bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex size-8 items-center justify-center rounded-lg'>
-                <CheckCircle2 className='size-4' />
+                <ShieldCheck className='size-4' />
               </div>
             </CardHeader>
             <CardContent>
               <div className='text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 font-mono'>
+                {activeCount}
+              </div>
+              <p className='text-muted-foreground text-xs mt-1'>جاهزة للاستخدام بالدوام</p>
+            </CardContent>
+          </Card>
+
+          {/* Blocked Identifiers Card */}
+          <Card className={cn(blockedCount > 0 && 'border-destructive/40 bg-destructive/5')}>
+            <CardHeader className='flex flex-row items-center justify-between pb-2'>
+              <CardTitle className='text-xs font-medium text-destructive'>
+                معرفات محظورة 🚫
+              </CardTitle>
+              <div className='bg-destructive/10 text-destructive flex size-8 items-center justify-center rounded-lg'>
+                <Ban className='size-4' />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className='text-2xl font-bold tracking-tight text-destructive font-mono'>
+                {blockedCount}
+              </div>
+              <p className='text-muted-foreground text-xs mt-1'>محجوبة من منسدلة بدء الدوام</p>
+            </CardContent>
+          </Card>
+
+          {/* Linked Identifiers Card */}
+          <Card>
+            <CardHeader className='flex flex-row items-center justify-between pb-2'>
+              <CardTitle className='text-xs font-medium text-muted-foreground'>
+                مرتبط بمناديب
+              </CardTitle>
+              <div className='bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg'>
+                <LinkIcon className='size-4' />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className='text-2xl font-bold tracking-tight text-primary font-mono'>
                 {linkedCount}
               </div>
-              <p className='text-muted-foreground text-xs mt-1'>يتم رصد التارچت لهم تلقائياً</p>
+              <p className='text-muted-foreground text-xs mt-1'>
+                {totalCount > 0 ? Math.round((linkedCount / totalCount) * 100) : 0}% من الإجمالي
+              </p>
             </CardContent>
           </Card>
 
           {/* Unlinked Identifiers Card */}
-          <Card
-            className={`cursor-pointer transition-all hover:shadow-sm ${
-              statusFilter === 'UNLINKED' ? 'ring-2 ring-amber-500 bg-amber-500/10' : ''
-            }`}
-            onClick={() => setStatusFilter('UNLINKED')}
-          >
+          <Card>
             <CardHeader className='flex flex-row items-center justify-between pb-2'>
               <CardTitle className='text-xs font-medium text-muted-foreground'>
-                معرفات بدون مندوب
+                غير مرتبطة (معلقة)
               </CardTitle>
               <div className='bg-amber-500/10 text-amber-600 dark:text-amber-400 flex size-8 items-center justify-center rounded-lg'>
                 <AlertTriangle className='size-4' />
@@ -343,67 +513,107 @@ export default function IdentifiersPage() {
               <div className='text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400 font-mono'>
                 {unlinkedCount}
               </div>
-              <p className='text-muted-foreground text-xs mt-1'>تحتاج لتحديد المندوب المسؤول</p>
-            </CardContent>
-          </Card>
-
-          {/* Target Achieved Card */}
-          <Card>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-xs font-medium text-muted-foreground'>
-                محققو التارچت 🏆
-              </CardTitle>
-              <div className='bg-sky-500/10 text-sky-600 dark:text-sky-400 flex size-8 items-center justify-center rounded-lg'>
-                <Clock className='size-4' />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold tracking-tight text-sky-600 dark:text-sky-400 font-mono'>
-                {achievedTargetCount}
-              </div>
-              <p className='text-muted-foreground text-xs mt-1'>أتموا المستهدف الشهري بالكامل</p>
+              <p className='text-muted-foreground text-xs mt-1'>تحتاج تعيين مندوب</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters and Search Bar */}
-        <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b pb-3'>
-          <div className='flex flex-wrap items-center gap-2'>
-            <span className='text-xs font-semibold text-muted-foreground me-1'>حالة الربط:</span>
+        <div className='flex flex-col gap-3 border-b pb-3'>
+          <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3'>
+            {/* App Filter Buttons */}
+            <div className='flex flex-wrap items-center gap-1.5'>
+              <span className='text-xs font-semibold text-muted-foreground me-1'>التطبيق:</span>
+              <Button
+                size='sm'
+                variant={appFilter === 'ALL' ? 'default' : 'outline'}
+                className='h-8 text-xs'
+                onClick={() => setAppFilter('ALL')}
+              >
+                جميع التطبيقات ({totalCount})
+              </Button>
+              <Button
+                size='sm'
+                variant={appFilter === 'NINJA' ? 'default' : 'outline'}
+                className='h-8 text-xs font-semibold'
+                onClick={() => setAppFilter('NINJA')}
+              >
+                🥷 نينجا (
+                {
+                  identifiers.filter((i) => (i.app_name || '').toUpperCase().includes('NINJA'))
+                    .length
+                }
+                )
+              </Button>
+              <Button
+                size='sm'
+                variant={appFilter === 'KEETA' ? 'default' : 'outline'}
+                className='h-8 text-xs font-semibold'
+                onClick={() => setAppFilter('KEETA')}
+              >
+                🛵 كيتا (
+                {
+                  identifiers.filter((i) => (i.app_name || '').toUpperCase().includes('KEETA'))
+                    .length
+                }
+                )
+              </Button>
+            </div>
+
+            <div className='relative w-full sm:w-80'>
+              <Icons.search className='text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2' />
+              <Input
+                placeholder='بحث بالاسم العربي، الإنجليزي، الهوية، أو الكود...'
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className='h-9 ps-9 text-xs'
+              />
+            </div>
+          </div>
+
+          {/* Status Filter Buttons */}
+          <div className='flex flex-wrap items-center gap-1.5'>
+            <span className='text-xs font-semibold text-muted-foreground me-1'>الحالة:</span>
             <Button
               size='sm'
-              variant={statusFilter === 'ALL' ? 'default' : 'outline'}
-              className='h-8 text-xs'
+              variant={statusFilter === 'ALL' ? 'secondary' : 'ghost'}
+              className='h-7 text-xs px-2.5'
               onClick={() => setStatusFilter('ALL')}
             >
-              الكل ({totalCount})
+              الكل
             </Button>
             <Button
               size='sm'
-              variant={statusFilter === 'LINKED' ? 'default' : 'outline'}
-              className='h-8 text-xs'
+              variant={statusFilter === 'ACTIVE' ? 'secondary' : 'ghost'}
+              className='h-7 text-xs px-2.5 text-emerald-600'
+              onClick={() => setStatusFilter('ACTIVE')}
+            >
+              النشطة ({activeCount})
+            </Button>
+            <Button
+              size='sm'
+              variant={statusFilter === 'BLOCKED' ? 'destructive' : 'ghost'}
+              className='h-7 text-xs px-2.5'
+              onClick={() => setStatusFilter('BLOCKED')}
+            >
+              المحظورة 🚫 ({blockedCount})
+            </Button>
+            <Button
+              size='sm'
+              variant={statusFilter === 'LINKED' ? 'secondary' : 'ghost'}
+              className='h-7 text-xs px-2.5'
               onClick={() => setStatusFilter('LINKED')}
             >
               مرتبط بمندوب ({linkedCount})
             </Button>
             <Button
               size='sm'
-              variant={statusFilter === 'UNLINKED' ? 'default' : 'outline'}
-              className='h-8 text-xs'
+              variant={statusFilter === 'UNLINKED' ? 'secondary' : 'ghost'}
+              className='h-7 text-xs px-2.5 text-amber-600'
               onClick={() => setStatusFilter('UNLINKED')}
             >
               غير مرتبط ({unlinkedCount})
             </Button>
-          </div>
-
-          <div className='relative w-full sm:w-72'>
-            <Icons.search className='text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2' />
-            <Input
-              placeholder='بحث باسم المعرف، الكود، أو المندوب...'
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className='h-9 ps-9 text-xs'
-            />
           </div>
         </div>
 
@@ -412,16 +622,18 @@ export default function IdentifiersPage() {
           <Table>
             <TableHeader>
               <TableRow className='bg-muted/50'>
-                <TableHead className='font-semibold'>المعرف</TableHead>
-                <TableHead className='font-semibold'>الكود / التطبيق</TableHead>
-                <TableHead className='font-semibold min-w-[220px]'>
+                <TableHead className='font-semibold min-w-[200px]'>
+                  الاسم بالعربي (قابل للتعديل)
+                </TableHead>
+                <TableHead className='font-semibold min-w-[170px]'>الاسم بالإنجليزي</TableHead>
+                <TableHead className='font-semibold'>معرف التطبيق / الكود</TableHead>
+                <TableHead className='font-semibold'>رقم الهوية / الجوال</TableHead>
+                <TableHead className='font-semibold min-w-[210px]'>
                   المندوب المرتبط (المسؤول عن التارچت)
                 </TableHead>
+                <TableHead className='font-semibold text-center'>حالة المعرف (الحظر)</TableHead>
                 <TableHead className='font-semibold'>التارچت الشهري</TableHead>
-                <TableHead className='font-semibold'>المحقق الفعلي</TableHead>
-                <TableHead className='font-semibold'>نسبة الإنجاز</TableHead>
-                <TableHead className='font-semibold'>الحالة</TableHead>
-                <TableHead className='text-center font-semibold'>إجراءات</TableHead>
+                <TableHead className='font-semibold text-center'>إجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -430,7 +642,7 @@ export default function IdentifiersPage() {
                   <TableCell colSpan={8} className='text-center py-12'>
                     <Icons.spinner className='size-6 animate-spin mx-auto text-primary' />
                     <div className='text-xs text-muted-foreground mt-2'>
-                      جاري تحميل بيانات المعرفات والمناديب...
+                      جاري تحميل بيانات المعرفات (نينجا)...
                     </div>
                   </TableCell>
                 </TableRow>
@@ -445,29 +657,115 @@ export default function IdentifiersPage() {
                 </TableRow>
               ) : (
                 filteredIdentifiers.map((item) => {
-                  const isAchieved = item.status === 'TARGET_ACHIEVED';
-                  const isOnTrack = item.status === 'ON_TRACK';
-                  const isAtRisk = item.status === 'AT_RISK';
+                  const isBlocked = Boolean(item.is_blocked);
+                  const isEditingThisAr = editingArId === item.id;
 
                   return (
-                    <TableRow key={item.id} className='hover:bg-muted/30'>
-                      {/* Identifier Name */}
-                      <TableCell className='font-semibold text-foreground'>
-                        <div className='flex items-center gap-2'>
-                          <span className='text-sm'>{item.name}</span>
-                        </div>
+                    <TableRow
+                      key={item.id}
+                      className={cn(
+                        'hover:bg-muted/30 transition-colors',
+                        isBlocked && 'bg-destructive/5 dark:bg-destructive/10'
+                      )}
+                    >
+                      {/* Arabic Name with Inline Quick Edit */}
+                      <TableCell className='font-medium text-foreground'>
+                        {isEditingThisAr ? (
+                          <div className='flex items-center gap-1.5'>
+                            <Input
+                              value={editingArValue}
+                              onChange={(e) => setEditingArValue(e.target.value)}
+                              className='h-8 text-xs font-semibold'
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') saveInlineEditAr(item);
+                                if (e.key === 'Escape') cancelInlineEditAr();
+                              }}
+                            />
+                            <Button
+                              size='icon'
+                              variant='default'
+                              className='size-7 shrink-0'
+                              onClick={() => saveInlineEditAr(item)}
+                              disabled={savingAr}
+                            >
+                              <Check className='size-3.5' />
+                            </Button>
+                            <Button
+                              size='icon'
+                              variant='ghost'
+                              className='size-7 shrink-0'
+                              onClick={cancelInlineEditAr}
+                            >
+                              <X className='size-3.5' />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className='flex items-center justify-between group gap-2'>
+                            <div className='flex items-center gap-1.5'>
+                              {isBlocked && (
+                                <Badge variant='destructive' className='text-[10px] px-1 py-0'>
+                                  محظور
+                                </Badge>
+                              )}
+                              <span
+                                className={cn(
+                                  'text-sm font-semibold',
+                                  isBlocked && 'text-muted-foreground line-through'
+                                )}
+                              >
+                                {item.name_ar || item.name || '—'}
+                              </span>
+                            </div>
+                            <Button
+                              variant='ghost'
+                              size='icon'
+                              className='size-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary transition-opacity'
+                              onClick={() => startInlineEditAr(item)}
+                              title='تعديل الاسم بالعربي'
+                            >
+                              <Edit2 className='size-3' />
+                            </Button>
+                          </div>
+                        )}
                       </TableCell>
 
-                      {/* Code / App */}
+                      {/* English Name */}
+                      <TableCell>
+                        <span className='font-mono text-xs uppercase text-muted-foreground'>
+                          {item.name_en || '—'}
+                        </span>
+                      </TableCell>
+
+                      {/* Code / Ninja ID */}
                       <TableCell>
                         <div className='flex items-center gap-1.5'>
                           <Badge variant='outline' className='font-mono text-[11px] px-1.5 py-0'>
-                            {item.app_name || 'تطبيق'}
+                            {item.app_name || 'NINJA'}
                           </Badge>
-                          {item.code && (
-                            <span className='font-mono text-xs text-muted-foreground'>
-                              #{item.code}
-                            </span>
+                          <span className='font-mono text-xs font-bold text-primary'>
+                            #{item.ninja_id || item.code || item.id}
+                          </span>
+                        </div>
+                      </TableCell>
+
+                      {/* National ID & Mobile */}
+                      <TableCell>
+                        <div className='space-y-0.5 text-xs font-mono text-muted-foreground'>
+                          {item.national_id && (
+                            <div className='flex items-center gap-1'>
+                              <CreditCard className='size-3 text-muted-foreground' />
+                              <span>{item.national_id}</span>
+                            </div>
+                          )}
+                          {item.mobile && (
+                            <div className='flex items-center gap-1 text-[11px]'>
+                              <Phone className='size-3 text-muted-foreground' />
+                              <span dir='ltr'>+966 {item.mobile}</span>
+                            </div>
+                          )}
+                          {!item.national_id && !item.mobile && (
+                            <span className='text-muted-foreground'>—</span>
                           )}
                         </div>
                       </TableCell>
@@ -510,48 +808,39 @@ export default function IdentifiersPage() {
                         </div>
                       </TableCell>
 
+                      {/* Block / Active Status Toggle */}
+                      <TableCell className='text-center'>
+                        <Button
+                          variant={isBlocked ? 'destructive' : 'outline'}
+                          size='sm'
+                          onClick={() => handleToggleBlock(item)}
+                          className={cn(
+                            'h-7 px-2.5 text-[11px] gap-1 font-medium transition-colors',
+                            !isBlocked && 'hover:border-destructive hover:text-destructive'
+                          )}
+                          title={
+                            isBlocked
+                              ? 'اضغط لفك الحظر عن المعرف'
+                              : 'اضغط لحظر هذا المعرف ومنعه بالدوام'
+                          }
+                        >
+                          {isBlocked ? (
+                            <>
+                              <Ban className='size-3.5' />
+                              <span>محظور (فك الحظر)</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShieldCheck className='size-3.5 text-emerald-600' />
+                              <span>نشط (حظر؟)</span>
+                            </>
+                          )}
+                        </Button>
+                      </TableCell>
+
                       {/* Monthly Target */}
                       <TableCell className='font-mono font-bold text-foreground'>
                         {item.monthly_target || 460}
-                      </TableCell>
-
-                      {/* Actual Month Orders */}
-                      <TableCell className='font-mono font-bold text-primary'>
-                        {item.month_orders || 0}
-                      </TableCell>
-
-                      {/* Achievement Progress */}
-                      <TableCell className='min-w-[130px]'>
-                        <div className='flex items-center gap-2'>
-                          <Progress
-                            value={Math.min(item.achievement_percent || 0, 100)}
-                            className='h-2 flex-1'
-                          />
-                          <span className='text-xs font-mono font-bold'>
-                            {item.achievement_percent || 0}%
-                          </span>
-                        </div>
-                      </TableCell>
-
-                      {/* Status Badge */}
-                      <TableCell>
-                        {isAchieved ? (
-                          <Badge className='bg-primary text-primary-foreground font-mono text-xs'>
-                            حقق التارچت 🏆
-                          </Badge>
-                        ) : isOnTrack ? (
-                          <Badge className='bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs'>
-                            يسير بالمعدل
-                          </Badge>
-                        ) : isAtRisk ? (
-                          <Badge className='bg-amber-600 hover:bg-amber-700 text-white font-mono text-xs'>
-                            على وشك
-                          </Badge>
-                        ) : (
-                          <Badge variant='destructive' className='font-mono text-xs'>
-                            غير مؤهل (متأخر)
-                          </Badge>
-                        )}
                       </TableCell>
 
                       {/* Actions */}
@@ -563,7 +852,7 @@ export default function IdentifiersPage() {
                           className='h-8 px-2.5 gap-1 text-xs'
                         >
                           <LinkIcon className='size-3.5 text-primary' />
-                          <span>تعديل وربط</span>
+                          <span>تعديل</span>
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -577,42 +866,60 @@ export default function IdentifiersPage() {
         {/* Create / Edit Identifier Sheet (Side Drawer) */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetContent className='sm:max-w-lg w-full p-0 flex flex-col'>
-            <SheetHeader className='p-6'>
+            <SheetHeader className='p-6 border-b'>
               <SheetTitle className='flex items-center gap-2'>
                 <Users className='size-5 text-primary' />
-                {editingIdentifier ? 'تعديل المعرف وربط المندوب' : 'إضافة معرف جديد'}
+                {editingIdentifier ? 'تعديل المعرف وبيانات الكابتن' : 'إضافة معرف جديد'}
               </SheetTitle>
               <SheetDescription>
-                حدد اسم المعرف والتطبيق والتارچت الشهري والمندوب المسؤول عنه
+                تعديل الاسم بالعربي والإنجليزي، معرف نينجا، ربط المندوب، والتحكم في الحظر
               </SheetDescription>
             </SheetHeader>
 
             <form onSubmit={handleSubmit} className='flex-1 flex flex-col min-h-0'>
               <div className='flex-1 overflow-y-auto px-6 py-5 space-y-4'>
-                {/* Identifier Name */}
-                <div className='space-y-1.5'>
-                  <Label className='text-xs font-medium text-muted-foreground'>
-                    اسم المعرف (كما يظهر بالشيت) *
+                {/* Arabic Name (Most Important) */}
+                <div className='space-y-1.5 bg-primary/5 p-3 rounded-lg border border-primary/20'>
+                  <Label className='text-xs font-bold text-primary flex items-center gap-1.5'>
+                    <span>الاسم بالعربي (الاسم المعروض) *</span>
                   </Label>
                   <Input
-                    placeholder='مثال: أحمد عبد الله - طويق'
-                    value={identName}
-                    onChange={(e) => setIdentName(e.target.value)}
+                    placeholder='مثال: طارق جمعة'
+                    value={identNameAr}
+                    onChange={(e) => setIdentNameAr(e.target.value)}
+                    className='font-medium'
                     required
+                  />
+                  <p className='text-[11px] text-muted-foreground'>
+                    يمكنك تعديل هذا الاسم بحرية ليطابق اسم المندوب في ملفاتك.
+                  </p>
+                </div>
+
+                {/* English Name */}
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-medium text-muted-foreground'>
+                    الاسم بالإنجليزي (كما في تطبيق نينجا)
+                  </Label>
+                  <Input
+                    placeholder='مثال: TAREQ GOMAA'
+                    value={identNameEn}
+                    onChange={(e) => setIdentNameEn(e.target.value)}
+                    className='font-mono uppercase'
                   />
                 </div>
 
-                {/* Identifier Code & App */}
+                {/* Ninja ID & App */}
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                   <div className='space-y-1.5'>
                     <Label className='text-xs font-medium text-muted-foreground'>
-                      كود المعرف (اختياري)
+                      معرف نينجا / الكود *
                     </Label>
                     <Input
-                      placeholder='مثال: ID-9081'
-                      value={identCode}
-                      onChange={(e) => setIdentCode(e.target.value)}
-                      className='font-mono'
+                      placeholder='مثال: 302707'
+                      value={identNinjaId}
+                      onChange={(e) => setIdentNinjaId(e.target.value)}
+                      className='font-mono font-bold'
+                      required
                     />
                   </div>
 
@@ -635,6 +942,67 @@ export default function IdentifiersPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                {/* National ID & Mobile */}
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>
+                      رقم الهوية الوطنية / الإقامة
+                    </Label>
+                    <Input
+                      placeholder='مثال: 2641911119'
+                      value={identNationalId}
+                      onChange={(e) => setIdentNationalId(e.target.value)}
+                      className='font-mono'
+                    />
+                  </div>
+
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-medium text-muted-foreground'>رقم الجوال</Label>
+                    <Input
+                      placeholder='مثال: 530913962'
+                      value={identMobile}
+                      onChange={(e) => setIdentMobile(e.target.value)}
+                      className='font-mono'
+                      dir='ltr'
+                    />
+                  </div>
+                </div>
+
+                {/* Block Status Toggle */}
+                <div className='border rounded-lg p-3 bg-muted/30 space-y-2'>
+                  <div className='flex items-center justify-between'>
+                    <div className='space-y-0.5'>
+                      <Label className='text-xs font-bold flex items-center gap-1.5 text-foreground'>
+                        <Ban className='size-3.5 text-destructive' />
+                        حظر هذا المعرف
+                      </Label>
+                      <p className='text-[11px] text-muted-foreground'>
+                        عند تفعيل الحظر، لن يظهر المعرف في منسدلة بدء الدوام ولن يمكن استخدامه.
+                      </p>
+                    </div>
+                    <Button
+                      type='button'
+                      variant={identIsBlocked ? 'destructive' : 'outline'}
+                      size='sm'
+                      onClick={() => setIdentIsBlocked(!identIsBlocked)}
+                      className='h-8 text-xs font-medium'
+                    >
+                      {identIsBlocked ? 'محظور حالياً' : 'متاح (غير محظور)'}
+                    </Button>
+                  </div>
+
+                  {identIsBlocked && (
+                    <div className='pt-2'>
+                      <Input
+                        placeholder='سبب الحظر (مثال: انتهاء الإقامة / موقوف مؤقتاً)...'
+                        value={identBlockedReason}
+                        onChange={(e) => setIdentBlockedReason(e.target.value)}
+                        className='text-xs h-8'
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Target Monthly Orders */}

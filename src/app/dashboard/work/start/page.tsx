@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { employeeApi, workApi, inventoryApi, vehicleApi } from '@/lib/aams/services';
+import { targetWebApi } from '@/lib/aams/target-api';
 import {
   useOfflineQuery,
   offlineAwareFetch,
@@ -74,14 +75,55 @@ export default function StartWorkPage() {
     refetchOnMount: true
   });
 
+  const { data: allIdentifiers } = useOfflineQuery<any[]>({
+    queryKey: ['all-identifiers-cache'],
+    queryFn: () => targetWebApi.listIdentifiers(),
+    cacheKey: 'identifiers_all',
+    staleTime: 1000 * 60 * 5
+  });
+
   const appIdOptions = useMemo(() => {
-    if (!allEmployees?.data) return [];
-    const ids = new Set<string>();
-    allEmployees.data.forEach((emp) => {
-      if (emp.application_id) ids.add(emp.application_id);
+    // Collect all valid IDs and their metadata (name_ar, name_en, is_blocked)
+    const optionsMap = new Map<string, { id: string; label: string; is_blocked: boolean }>();
+
+    // 1. From identifiers system
+    if (Array.isArray(allIdentifiers)) {
+      allIdentifiers.forEach((ident) => {
+        const key = ident.ninja_id || ident.code || ident.name;
+        if (!key) return;
+        const displayName = ident.name_ar
+          ? `${ident.name_ar} (${key})`
+          : ident.name_en
+            ? `${ident.name_en} (${key})`
+            : key;
+
+        optionsMap.set(key, {
+          id: key,
+          label: ident.is_blocked ? `🚫 ${displayName} - [محظور]` : displayName,
+          is_blocked: Boolean(ident.is_blocked)
+        });
+      });
+    }
+
+    // 2. From employees
+    if (allEmployees?.data) {
+      allEmployees.data.forEach((emp) => {
+        if (emp.application_id && !optionsMap.has(emp.application_id)) {
+          optionsMap.set(emp.application_id, {
+            id: emp.application_id,
+            label: `${emp.name} (${emp.application_id})`,
+            is_blocked: false
+          });
+        }
+      });
+    }
+
+    // Return non-blocked options first, or all with block indication
+    return Array.from(optionsMap.values()).sort((a, b) => {
+      if (a.is_blocked !== b.is_blocked) return a.is_blocked ? 1 : -1;
+      return a.label.localeCompare(b.label);
     });
-    return Array.from(ids).sort();
-  }, [allEmployees]);
+  }, [allEmployees, allIdentifiers]);
 
   const dispenseOilMutation = useMutation({
     mutationFn: () => {
@@ -538,9 +580,14 @@ export default function StartWorkPage() {
                       className='w-full'
                     >
                       <option value=''>الافتراضي</option>
-                      {appIdOptions.map((id) => (
-                        <option key={id} value={id}>
-                          {id}
+                      {appIdOptions.map((opt) => (
+                        <option
+                          key={opt.id}
+                          value={opt.id}
+                          disabled={opt.is_blocked}
+                          className={opt.is_blocked ? 'text-destructive font-semibold' : ''}
+                        >
+                          {opt.label}
                         </option>
                       ))}
                       <option value='__custom__'>أخرى...</option>

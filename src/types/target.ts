@@ -39,8 +39,15 @@ export interface ConfirmImportResponse {
 export interface IdentifierPerformance {
   id: string;
   name: string;
+  name_en?: string;
+  name_ar?: string;
+  ninja_id?: string;
+  national_id?: string;
+  mobile?: string;
   app_name?: string;
   code?: string;
+  is_blocked?: boolean;
+  blocked_reason?: string;
   employee_id?: string | null;
   employee?: {
     id: string;
