@@ -437,13 +437,17 @@ export default function KeetaDailyReportPage() {
             </div>
 
             {fileName && (
-              <div className='mt-4 flex items-center gap-2 text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 px-3 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800'>
+              <div className='mt-4 flex flex-wrap items-center justify-center gap-2 text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 px-3.5 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800'>
                 <FileSpreadsheet className='h-3.5 w-3.5' />
                 <span>
                   الملف الحالي: <strong>{fileName}</strong>
                 </span>
                 {reportDate && <span>(تاريخ: {reportDate})</span>}
                 <span>({data.length} كابتن)</span>
+                <Badge className='bg-emerald-600 text-white text-[10px] py-0 px-1.5 gap-1'>
+                  <CheckCircle2 className='size-2.5' />
+                  <span>محفوظ في الداتابيز</span>
+                </Badge>
               </div>
             )}
           </CardContent>

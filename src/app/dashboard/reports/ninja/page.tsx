@@ -413,11 +413,17 @@ export default function NinjaDailyReportPage() {
                       {fileName}
                     </Badge>
                   )}
+                  {reportDate && (
+                    <Badge className='bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border-emerald-600/20 text-[10px] gap-1'>
+                      <CheckCircle2 className='size-3' />
+                      <span>محفوظ في قاعدة البيانات</span>
+                    </Badge>
+                  )}
                 </h3>
                 <p className='text-xs text-muted-foreground mt-0.5'>
                   {reportDate
-                    ? `تاريخ بيانات التقرير: ${reportDate} · تم استخراج وتحليل بيانات كل كابتن تلقائياً`
-                    : 'قم برفع ملف CSV اليومي الصادر من منصة نينجا لمعاينته وتفريغ إحصائيات الكباتن والطلبات'}
+                    ? `تاريخ بيانات التقرير: ${reportDate} · تم حفظ الطلبات بالكامل في قاعدة البيانات ومطابقتها بالتاريخ الفعلي`
+                    : 'قم برفع ملف CSV اليومي الصادر من منصة نينجا ليتم حفظه تلقائياً في قاعدة البيانات وتفريغ إحصائيات الكباتن والطلبات'}
                 </p>
               </div>
             </div>
