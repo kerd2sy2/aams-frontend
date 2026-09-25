@@ -20,6 +20,7 @@ const en: Record<string, string> = {
   'Start Work': 'Start Work',
   'End Work': 'End Work',
   'Odometer Audits': 'Odometer Audits',
+  'Broadcast Notifications': 'Broadcast Notifications',
   Custody: 'Custody',
   'Custody Logs': 'Custody Logs',
   'Custody Balance': 'Custody Balance',

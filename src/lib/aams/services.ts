@@ -1083,3 +1083,71 @@ export const otpApi = {
     return res.data;
   }
 };
+
+// Broadcast & Survey Notifications API (الإشعارات الجماعية واستبيانات الهواتف)
+export interface BroadcastNotificationItem {
+  id: string;
+  title: string;
+  body: string;
+  image_url?: string;
+  target: string;
+  branch_id?: string;
+  branch_name?: string;
+  created_by: string;
+  sent_count: number;
+  has_poll: boolean;
+  poll_question?: string;
+  agree_count: number;
+  disagree_count: number;
+  created_at: string;
+  is_read?: boolean;
+}
+
+export interface BroadcastVoteItem {
+  id: string;
+  employee_id: string;
+  employee_name: string;
+  employee_number: string;
+  national_id: string;
+  phone: string;
+  response: 'AGREE' | 'DISAGREE';
+  reason?: string;
+  created_at: string;
+}
+
+export interface CreateBroadcastPayload {
+  title: string;
+  body: string;
+  image_url?: string;
+  target?: string;
+  branch_id?: string;
+  has_poll?: boolean;
+  poll_question?: string;
+}
+
+export const broadcastApi = {
+  send: async (data: CreateBroadcastPayload) => {
+    const res = await apiClient.post<{ message: string; broadcast: BroadcastNotificationItem }>(
+      '/notifications/broadcast',
+      data
+    );
+    return res.data;
+  },
+  list: async (params?: { branch_id?: string }) => {
+    const res = await apiClient.get<{ data: BroadcastNotificationItem[]; total: number }>(
+      '/notifications/broadcasts',
+      { params }
+    );
+    return res.data;
+  },
+  delete: async (id: string) => {
+    const res = await apiClient.delete<{ message: string }>(`/notifications/broadcasts/${id}`);
+    return res.data;
+  },
+  getVotes: async (id: string) => {
+    const res = await apiClient.get<{ data: BroadcastVoteItem[]; total: number }>(
+      `/notifications/broadcasts/${id}/votes`
+    );
+    return res.data;
+  }
+};

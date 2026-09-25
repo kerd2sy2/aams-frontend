@@ -204,6 +204,13 @@ export const navGroups: NavGroup[] = [
         url: '/dashboard/odometer-audits',
         icon: 'clipboardCheck',
         permission: 'work.view'
+      },
+
+      // 14. الإشعارات الجماعية والاستبيانات
+      {
+        title: 'Broadcast Notifications',
+        url: '/dashboard/broadcast-notifications',
+        icon: 'notification'
       }
     ]
   }

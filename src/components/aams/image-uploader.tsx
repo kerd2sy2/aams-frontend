@@ -11,7 +11,14 @@ interface ImageUploaderProps {
   value?: string;
   onChange: (url: string) => void;
   label: string;
-  category?: 'personal' | 'national_id' | 'license' | 'passport' | 'registration' | 'logo';
+  category?:
+    | 'personal'
+    | 'national_id'
+    | 'license'
+    | 'passport'
+    | 'registration'
+    | 'logo'
+    | 'broadcast';
   description?: string;
 }
 
