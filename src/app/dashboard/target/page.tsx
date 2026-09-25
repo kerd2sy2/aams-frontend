@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import PageContainer from '@/components/layout/page-container';
 import { TargetImportSheet } from '@/components/target/target-import-sheet';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -358,6 +360,15 @@ export default function TargetDashboardPage() {
             <span className='hidden sm:inline'>{t('Refresh', 'تحديث')}</span>
           </Button>
 
+          {/* Manage Identifiers & Drivers Link */}
+          <Link
+            href='/dashboard/identifiers'
+            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 h-8')}
+          >
+            <Users className='size-3.5 text-primary' />
+            <span className='hidden sm:inline'>إدارة وربط المعرفات</span>
+          </Link>
+
           {/* Target Settings */}
           <Button variant='outline' size='sm' onClick={handleOpenSettings} className='gap-1.5 h-8'>
             <Icons.settings className='size-3.5 text-muted-foreground' />
@@ -636,6 +647,7 @@ export default function TargetDashboardPage() {
                   <TableRow className='bg-muted/50'>
                     <TableHead className='font-semibold'>المعرف</TableHead>
                     <TableHead className='font-semibold'>الكود</TableHead>
+                    <TableHead className='font-semibold'>المندوب المسؤول</TableHead>
                     <TableHead className='font-semibold'>التارچت الشهري</TableHead>
                     <TableHead className='font-semibold'>المحقق الفعلي</TableHead>
                     <TableHead className='font-semibold'>المتبقي</TableHead>
@@ -647,7 +659,7 @@ export default function TargetDashboardPage() {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={8} className='text-center py-10'>
+                      <TableCell colSpan={9} className='text-center py-10'>
                         <Icons.spinner className='size-6 animate-spin mx-auto text-primary' />
                         <div className='text-xs text-muted-foreground mt-2'>
                           جاري تحميل بيانات المعرفين...
@@ -657,7 +669,7 @@ export default function TargetDashboardPage() {
                   ) : filteredIdentifiers.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={8}
+                        colSpan={9}
                         className='text-center py-10 text-muted-foreground text-xs'
                       >
                         لا توجد بيانات معرفين تطابق معايير البحث
@@ -687,6 +699,30 @@ export default function TargetDashboardPage() {
                           </TableCell>
                           <TableCell className='font-mono text-xs text-muted-foreground'>
                             {item.code || '—'}
+                          </TableCell>
+                          <TableCell>
+                            {item.employee ? (
+                              <div className='flex items-center gap-1.5'>
+                                <span className='text-xs font-semibold text-foreground'>
+                                  {item.employee.name}
+                                </span>
+                                {item.employee.key_number && (
+                                  <Badge
+                                    variant='secondary'
+                                    className='font-mono text-[10px] px-1 py-0'
+                                  >
+                                    #{item.employee.key_number}
+                                  </Badge>
+                                )}
+                              </div>
+                            ) : (
+                              <Link
+                                href='/dashboard/identifiers'
+                                className='text-[11px] text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1'
+                              >
+                                <span>غير معين (ربط مندوب)</span>
+                              </Link>
+                            )}
                           </TableCell>
                           <TableCell className='font-mono font-bold text-foreground'>
                             {item.monthly_target || 460}

@@ -44,6 +44,9 @@ const ar: Record<string, string> = {
   Documents: 'المستندات والرخص',
   'Bank Accounts': 'الحسابات البنكية',
   Reports: 'التقارير',
+  'Target & Identifiers': 'التارچت والمستهدفات',
+  'Target Dashboard': 'لوحة متابعة التارچت',
+  Identifiers: 'المعرفات وربط المناديب',
   'Shift Report': 'كشف الشفتات',
   'Daily Report': 'تقرير المشرف اليومي',
   Attendance: 'الحضور والانصراف',
@@ -408,12 +411,9 @@ const ar: Record<string, string> = {
   'Hide password': 'إخفاء كلمة المرور',
 
   // ===== التارچت والمستهدفات =====
-  'Target & Identifiers': 'التارچت والمستهدفات',
   'Target and Identifiers': 'التارچت والمستهدفات',
-  'Target Dashboard': 'لوحة متابعة التارچت',
   'Import Target Excel': 'استيراد إكسل التارچت',
   Target: 'التارچت والمستهدفات',
-  Identifiers: 'المعرفات',
   'Audit & Review': 'مراجعة وتدقيق',
   'مراجعة وتدقيق': 'مراجعة وتدقيق العدادات'
 };

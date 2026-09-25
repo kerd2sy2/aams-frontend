@@ -23,8 +23,12 @@ export const navGroups: NavGroup[] = [
       // 3. التارچت والمستهدفات
       {
         title: 'Target & Identifiers',
-        url: '/dashboard/target',
-        icon: 'chartBar'
+        url: '#',
+        icon: 'chartBar',
+        items: [
+          { title: 'Target Dashboard', url: '/dashboard/target' },
+          { title: 'Identifiers', url: '/dashboard/identifiers' }
+        ]
       },
 
       // 3. محاضر الموظفين

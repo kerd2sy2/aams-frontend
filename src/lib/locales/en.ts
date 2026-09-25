@@ -36,6 +36,9 @@ const en: Record<string, string> = {
   Documents: 'Documents',
   'Bank Accounts': 'Bank Accounts',
   Reports: 'Reports',
+  'Target & Identifiers': 'Target & Identifiers',
+  'Target Dashboard': 'Target Dashboard',
+  Identifiers: 'Identifiers & Drivers',
   'Shift Report': 'Shift Report',
   'Daily Report': 'Daily Report',
   Attendance: 'Attendance',
@@ -352,12 +355,9 @@ const en: Record<string, string> = {
   'Hide password': 'Hide password',
 
   // ===== Target & Identifiers =====
-  'Target & Identifiers': 'Target & Identifiers',
   'Target and Identifiers': 'Target & Identifiers',
-  'Target Dashboard': 'Target Dashboard',
   'Import Target Excel': 'Import Target Excel',
   Target: 'Target & Identifiers',
-  Identifiers: 'Identifiers',
   'Audit & Review': 'Audit & Review'
 };
 

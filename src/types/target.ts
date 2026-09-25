@@ -41,6 +41,15 @@ export interface IdentifierPerformance {
   name: string;
   app_name?: string;
   code?: string;
+  employee_id?: string | null;
+  employee?: {
+    id: string;
+    name: string;
+    key_number?: string;
+    employee_number?: string;
+    national_id?: string;
+    phone?: string;
+  } | null;
   today_orders: number;
   week_orders: number;
   month_orders: number;
