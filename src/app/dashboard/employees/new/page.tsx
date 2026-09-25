@@ -8,6 +8,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useOfflineQuery } from '@/hooks/use-offline-query';
 import * as z from 'zod';
 import { employeeApi, branchApi, vehicleApi } from '@/lib/aams/services';
+import { targetWebApi } from '@/lib/aams/target-api';
+import { ApplicationIdentifierSelect } from '@/components/aams/application-identifier-select';
+import type { IdentifierPerformance } from '@/types/target';
 import { ImageUploader } from '@/components/aams/image-uploader';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -62,6 +65,8 @@ export default function NewEmployeePage() {
   const [iqamaExpirationDate, setIqamaExpirationDate] = useState('');
   const [selectedVehiclePlate, setSelectedVehiclePlate] = useState('');
   const [isManualVehicle, setIsManualVehicle] = useState(false);
+  const [selectedIdentifier, setSelectedIdentifier] = useState<IdentifierPerformance | null>(null);
+  const [applicationIdVal, setApplicationIdVal] = useState('');
 
   const isDriver = jobRole === 'DRIVER';
 
@@ -109,6 +114,7 @@ export default function NewEmployeePage() {
   const onSubmit = async (values: EmployeeFormValues) => {
     try {
       setLoading(true);
+      const resolvedAppId = applicationIdVal || values.application_id || '';
       const newEmp = await employeeApi.create({
         ...values,
         job_role: jobRole,
@@ -124,10 +130,19 @@ export default function NewEmployeePage() {
         vehicle_type: isDriver ? vehicleType : '',
         motorcycle_number: isDriver ? selectedVehiclePlate || values.motorcycle_number || '' : '',
         key_number: isDriver ? values.key_number || '' : '',
-        application_id: isDriver ? values.application_id || '' : '',
+        application_id: isDriver ? resolvedAppId : '',
         shift: isDriver ? shift : 'morning',
         ...(isGeneralMgr && branchId ? { branch_id: branchId } : {})
       });
+
+      // Automatically link identifier to this newly created employee in Target system
+      if (selectedIdentifier?.id && newEmp?.id) {
+        await targetWebApi
+          .linkIdentifierToEmployee(selectedIdentifier.id, newEmp.id)
+          .catch((linkErr) => {
+            console.warn('Failed to link identifier to employee:', linkErr);
+          });
+      }
 
       toast.success(`تم إنشاء ملف الموظف ${newEmp.name} وتوليد الـ Barcode و الـ QR بنجاح!`);
       queryClient.invalidateQueries({ queryKey: ['employees'] });
@@ -424,7 +439,7 @@ export default function NewEmployeePage() {
                         id='application_type'
                         value={applicationType}
                         onChange={(e) => setApplicationType(e.target.value)}
-                        className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20'
+                        className='w-full h-11 px-3 rounded-xl border border-input bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20'
                       >
                         <option value='ninja'>نينجا (Ninja)</option>
                         <option value='keeta'>كيتا (Keeta)</option>
@@ -437,15 +452,22 @@ export default function NewEmployeePage() {
                       </select>
                     </div>
 
-                    <div className='space-y-2'>
-                      <Label htmlFor='application_id'>معرف التطبيق (ID داخل التطبيق)</Label>
-                      <Input
-                        id='application_id'
-                        placeholder='مثال: 255865'
-                        {...register('application_id')}
+                    <div className='md:col-span-2'>
+                      <ApplicationIdentifierSelect
+                        value={applicationIdVal}
+                        onChange={(val, item) => {
+                          setApplicationIdVal(val);
+                          setValue('application_id', val);
+                          setSelectedIdentifier(item || null);
+                        }}
+                        onApplicationTypeChange={(type) => {
+                          setApplicationType(type);
+                        }}
                       />
                     </div>
+                  </div>
 
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     <div className='space-y-2'>
                       <Label htmlFor='shift'>شفت العمل الافتراضي</Label>
                       <select

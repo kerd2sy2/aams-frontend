@@ -8,6 +8,9 @@ import * as z from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOfflineQuery } from '@/hooks/use-offline-query';
 import { employeeApi, vehicleApi } from '@/lib/aams/services';
+import { targetWebApi } from '@/lib/aams/target-api';
+import { ApplicationIdentifierSelect } from '@/components/aams/application-identifier-select';
+import type { IdentifierPerformance } from '@/types/target';
 import { ImageUploader } from '@/components/aams/image-uploader';
 import { FormSkeleton } from '@/components/aams/skeletons';
 import { toast } from 'sonner';
@@ -61,6 +64,8 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
   const [iqamaExpirationDate, setIqamaExpirationDate] = useState('');
   const [selectedVehiclePlate, setSelectedVehiclePlate] = useState('');
   const [isManualVehicle, setIsManualVehicle] = useState(false);
+  const [selectedIdentifier, setSelectedIdentifier] = useState<IdentifierPerformance | null>(null);
+  const [applicationIdVal, setApplicationIdVal] = useState('');
 
   const isDriver = jobRole === 'DRIVER';
 
@@ -115,12 +120,15 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
       setVehicleType(employee.vehicle_type || 'motorcycle');
       setShift(employee.shift || 'morning');
       setSelectedVehiclePlate(employee.motorcycle_number || '');
+      setApplicationIdVal(employee.application_id || '');
     }
   }, [employee, reset]);
 
   const onSubmit = async (values: EmployeeFormValues) => {
     try {
       setSaving(true);
+      const resolvedAppId = applicationIdVal || values.application_id || '';
+
       await employeeApi.update(id, {
         ...values,
         phone: values.employee_number || '',
@@ -135,9 +143,15 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
         motorcycle_number: isDriver ? selectedVehiclePlate || values.motorcycle_number || '' : '',
         key_number: isDriver ? values.key_number || '' : '',
         application_type: isDriver ? applicationType : '',
-        application_id: isDriver ? values.application_id || '' : '',
+        application_id: isDriver ? resolvedAppId : '',
         shift: isDriver ? shift : 'morning'
       });
+
+      // Link identifier if chosen
+      if (selectedIdentifier?.id) {
+        await targetWebApi.linkIdentifierToEmployee(selectedIdentifier.id, id).catch(() => {});
+        queryClient.invalidateQueries({ queryKey: ['identifiers-performance'] });
+      }
 
       toast.success('تم تحديث بيانات الموظف بنجاح');
       queryClient.invalidateQueries({ queryKey: ['employees'] });
@@ -264,12 +278,18 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
                       </select>
                     </div>
 
-                    <div className='space-y-2'>
-                      <Label htmlFor='application_id'>معرف التطبيق (ID داخل التطبيق)</Label>
-                      <Input
-                        id='application_id'
-                        placeholder='مثال: 255865'
-                        {...register('application_id')}
+                    <div className='md:col-span-2'>
+                      <ApplicationIdentifierSelect
+                        value={applicationIdVal}
+                        currentEmployeeId={id}
+                        onChange={(val, item) => {
+                          setApplicationIdVal(val);
+                          setValue('application_id', val);
+                          setSelectedIdentifier(item || null);
+                        }}
+                        onApplicationTypeChange={(type) => {
+                          setApplicationType(type);
+                        }}
                       />
                     </div>
 
