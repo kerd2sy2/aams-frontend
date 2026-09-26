@@ -1089,6 +1089,12 @@ export interface BroadcastNotificationItem {
   id: string;
   title: string;
   body: string;
+  title_ar?: string;
+  title_en?: string;
+  title_bn?: string;
+  body_ar?: string;
+  body_en?: string;
+  body_bn?: string;
   image_url?: string;
   target: string;
   branch_id?: string;
@@ -1097,6 +1103,9 @@ export interface BroadcastNotificationItem {
   sent_count: number;
   has_poll: boolean;
   poll_question?: string;
+  poll_question_ar?: string;
+  poll_question_en?: string;
+  poll_question_bn?: string;
   agree_count: number;
   disagree_count: number;
   created_at: string;
@@ -1110,19 +1119,29 @@ export interface BroadcastVoteItem {
   employee_number: string;
   national_id: string;
   phone: string;
+  branch_name?: string;
   response: 'AGREE' | 'DISAGREE';
   reason?: string;
   created_at: string;
 }
 
 export interface CreateBroadcastPayload {
-  title: string;
-  body: string;
+  title?: string;
+  body?: string;
+  title_ar?: string;
+  title_en?: string;
+  title_bn?: string;
+  body_ar?: string;
+  body_en?: string;
+  body_bn?: string;
   image_url?: string;
   target?: string;
   branch_id?: string;
   has_poll?: boolean;
   poll_question?: string;
+  poll_question_ar?: string;
+  poll_question_en?: string;
+  poll_question_bn?: string;
 }
 
 export const broadcastApi = {

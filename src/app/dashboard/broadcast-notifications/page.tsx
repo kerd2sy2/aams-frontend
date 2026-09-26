@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ImageUploader } from '@/components/aams/image-uploader';
 import {
   broadcastApi,
@@ -37,30 +38,35 @@ import {
   IconBell,
   IconPhoto,
   IconUsers,
+  IconChartBar,
+  IconPlus,
+  IconTrash,
   IconCheck,
   IconX,
-  IconTrash,
-  IconChartBar,
-  IconDeviceMobile,
-  IconInfoCircle,
-  IconClock,
   IconRefresh,
-  IconSearch,
-  IconBuilding
+  IconDeviceMobile,
+  IconSearch
 } from '@tabler/icons-react';
 
 export default function BroadcastNotificationsPage() {
   const queryClient = useQueryClient();
 
-  // Dialog & Form states
+  // Dialog & Form states - Multilingual Support (AR, EN, BN)
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+  const [previewLang, setPreviewLang] = useState<'ar' | 'en' | 'bn'>('ar');
+  const [titleAr, setTitleAr] = useState('');
+  const [titleEn, setTitleEn] = useState('');
+  const [titleBn, setTitleBn] = useState('');
+  const [bodyAr, setBodyAr] = useState('');
+  const [bodyEn, setBodyEn] = useState('');
+  const [bodyBn, setBodyBn] = useState('');
+  const [pollQuestionAr, setPollQuestionAr] = useState('');
+  const [pollQuestionEn, setPollQuestionEn] = useState('');
+  const [pollQuestionBn, setPollQuestionBn] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [target, setTarget] = useState('ALL');
   const [branchId, setBranchId] = useState<string>('all');
   const [hasPoll, setHasPoll] = useState(false);
-  const [pollQuestion, setPollQuestion] = useState('');
 
   // Voters modal
   const [selectedBroadcastForVotes, setSelectedBroadcastForVotes] =
@@ -119,69 +125,75 @@ export default function BroadcastNotificationsPage() {
   });
 
   function resetForm() {
-    setTitle('');
-    setBody('');
+    setTitleAr('');
+    setTitleEn('');
+    setTitleBn('');
+    setBodyAr('');
+    setBodyEn('');
+    setBodyBn('');
+    setPollQuestionAr('');
+    setPollQuestionEn('');
+    setPollQuestionBn('');
     setImageUrl('');
     setTarget('ALL');
     setBranchId('all');
     setHasPoll(false);
-    setPollQuestion('');
+    setPreviewLang('ar');
   }
 
-  function handleSendBroadcast(e: React.FormEvent) {
+  const handleSendBroadcast = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !body.trim()) {
-      toast.error('يرجى كتابة عنوان الإشعار ونصه');
+    if (!titleAr.trim() || !bodyAr.trim()) {
+      toast.error('يرجى ملء عنوان ونص الإشعار بالعربية كحد أدنى');
       return;
     }
 
-    if (hasPoll && !pollQuestion.trim()) {
-      // Default to title if empty
-      setPollQuestion(title.trim());
-    }
-
     sendMutation.mutate({
-      title: title.trim(),
-      body: body.trim(),
-      image_url: imageUrl.trim() || undefined,
-      target: branchId !== 'all' ? 'BRANCH' : 'ALL',
-      branch_id: branchId !== 'all' ? branchId : undefined,
+      title: titleAr.trim(),
+      title_ar: titleAr.trim(),
+      title_en: titleEn.trim() || undefined,
+      title_bn: titleBn.trim() || undefined,
+      body: bodyAr.trim(),
+      body_ar: bodyAr.trim(),
+      body_en: bodyEn.trim() || undefined,
+      body_bn: bodyBn.trim() || undefined,
+      image_url: imageUrl || undefined,
+      target: target,
+      branch_id: branchId === 'all' ? undefined : branchId,
       has_poll: hasPoll,
-      poll_question: hasPoll ? pollQuestion.trim() || title.trim() : undefined
+      poll_question: hasPoll ? pollQuestionAr.trim() || titleAr.trim() : undefined,
+      poll_question_ar: hasPoll ? pollQuestionAr.trim() || titleAr.trim() : undefined,
+      poll_question_en: hasPoll && pollQuestionEn.trim() ? pollQuestionEn.trim() : undefined,
+      poll_question_bn: hasPoll && pollQuestionBn.trim() ? pollQuestionBn.trim() : undefined
     });
-  }
+  };
 
-  const broadcasts = broadcastsData?.data || [];
-  const totalPolls = broadcasts.filter((b) => b.has_poll).length;
-  const totalVotesCount = broadcasts.reduce(
-    (acc, b) => acc + (b.agree_count || 0) + (b.disagree_count || 0),
-    0
-  );
+  const broadcasts: BroadcastNotificationItem[] = broadcastsData?.data || [];
+  const votesList: BroadcastVoteItem[] = votesData?.data || [];
 
-  // Filter voters in modal
-  const votersList = (votesData?.data || []).filter((v) => {
+  const filteredVotes = votesList.filter((v) => {
     if (!votersSearch.trim()) return true;
-    const s = votersSearch.toLowerCase();
+    const q = votersSearch.toLowerCase();
     return (
-      v.employee_name?.toLowerCase().includes(s) ||
-      v.national_id?.toLowerCase().includes(s) ||
-      v.phone?.toLowerCase().includes(s)
+      v.employee_name?.toLowerCase().includes(q) ||
+      v.national_id?.toLowerCase().includes(q) ||
+      v.branch_name?.toLowerCase().includes(q)
     );
   });
 
   return (
     <PageContainer>
-      <div className='flex flex-1 flex-col gap-6' dir='rtl'>
+      <div className='space-y-6'>
         {/* Header */}
-        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+        <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
           <div>
-            <h1 className='text-2xl font-bold tracking-tight flex items-center gap-2'>
-              <span>الإشعارات الجماعية واستبيانات الهواتف</span>
-              <span className='text-xl'>📢</span>
-            </h1>
+            <h2 className='text-2xl font-bold tracking-tight text-foreground flex items-center gap-2'>
+              <IconBell className='h-7 w-7 text-emerald-600' />
+              الإشعارات الجماعية واستطلاعات الرأي
+            </h2>
             <p className='text-muted-foreground text-sm mt-1'>
-              إرسال إشعارات وتنبيهات فورية لجميع هواتف المناديب مع إرفاق صورة واستطلاع رأي (موافق /
-              معترض) ومتابعة النتائج لحظياً.
+              إرسال تنبيهات فورية، صور وبانرات، واستبيانات (موافق / معترض) بـ 3 لغات (عربي، إنجليزي،
+              بنغالي) لجميع المناديب.
             </p>
           </div>
           <div className='flex items-center gap-2'>
@@ -189,7 +201,7 @@ export default function BroadcastNotificationsPage() {
               variant='outline'
               size='sm'
               onClick={() => refetchBroadcasts()}
-              className='gap-1.5'
+              className='gap-2'
             >
               <IconRefresh className='h-4 w-4' />
               تحديث
@@ -199,258 +211,117 @@ export default function BroadcastNotificationsPage() {
                 resetForm();
                 setIsCreateOpen(true);
               }}
-              className='gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md'
+              className='bg-emerald-600 hover:bg-emerald-700 text-white gap-2'
             >
-              <IconSend className='h-4 w-4' />
+              <IconPlus className='h-4 w-4' />
               إرسال إشعار جماعي جديد
             </Button>
           </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-          <Card className='border-r-4 border-r-blue-500 shadow-sm'>
-            <CardContent className='p-4 flex items-center justify-between'>
-              <div>
-                <p className='text-xs font-medium text-muted-foreground'>إجمالي الإشعارات المرسلة</p>
-                <p className='text-2xl font-bold mt-1'>{broadcasts.length}</p>
+        {/* Quick Stats Grid */}
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+          <Card className='border-emerald-200 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-950/20'>
+            <CardHeader className='pb-2'>
+              <CardTitle className='text-sm font-medium text-emerald-800 dark:text-emerald-300 flex items-center justify-between'>
+                <span>إجمالي الإشعارات المرسلة</span>
+                <IconSend className='h-4 w-4' />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='text-2xl font-bold text-emerald-900 dark:text-emerald-100'>
+                {broadcasts.length}
               </div>
-              <div className='h-11 w-11 rounded-full bg-blue-50 dark:bg-blue-950 flex items-center justify-center text-blue-600'>
-                <IconBell className='h-6 w-6' />
-              </div>
+              <p className='text-xs text-muted-foreground mt-1'>تصل إلى هواتف المناديب فوراً</p>
             </CardContent>
           </Card>
 
-          <Card className='border-r-4 border-r-emerald-500 shadow-sm'>
-            <CardContent className='p-4 flex items-center justify-between'>
-              <div>
-                <p className='text-xs font-medium text-muted-foreground'>استبيانات موافق / معترض</p>
-                <p className='text-2xl font-bold mt-1 text-emerald-600'>{totalPolls}</p>
+          <Card className='border-sky-200 dark:border-sky-800 bg-sky-50/40 dark:bg-sky-950/20'>
+            <CardHeader className='pb-2'>
+              <CardTitle className='text-sm font-medium text-sky-800 dark:text-sky-300 flex items-center justify-between'>
+                <span>الاستبيانات التفاعلية</span>
+                <IconChartBar className='h-4 w-4' />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='text-2xl font-bold text-sky-900 dark:text-sky-100'>
+                {broadcasts.filter((b) => b.has_poll).length}
               </div>
-              <div className='h-11 w-11 rounded-full bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center text-emerald-600'>
-                <IconChartBar className='h-6 w-6' />
-              </div>
+              <p className='text-xs text-muted-foreground mt-1'>
+                استبيانات تتطلب تصويت (موافق / معترض)
+              </p>
             </CardContent>
           </Card>
 
-          <Card className='border-r-4 border-r-indigo-500 shadow-sm'>
-            <CardContent className='p-4 flex items-center justify-between'>
-              <div>
-                <p className='text-xs font-medium text-muted-foreground'>إجمالي أصوات المناديب</p>
-                <p className='text-2xl font-bold mt-1 text-indigo-600'>{totalVotesCount}</p>
+          <Card className='border-amber-200 dark:border-amber-800 bg-amber-50/40 dark:bg-amber-950/20'>
+            <CardHeader className='pb-2'>
+              <CardTitle className='text-sm font-medium text-amber-800 dark:text-amber-300 flex items-center justify-between'>
+                <span>إجمالي الأصوات المسجلة</span>
+                <IconUsers className='h-4 w-4' />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='text-2xl font-bold text-amber-900 dark:text-amber-100'>
+                {broadcasts.reduce(
+                  (acc, b) => acc + (b.agree_count || 0) + (b.disagree_count || 0),
+                  0
+                )}
               </div>
-              <div className='h-11 w-11 rounded-full bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600'>
-                <IconUsers className='h-6 w-6' />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className='border-r-4 border-r-amber-500 shadow-sm'>
-            <CardContent className='p-4 flex items-center justify-between'>
-              <div>
-                <p className='text-xs font-medium text-muted-foreground'>تصل الهواتف مباشرة</p>
-                <p className='text-2xl font-bold mt-1 text-amber-600'>100%</p>
-              </div>
-              <div className='h-11 w-11 rounded-full bg-amber-50 dark:bg-amber-950 flex items-center justify-center text-amber-600'>
-                <IconDeviceMobile className='h-6 w-6' />
-              </div>
+              <p className='text-xs text-muted-foreground mt-1'>
+                أصوات المناديب المحفوظة في النظام
+              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Broadcasts List */}
-        <Card className='shadow-sm'>
-          <CardHeader className='pb-3'>
+        <Card>
+          <CardHeader>
             <CardTitle className='text-lg font-bold flex items-center gap-2'>
-              <IconBell className='h-5 w-5 text-primary' />
-              سجل الإشعارات الجماعية المرسلة
+              <IconBell className='h-5 w-5 text-muted-foreground' />
+              سجل الإشعارات والتعاميم السابقة
             </CardTitle>
             <CardDescription>
-              قائمة بجميع الإشعارات السابقة الموجهة لهواتف المناديب ومتابعة نتائج التصويت واستطلاعات
-              الرأي
+              يمكنك متابعة نتائج الاستبيانات، مشاهدة تفاصيل المصوتين، أو حذف الإشعارات.
             </CardDescription>
           </CardHeader>
-          <CardContent className='p-0'>
+          <CardContent>
             {isLoadingBroadcasts ? (
-              <div className='py-16 text-center text-muted-foreground flex flex-col items-center justify-center gap-2'>
-                <IconRefresh className='h-8 w-8 animate-spin text-primary' />
-                <p className='text-sm'>جاري تحميل الإشعارات...</p>
+              <div className='flex flex-col items-center justify-center py-12 text-muted-foreground gap-3'>
+                <IconRefresh className='h-8 w-8 animate-spin text-emerald-600' />
+                <p className='text-sm'>جاري تحميل سجل الإشعارات...</p>
               </div>
             ) : broadcasts.length === 0 ? (
-              <div className='py-16 text-center text-muted-foreground flex flex-col items-center justify-center gap-3'>
-                <div className='h-14 w-14 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground'>
-                  <IconBell className='h-7 w-7' />
+              <div className='text-center py-12 text-muted-foreground space-y-3'>
+                <div className='h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto'>
+                  <IconBell className='h-8 w-8 text-muted-foreground' />
                 </div>
-                <div>
-                  <p className='font-semibold text-base text-foreground'>
-                    لا توجد أي إشعارات جماعية حتى الآن
-                  </p>
-                  <p className='text-xs mt-1'>
-                    يمكنك إنشاء إشعار جماعي وإرفاق صورة أو استبيان بالنقر على الزر أعلاه
-                  </p>
-                </div>
-                <Button
-                  onClick={() => setIsCreateOpen(true)}
-                  size='sm'
-                  className='mt-2 bg-emerald-600 hover:bg-emerald-700 text-white'
-                >
-                  إرسال أول إشعار
-                </Button>
+                <h3 className='font-bold text-base text-foreground'>
+                  لا توجد إشعارات مرسلة حتى الآن
+                </h3>
+                <p className='text-xs max-w-sm mx-auto'>
+                  اضغط على زر &quot;إرسال إشعار جماعي جديد&quot; أعلاه لإرسال تعليمات أو استبيان فوري
+                  لجميع المناديب.
+                </p>
               </div>
             ) : (
-              <div className='divide-y divide-border'>
-                {broadcasts.map((item) => {
-                  const totalVotes = (item.agree_count || 0) + (item.disagree_count || 0);
-                  const agreePercent =
-                    totalVotes > 0 ? Math.round((item.agree_count / totalVotes) * 100) : 0;
-                  const disagreePercent =
-                    totalVotes > 0 ? Math.round((item.disagree_count / totalVotes) * 100) : 0;
-
-                  return (
-                    <div
-                      key={item.id}
-                      className='p-5 hover:bg-muted/20 transition-colors flex flex-col gap-4'
-                    >
-                      <div className='flex flex-col md:flex-row md:items-start justify-between gap-4'>
-                        {/* Right: Info & Image */}
-                        <div className='flex items-start gap-4 flex-1'>
-                          {item.image_url ? (
-                            <button
-                              type='button'
-                              onClick={() => setPreviewImage(item.image_url!)}
-                              className='relative group shrink-0 w-24 h-24 rounded-lg overflow-hidden border border-border shadow-sm bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary'
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={item.image_url}
-                                alt={item.title}
-                                className='w-full h-full object-cover group-hover:scale-105 transition-transform'
-                              />
-                              <div className='absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-medium'>
-                                تكبير
-                              </div>
-                            </button>
-                          ) : (
-                            <div className='shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary'>
-                              <IconBell className='h-6 w-6' />
-                            </div>
-                          )}
-
-                          <div className='space-y-1.5 flex-1 min-w-0'>
-                            <div className='flex flex-wrap items-center gap-2'>
-                              <h3 className='text-base font-bold text-foreground'>{item.title}</h3>
-                              <Badge
-                                variant={item.target === 'ALL' ? 'default' : 'secondary'}
-                                className='text-xs'
-                              >
-                                {item.target === 'ALL'
-                                  ? '🌍 جميع الفروع'
-                                  : `🏢 فرع: ${item.branch_name || 'محدد'}`}
-                              </Badge>
-                              {item.has_poll && (
-                                <Badge className='bg-emerald-600 hover:bg-emerald-700 text-white gap-1 text-xs'>
-                                  <IconChartBar className='h-3.5 w-3.5' />
-                                  استبيان (موافق / معترض)
-                                </Badge>
-                              )}
-                            </div>
-                            <p className='text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed'>
-                              {item.body}
-                            </p>
-
-                            <div className='flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1'>
-                              <span className='flex items-center gap-1'>
-                                <IconClock className='h-3.5 w-3.5' />
-                                {new Date(item.created_at).toLocaleString('ar-SA')}
-                              </span>
-                              <span>بواسطة: {item.created_by || 'الإدارة'}</span>
-                              <span className='flex items-center gap-1 font-medium text-primary'>
-                                <IconDeviceMobile className='h-3.5 w-3.5' />
-                                وصل إلى: {item.sent_count || 0} هاتف
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Left: Actions */}
-                        <div className='flex items-center gap-2 self-end md:self-start shrink-0'>
-                          {item.has_poll && (
-                            <Button
-                              variant='outline'
-                              size='sm'
-                              onClick={() => {
-                                setSelectedBroadcastForVotes(item);
-                                setVotersSearch('');
-                              }}
-                              className='gap-1.5 text-xs font-medium border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950'
-                            >
-                              <IconUsers className='h-4 w-4' />
-                              عرض المصوتين ({totalVotes})
-                            </Button>
-                          )}
-                          <Button
-                            variant='ghost'
-                            size='sm'
-                            onClick={() => {
-                              if (confirm('هل أنت متأكد من حذف هذا الإشعار؟')) {
-                                deleteMutation.mutate(item.id);
-                              }
-                            }}
-                            className='text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950 h-8 w-8 p-0'
-                          >
-                            <IconTrash className='h-4 w-4' />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Poll Results Section */}
-                      {item.has_poll && (
-                        <div className='mt-1 p-3.5 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-800/40'>
-                          <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2'>
-                            <p className='text-xs font-semibold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5'>
-                              <span>سؤال الاستبيان:</span>
-                              <span className='underline font-bold'>
-                                {item.poll_question || item.title}
-                              </span>
-                            </p>
-                            <span className='text-xs text-muted-foreground'>
-                              إجمالي الردود: <strong>{totalVotes}</strong> مندوب
-                            </span>
-                          </div>
-
-                          {/* Progress bar */}
-                          <div className='w-full h-3 bg-muted rounded-full overflow-hidden flex shadow-inner'>
-                            <div
-                              style={{ width: `${agreePercent}%` }}
-                              className='bg-emerald-500 h-full transition-all duration-500'
-                              title={`موافق: ${item.agree_count} (${agreePercent}%)`}
-                            />
-                            <div
-                              style={{ width: `${disagreePercent}%` }}
-                              className='bg-rose-500 h-full transition-all duration-500'
-                              title={`معترض: ${item.disagree_count} (${disagreePercent}%)`}
-                            />
-                          </div>
-
-                          <div className='flex items-center justify-between mt-2.5 text-xs font-semibold'>
-                            <div className='flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400'>
-                              <div className='h-3 w-3 rounded-full bg-emerald-500' />
-                              <span>
-                                موافق: {item.agree_count} ({agreePercent}%)
-                              </span>
-                            </div>
-                            <div className='flex items-center gap-1.5 text-rose-700 dark:text-rose-400'>
-                              <div className='h-3 w-3 rounded-full bg-rose-500' />
-                              <span>
-                                معترض: {item.disagree_count} ({disagreePercent}%)
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className='space-y-4'>
+                {broadcasts.map((item) => (
+                  <BroadcastCardItem
+                    key={item.id}
+                    item={item}
+                    onPreviewImage={(url) => setPreviewImage(url)}
+                    onDelete={(id) => {
+                      if (confirm('هل أنت متأكد من رغبتك في حذف هذا الإشعار؟')) {
+                        deleteMutation.mutate(id);
+                      }
+                    }}
+                    onViewVotes={(br) => {
+                      setSelectedBroadcastForVotes(br);
+                      setVotersSearch('');
+                    }}
+                  />
+                ))}
               </div>
             )}
           </CardContent>
@@ -466,35 +337,123 @@ export default function BroadcastNotificationsPage() {
               إرسال إشعار جماعي لجميع الهواتف
             </DialogTitle>
             <DialogDescription>
-              يصل هذا الإشعار فوراً إلى جميع هواتف وتطبيقات المناديب مع صورة واستبيان تفاعلي إن أردت.
+              يصل هذا الإشعار فوراً إلى جميع هواتف وتطبيقات المناديب مع صورة واستبيان تفاعلي باللغات
+              الثلاث.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSendBroadcast} className='space-y-4 pt-2'>
-            <div className='space-y-1.5'>
-              <label className='text-xs font-semibold'>
-                عنوان الإشعار <span className='text-rose-500'>*</span>
-              </label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder='مثال: تعميم هام بخصوص ساعات العمل الجديدة'
-                required
-              />
-            </div>
+            {/* Multilingual Tabs */}
+            <Tabs defaultValue='ar' className='w-full'>
+              <div className='flex items-center justify-between mb-2'>
+                <label className='text-xs font-semibold text-muted-foreground'>
+                  محتوى الإشعار باللغات المختلفة:
+                </label>
+                <TabsList className='grid grid-cols-3 h-8'>
+                  <TabsTrigger value='ar' className='text-xs gap-1.5 px-3'>
+                    🇸🇦 العربية <span className='text-[10px] text-rose-500 font-bold'>*</span>
+                  </TabsTrigger>
+                  <TabsTrigger value='en' className='text-xs gap-1.5 px-3'>
+                    🇺🇸 English
+                  </TabsTrigger>
+                  <TabsTrigger value='bn' className='text-xs gap-1.5 px-3'>
+                    🇧🇩 বাংলা
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
-            <div className='space-y-1.5'>
-              <label className='text-xs font-semibold'>
-                نص الإشعار / الرسالة <span className='text-rose-500'>*</span>
-              </label>
-              <Textarea
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder='اكتب تفاصيل الإشعار أو التوجيهات التي ستظهر للمناديب...'
-                rows={3}
-                required
-              />
-            </div>
+              {/* Arabic Content Tab */}
+              <TabsContent value='ar' className='space-y-3 mt-0 border rounded-xl p-3 bg-muted/20'>
+                <div className='space-y-1.5'>
+                  <label className='text-xs font-semibold flex items-center justify-between'>
+                    <span>
+                      عنوان الإشعار (بالعربية) <span className='text-rose-500'>*</span>
+                    </span>
+                    <span className='text-[10px] text-muted-foreground'>اللغة الأساسية</span>
+                  </label>
+                  <Input
+                    value={titleAr}
+                    onChange={(e) => setTitleAr(e.target.value)}
+                    placeholder='مثال: تعميم هام بخصوص ساعات العمل الجديدة'
+                    required
+                    dir='rtl'
+                  />
+                </div>
+                <div className='space-y-1.5'>
+                  <label className='text-xs font-semibold'>
+                    نص الإشعار / الرسالة (بالعربية) <span className='text-rose-500'>*</span>
+                  </label>
+                  <Textarea
+                    value={bodyAr}
+                    onChange={(e) => setBodyAr(e.target.value)}
+                    placeholder='اكتب تفاصيل الإشعار أو التوجيهات باللغة العربية...'
+                    rows={3}
+                    required
+                    dir='rtl'
+                  />
+                </div>
+              </TabsContent>
+
+              {/* English Content Tab */}
+              <TabsContent
+                value='en'
+                className='space-y-3 mt-0 border rounded-xl p-3 bg-muted/20'
+                dir='ltr'
+              >
+                <div className='space-y-1.5'>
+                  <label className='text-xs font-semibold flex items-center justify-between'>
+                    <span>Notification Title (English)</span>
+                    <span className='text-[10px] text-muted-foreground'>
+                      Optional (Defaults to Arabic)
+                    </span>
+                  </label>
+                  <Input
+                    value={titleEn}
+                    onChange={(e) => setTitleEn(e.target.value)}
+                    placeholder='e.g. Important notice regarding new working hours'
+                  />
+                </div>
+                <div className='space-y-1.5'>
+                  <label className='text-xs font-semibold'>Notification Message (English)</label>
+                  <Textarea
+                    value={bodyEn}
+                    onChange={(e) => setBodyEn(e.target.value)}
+                    placeholder='Write details or instructions in English for English-speaking employees...'
+                    rows={3}
+                  />
+                </div>
+              </TabsContent>
+
+              {/* Bengali Content Tab */}
+              <TabsContent
+                value='bn'
+                className='space-y-3 mt-0 border rounded-xl p-3 bg-muted/20'
+                dir='ltr'
+              >
+                <div className='space-y-1.5'>
+                  <label className='text-xs font-semibold flex items-center justify-between'>
+                    <span>বিজ্ঞপ্তির শিরোনাম (Bengali / বাংলা)</span>
+                    <span className='text-[10px] text-muted-foreground'>ঐচ্ছিক (ডিফল্ট আরবি)</span>
+                  </label>
+                  <Input
+                    value={titleBn}
+                    onChange={(e) => setTitleBn(e.target.value)}
+                    placeholder='যেমন: কাজের নতুন সময়সূচী সংক্রান্ত জরুরি বিজ্ঞপ্তি'
+                  />
+                </div>
+                <div className='space-y-1.5'>
+                  <label className='text-xs font-semibold'>
+                    বিজ্ঞপ্তির বিস্তারিত বিবরণ (Bengali / বাংলা)
+                  </label>
+                  <Textarea
+                    value={bodyBn}
+                    onChange={(e) => setBodyBn(e.target.value)}
+                    placeholder='বাংলায় বিজ্ঞপ্তি বা নির্দেশনার বিস্তারিত লিখুন...'
+                    rows={3}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
 
             {/* Target & Branch Selection */}
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
@@ -552,23 +511,51 @@ export default function BroadcastNotificationsPage() {
                     تضمين استبيان (موافق / معترض) في الإشعار 📊
                   </label>
                   <p className='text-xs text-muted-foreground'>
-                    سيظهر للمندوب خياران تفاعليان: 🟢 موافق أو 🔴 معترض، لتسجيل صوته مباشرة وحفظه في
-                    النظام
+                    سيظهر للمندوب خياران تفاعليان بلغة تطبيقه لتسجيل صوته مباشرة وحفظه في النظام
                   </p>
                 </div>
                 <Switch checked={hasPoll} onCheckedChange={setHasPoll} />
               </div>
 
               {hasPoll && (
-                <div className='pt-2 space-y-2 border-t border-emerald-200/50 dark:border-emerald-800/50'>
-                  <label className='text-xs font-semibold text-emerald-950 dark:text-emerald-200'>
-                    سؤال الاستبيان الموجه للمندوب
-                  </label>
-                  <Input
-                    value={pollQuestion}
-                    onChange={(e) => setPollQuestion(e.target.value)}
-                    placeholder='مثال: هل توافق على جدول أوقات الدوام لشهر رمضان المبارك؟'
-                  />
+                <div className='pt-2 space-y-3 border-t border-emerald-200/50 dark:border-emerald-800/50'>
+                  <div className='space-y-1.5'>
+                    <label className='text-xs font-semibold text-emerald-950 dark:text-emerald-200'>
+                      سؤال الاستبيان (بالعربية 🇸🇦)
+                    </label>
+                    <Input
+                      value={pollQuestionAr}
+                      onChange={(e) => setPollQuestionAr(e.target.value)}
+                      placeholder='مثال: هل توافق على جدول أوقات الدوام لشهر رمضان المبارك؟'
+                      dir='rtl'
+                    />
+                  </div>
+
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-2.5'>
+                    <div className='space-y-1'>
+                      <label className='text-[11px] font-semibold text-muted-foreground'>
+                        Question in English 🇺🇸 (Optional)
+                      </label>
+                      <Input
+                        value={pollQuestionEn}
+                        onChange={(e) => setPollQuestionEn(e.target.value)}
+                        placeholder='e.g. Do you agree with the new working hours?'
+                        dir='ltr'
+                      />
+                    </div>
+                    <div className='space-y-1'>
+                      <label className='text-[11px] font-semibold text-muted-foreground'>
+                        প্রশ্ন বাংলায় 🇧🇩 (Optional)
+                      </label>
+                      <Input
+                        value={pollQuestionBn}
+                        onChange={(e) => setPollQuestionBn(e.target.value)}
+                        placeholder='যেমন: আপনি কি নতুন কর্মঘণ্টা সময়সূচীর সাথে একমত?'
+                        dir='ltr'
+                      />
+                    </div>
+                  </div>
+
                   <div className='flex items-center gap-2 pt-1'>
                     <span className='text-xs text-muted-foreground'>
                       الأزرار التي ستظهر للمندوب:
@@ -577,13 +564,13 @@ export default function BroadcastNotificationsPage() {
                       variant='outline'
                       className='bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 gap-1'
                     >
-                      <IconCheck className='h-3 w-3' /> موافق
+                      <IconCheck className='h-3 w-3' /> موافق / Agree / সম্মত
                     </Badge>
                     <Badge
                       variant='outline'
                       className='bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300 border-rose-300 gap-1'
                     >
-                      <IconX className='h-3 w-3' /> معترض
+                      <IconX className='h-3 w-3' /> معترض / Disagree / অসম্মত
                     </Badge>
                   </div>
                 </div>
@@ -592,11 +579,40 @@ export default function BroadcastNotificationsPage() {
 
             {/* Live Mobile Preview Card */}
             <div className='p-3.5 rounded-lg border bg-muted/30'>
-              <p className='text-xs font-bold text-muted-foreground mb-2 flex items-center gap-1.5'>
-                <IconDeviceMobile className='h-4 w-4' />
-                معاينة مباشرة لشكل الإشعار في هاتف المندوب:
-              </p>
-              <div className='max-w-md mx-auto bg-card border rounded-2xl p-4 shadow-md space-y-2.5'>
+              <div className='flex items-center justify-between mb-2'>
+                <p className='text-xs font-bold text-muted-foreground flex items-center gap-1.5'>
+                  <IconDeviceMobile className='h-4 w-4' />
+                  معاينة مباشرة لشكل الإشعار في هاتف المندوب:
+                </p>
+                <div className='flex items-center gap-1 bg-background/80 p-0.5 rounded-lg border text-[11px] font-medium'>
+                  <button
+                    type='button'
+                    onClick={() => setPreviewLang('ar')}
+                    className={`px-2 py-0.5 rounded ${previewLang === 'ar' ? 'bg-primary text-primary-foreground font-bold shadow-xs' : 'text-muted-foreground'}`}
+                  >
+                    🇸🇦 عربي
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => setPreviewLang('en')}
+                    className={`px-2 py-0.5 rounded ${previewLang === 'en' ? 'bg-primary text-primary-foreground font-bold shadow-xs' : 'text-muted-foreground'}`}
+                  >
+                    🇺🇸 English
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => setPreviewLang('bn')}
+                    className={`px-2 py-0.5 rounded ${previewLang === 'bn' ? 'bg-primary text-primary-foreground font-bold shadow-xs' : 'text-muted-foreground'}`}
+                  >
+                    🇧🇩 বাংলা
+                  </button>
+                </div>
+              </div>
+
+              <div
+                className='max-w-md mx-auto bg-card border rounded-2xl p-4 shadow-md space-y-2.5'
+                dir={previewLang === 'ar' ? 'rtl' : 'ltr'}
+              >
                 {imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -607,32 +623,65 @@ export default function BroadcastNotificationsPage() {
                 ) : null}
                 <div className='flex items-center gap-2'>
                   <span className='text-lg'>📢</span>
-                  <p className='font-bold text-sm text-foreground'>{title || 'عنوان الإشعار هنا'}</p>
+                  <p className='font-bold text-sm text-foreground'>
+                    {previewLang === 'bn'
+                      ? titleBn || titleAr || 'বিজ্ঞপ্তির শিরোনাম'
+                      : previewLang === 'en'
+                        ? titleEn || titleAr || 'Notification Title'
+                        : titleAr || 'عنوان الإشعار هنا'}
+                  </p>
                 </div>
                 <p className='text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap'>
-                  {body || 'نص الإشعار والتوجيهات ستظهر هنا بشكل واضح للمندوب عند فتح التطبيق...'}
+                  {previewLang === 'bn'
+                    ? bodyBn || bodyAr || 'বিজ্ঞপ্তির বিস্তারিত বিবরণ এখানে প্রদর্শিত হবে...'
+                    : previewLang === 'en'
+                      ? bodyEn ||
+                        bodyAr ||
+                        'Notification details and instructions will appear here...'
+                      : bodyAr ||
+                        'نص الإشعار والتوجيهات ستظهر هنا بشكل واضح للمندوب عند فتح التطبيق...'}
                 </p>
 
                 {hasPoll ? (
                   <div className='pt-2 border-t space-y-2'>
                     <p className='text-xs font-bold text-center text-foreground'>
-                      {pollQuestion || title || 'سؤال الاستبيان؟'}
+                      {previewLang === 'bn'
+                        ? pollQuestionBn || pollQuestionAr || titleBn || titleAr || 'আপনি কি একমত?'
+                        : previewLang === 'en'
+                          ? pollQuestionEn ||
+                            pollQuestionAr ||
+                            titleEn ||
+                            titleAr ||
+                            'Do you agree?'
+                          : pollQuestionAr || titleAr || 'سؤال الاستبيان؟'}
                     </p>
                     <div className='grid grid-cols-2 gap-2'>
                       <div className='py-2 px-3 rounded-lg bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-sm'>
                         <IconCheck className='h-3.5 w-3.5' />
-                        موافق
+                        {previewLang === 'bn'
+                          ? 'সম্মত (Agree)'
+                          : previewLang === 'en'
+                            ? 'Agree'
+                            : 'موافق'}
                       </div>
                       <div className='py-2 px-3 rounded-lg bg-rose-600 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-sm'>
                         <IconX className='h-3.5 w-3.5' />
-                        معترض
+                        {previewLang === 'bn'
+                          ? 'অসম্মত (Disagree)'
+                          : previewLang === 'en'
+                            ? 'Disagree'
+                            : 'معترض'}
                       </div>
                     </div>
                   </div>
                 ) : (
                   <div className='pt-2 border-t'>
                     <div className='w-full py-1.5 rounded-lg bg-primary text-primary-foreground font-semibold text-xs text-center'>
-                      حسناً، تم الاطلاع
+                      {previewLang === 'bn'
+                        ? 'ঠিক আছে (OK)'
+                        : previewLang === 'en'
+                          ? 'OK, Understood'
+                          : 'حسناً، تم الاطلاع'}
                     </div>
                   </div>
                 )}
@@ -672,110 +721,333 @@ export default function BroadcastNotificationsPage() {
           if (!open) setSelectedBroadcastForVotes(null);
         }}
       >
-        <DialogContent className='sm:max-w-[700px] max-h-[85vh] overflow-y-auto' dir='rtl'>
+        <DialogContent className='sm:max-w-[650px] max-h-[85vh] overflow-y-auto' dir='rtl'>
           <DialogHeader>
-            <DialogTitle className='text-xl font-bold flex items-center gap-2'>
-              <IconChartBar className='h-5 w-5 text-emerald-600' />
-              تفاصيل تصويت المناديب
+            <DialogTitle className='text-lg font-bold flex items-center gap-2'>
+              <IconUsers className='h-5 w-5 text-emerald-600' />
+              تفاصيل تصويت المناديب على الاستبيان
             </DialogTitle>
             <DialogDescription>
-              {selectedBroadcastForVotes?.poll_question || selectedBroadcastForVotes?.title}
+              &quot;{selectedBroadcastForVotes?.poll_question || selectedBroadcastForVotes?.title}
+              &quot;
             </DialogDescription>
           </DialogHeader>
 
-          {/* Quick Filter */}
-          <div className='space-y-3 pt-2'>
+          <div className='space-y-4 pt-2'>
+            {/* Search filter */}
             <div className='relative'>
               <IconSearch className='absolute right-3 top-2.5 h-4 w-4 text-muted-foreground' />
               <Input
+                placeholder='بحث باسم المندوب، رقم الهوية، أو الفرع...'
                 value={votersSearch}
                 onChange={(e) => setVotersSearch(e.target.value)}
-                placeholder='البحث باسم المندوب أو الهوية أو رقم الجوال...'
                 className='pr-9'
               />
             </div>
 
+            {/* Results summary badges */}
+            <div className='flex items-center gap-2 text-xs'>
+              <Badge
+                variant='outline'
+                className='bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 gap-1'
+              >
+                <IconCheck className='h-3 w-3' />
+                موافق: {selectedBroadcastForVotes?.agree_count || 0}
+              </Badge>
+              <Badge
+                variant='outline'
+                className='bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300 gap-1'
+              >
+                <IconX className='h-3 w-3' />
+                معترض: {selectedBroadcastForVotes?.disagree_count || 0}
+              </Badge>
+              <span className='text-muted-foreground mr-auto'>
+                المعروض: {filteredVotes.length} صوت
+              </span>
+            </div>
+
+            {/* Voters List */}
             {isLoadingVotes ? (
-              <div className='py-12 text-center text-muted-foreground flex flex-col items-center justify-center gap-2'>
-                <IconRefresh className='h-6 w-6 animate-spin text-primary' />
-                <p className='text-xs'>جاري جلب تفاصيل المصوتين...</p>
+              <div className='py-8 text-center text-muted-foreground space-y-2'>
+                <IconRefresh className='h-6 w-6 animate-spin text-emerald-600 mx-auto' />
+                <p className='text-xs'>جاري تحميل أصوات المناديب...</p>
               </div>
-            ) : votersList.length === 0 ? (
-              <div className='py-10 text-center text-muted-foreground'>
-                <p className='text-sm'>لا يوجد أي تصويتات مسجلة حتى الآن لهذا الإشعار</p>
+            ) : filteredVotes.length === 0 ? (
+              <div className='py-8 text-center text-muted-foreground space-y-1 border rounded-lg bg-muted/20'>
+                <p className='text-sm font-semibold'>لا توجد أصوات مسجلة تطابق البحث</p>
+                <p className='text-xs'>
+                  سيظهر هنا كل مندوب قام بالضغط على موافق أو معترض من تطبيقه
+                </p>
               </div>
             ) : (
-              <div className='border rounded-lg overflow-hidden'>
-                <table className='w-full text-xs text-right'>
-                  <thead className='bg-muted/50 border-b text-muted-foreground'>
-                    <tr>
-                      <th className='p-2.5'>المندوب</th>
-                      <th className='p-2.5'>الهوية / الرقم</th>
-                      <th className='p-2.5'>الجوال</th>
-                      <th className='p-2.5 text-center'>التصويت</th>
-                      <th className='p-2.5'>الوقت</th>
-                    </tr>
-                  </thead>
-                  <tbody className='divide-y divide-border'>
-                    {votersList.map((v) => (
-                      <tr key={v.id} className='hover:bg-muted/20'>
-                        <td className='p-2.5 font-semibold text-foreground'>
-                          {v.employee_name || 'مندوب'}
-                        </td>
-                        <td className='p-2.5 text-muted-foreground font-mono'>
-                          {v.national_id || v.employee_number || '-'}
-                        </td>
-                        <td className='p-2.5 text-muted-foreground font-mono' dir='ltr'>
-                          {v.phone || '-'}
-                        </td>
-                        <td className='p-2.5 text-center'>
-                          {v.response === 'AGREE' ? (
-                            <Badge className='bg-emerald-600 hover:bg-emerald-700 text-white gap-1'>
-                              <IconCheck className='h-3 w-3' /> موافق
-                            </Badge>
-                          ) : (
-                            <Badge className='bg-rose-600 hover:bg-rose-700 text-white gap-1'>
-                              <IconX className='h-3 w-3' /> معترض
-                            </Badge>
-                          )}
-                        </td>
-                        <td className='p-2.5 text-muted-foreground'>
-                          {new Date(v.created_at).toLocaleTimeString('ar-SA', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className='border rounded-lg divide-y max-h-[350px] overflow-y-auto'>
+                {filteredVotes.map((vote) => (
+                  <div
+                    key={vote.id}
+                    className='p-3 flex items-center justify-between hover:bg-muted/30'
+                  >
+                    <div className='space-y-0.5'>
+                      <div className='flex items-center gap-2'>
+                        <span className='font-bold text-sm text-foreground'>
+                          {vote.employee_name}
+                        </span>
+                        <span className='text-xs text-muted-foreground font-mono'>
+                          ({vote.national_id})
+                        </span>
+                      </div>
+                      <p className='text-xs text-muted-foreground'>
+                        فرع {vote.branch_name || 'غير محدد'} •{' '}
+                        {new Date(vote.created_at).toLocaleString('ar-SA', {
+                          dateStyle: 'short',
+                          timeStyle: 'short'
+                        })}
+                      </p>
+                    </div>
+
+                    <Badge
+                      className={
+                        vote.response === 'AGREE'
+                          ? 'bg-emerald-600 text-white gap-1 text-xs'
+                          : 'bg-rose-600 text-white gap-1 text-xs'
+                      }
+                    >
+                      {vote.response === 'AGREE' ? (
+                        <>
+                          <IconCheck className='h-3 w-3' /> موافق
+                        </>
+                      ) : (
+                        <>
+                          <IconX className='h-3 w-3' /> معترض
+                        </>
+                      )}
+                    </Badge>
+                  </div>
+                ))}
               </div>
             )}
           </div>
-
-          <DialogFooter>
-            <Button variant='outline' onClick={() => setSelectedBroadcastForVotes(null)}>
-              إغلاق
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Image Zoom Dialog */}
+      {/* Image Lightbox Preview Dialog */}
       <Dialog open={Boolean(previewImage)} onOpenChange={(open) => !open && setPreviewImage(null)}>
-        <DialogContent className='sm:max-w-[800px] p-2 bg-black/90 border-none' dir='rtl'>
-          <div className='relative w-full flex items-center justify-center p-2'>
-            {previewImage && (
+        <DialogContent className='sm:max-w-[800px] p-2 bg-black/95 border-none'>
+          <div className='relative w-full h-[70vh] flex items-center justify-center'>
+            {previewImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={previewImage}
-                alt='Preview full size'
-                className='max-h-[80vh] w-auto max-w-full rounded-lg object-contain'
+                alt='preview full'
+                className='max-h-full max-w-full object-contain rounded-lg'
               />
-            )}
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>
     </PageContainer>
+  );
+}
+
+interface BroadcastCardItemProps {
+  item: BroadcastNotificationItem;
+  onPreviewImage: (url: string) => void;
+  onDelete: (id: string) => void;
+  onViewVotes: (item: BroadcastNotificationItem) => void;
+}
+
+function BroadcastCardItem({
+  item,
+  onPreviewImage,
+  onDelete,
+  onViewVotes
+}: BroadcastCardItemProps) {
+  const [activeLang, setActiveLang] = useState<'ar' | 'en' | 'bn'>('ar');
+
+  const hasEn = Boolean(item.title_en?.trim() || item.body_en?.trim());
+  const hasBn = Boolean(item.title_bn?.trim() || item.body_bn?.trim());
+
+  let displayTitle = item.title_ar?.trim() || item.title;
+  let displayBody = item.body_ar?.trim() || item.body;
+  let displayPollQuestion = item.poll_question_ar?.trim() || item.poll_question || displayTitle;
+
+  if (activeLang === 'en') {
+    displayTitle = item.title_en?.trim() || item.title_ar?.trim() || item.title;
+    displayBody = item.body_en?.trim() || item.body_ar?.trim() || item.body;
+    displayPollQuestion =
+      item.poll_question_en?.trim() ||
+      item.poll_question_ar?.trim() ||
+      item.poll_question ||
+      displayTitle;
+  } else if (activeLang === 'bn') {
+    displayTitle = item.title_bn?.trim() || item.title_ar?.trim() || item.title;
+    displayBody = item.body_bn?.trim() || item.body_ar?.trim() || item.body;
+    displayPollQuestion =
+      item.poll_question_bn?.trim() ||
+      item.poll_question_ar?.trim() ||
+      item.poll_question ||
+      displayTitle;
+  }
+
+  const isRtl = activeLang === 'ar';
+
+  const totalVotes = (item.agree_count || 0) + (item.disagree_count || 0);
+  const agreePct = totalVotes > 0 ? Math.round(((item.agree_count || 0) / totalVotes) * 100) : 0;
+  const disagreePct = totalVotes > 0 ? 100 - agreePct : 0;
+
+  return (
+    <div className='p-4 sm:p-5 rounded-xl border bg-card hover:shadow-md transition-all space-y-4'>
+      {/* Top Bar with Language Switcher and Action Buttons */}
+      <div className='flex flex-wrap items-center justify-between gap-2 pb-2 border-b'>
+        <div className='flex items-center gap-1.5 bg-muted/50 p-1 rounded-lg border'>
+          <button
+            type='button'
+            onClick={() => setActiveLang('ar')}
+            className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${
+              activeLang === 'ar'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            🇸🇦 العربية
+          </button>
+          <button
+            type='button'
+            onClick={() => setActiveLang('en')}
+            className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1 ${
+              activeLang === 'en'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            🇺🇸 English{' '}
+            {hasEn ? <span className='text-[10px] text-emerald-500 font-extrabold'>✓</span> : ''}
+          </button>
+          <button
+            type='button'
+            onClick={() => setActiveLang('bn')}
+            className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1 ${
+              activeLang === 'bn'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            🇧🇩 বাংলা{' '}
+            {hasBn ? <span className='text-[10px] text-emerald-500 font-extrabold'>✓</span> : ''}
+          </button>
+        </div>
+
+        <div className='flex items-center gap-2'>
+          <Badge variant='secondary' className='text-xs'>
+            {item.target === 'ALL' ? '🌍 جميع الفروع' : `🏢 ${item.branch_name || 'فرع محدد'}`}
+          </Badge>
+
+          {item.has_poll && (
+            <Badge
+              variant='outline'
+              className='bg-sky-50 text-sky-700 border-sky-300 dark:bg-sky-950/40 dark:text-sky-300 gap-1 text-xs'
+            >
+              <IconChartBar className='h-3 w-3' /> استبيان
+            </Badge>
+          )}
+
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={() => onDelete(item.id)}
+            className='text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 gap-1 text-xs h-7'
+          >
+            <IconTrash className='h-3.5 w-3.5' />
+            حذف
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content Area in Active Language */}
+      <div className='flex flex-col sm:flex-row sm:items-start justify-between gap-3'>
+        <div className='space-y-1.5 flex-1' dir={isRtl ? 'rtl' : 'ltr'}>
+          <div className='flex items-center gap-2'>
+            <h4 className='font-bold text-base text-foreground'>{displayTitle}</h4>
+          </div>
+          <p className='text-xs text-muted-foreground'>
+            {new Date(item.created_at).toLocaleString('ar-SA', {
+              dateStyle: 'medium',
+              timeStyle: 'short'
+            })}
+          </p>
+          <p className='text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed pt-1'>
+            {displayBody}
+          </p>
+        </div>
+
+        {/* Thumbnail preview */}
+        {item.image_url ? (
+          <button
+            type='button'
+            onClick={() => item.image_url && onPreviewImage(item.image_url)}
+            className='relative group overflow-hidden rounded-lg border h-16 w-24 bg-muted shrink-0'
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={item.image_url}
+              alt='broadcast attachment'
+              className='h-full w-full object-cover group-hover:scale-105 transition-transform'
+            />
+            <div className='absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-[10px] font-bold'>
+              <IconPhoto className='h-4 w-4' />
+            </div>
+          </button>
+        ) : null}
+      </div>
+
+      {/* Poll Results Section */}
+      {item.has_poll && (
+        <div className='p-3.5 rounded-lg border bg-muted/40 space-y-2.5'>
+          <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-2'>
+            <p
+              className='text-xs font-bold text-foreground flex items-center gap-1.5'
+              dir={isRtl ? 'rtl' : 'ltr'}
+            >
+              <IconChartBar className='h-4 w-4 text-emerald-600 shrink-0' />
+              <span>سؤال الاستبيان: &quot;{displayPollQuestion}&quot;</span>
+            </p>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => onViewVotes(item)}
+              className='text-xs h-7 gap-1 shrink-0'
+            >
+              <IconUsers className='h-3.5 w-3.5' />
+              عرض تفاصيل أصوات المناديب ({totalVotes})
+            </Button>
+          </div>
+
+          {/* Vote bars */}
+          <div className='space-y-1.5 pt-1'>
+            <div className='flex items-center justify-between text-xs font-semibold'>
+              <span className='text-emerald-700 dark:text-emerald-400 flex items-center gap-1'>
+                <IconCheck className='h-3.5 w-3.5' /> موافق ({item.agree_count || 0})
+              </span>
+              <span className='text-rose-700 dark:text-rose-400 flex items-center gap-1'>
+                <IconX className='h-3.5 w-3.5' /> معترض ({item.disagree_count || 0})
+              </span>
+            </div>
+            <div className='h-2.5 w-full bg-muted rounded-full overflow-hidden flex'>
+              <div
+                style={{ width: `${agreePct}%` }}
+                className='bg-emerald-500 h-full transition-all'
+              />
+              <div
+                style={{ width: `${disagreePct}%` }}
+                className='bg-rose-500 h-full transition-all'
+              />
+            </div>
+            <div className='flex items-center justify-between text-[11px] text-muted-foreground'>
+              <span>{agreePct}% نسبة الموافقة</span>
+              <span>{disagreePct}% نسبة الاعتراض</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
