@@ -213,7 +213,7 @@ export default function ReportsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reports'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      toast.success('✅ تمت الموافقة على الشفت بنجاح — عدد الطلبات مُعتمد الآن');
+      toast.success('تمت الموافقة على الشفت بنجاح — عدد الطلبات مُعتمد الآن');
     },
     onError: (err) => {
       toast.error(getErrorMessage(err, 'فشل في الموافقة على الشفت'));

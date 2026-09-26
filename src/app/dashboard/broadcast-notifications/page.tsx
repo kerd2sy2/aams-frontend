@@ -471,10 +471,10 @@ export default function BroadcastNotificationsPage() {
                     <SelectValue placeholder='اختر الفئة المستهدفة' />
                   </SelectTrigger>
                   <SelectContent dir='rtl'>
-                    <SelectItem value='all'>🌍 جميع الفروع والمناديب</SelectItem>
+                    <SelectItem value='all'>جميع الفروع والمناديب</SelectItem>
                     {branches.map((b) => (
                       <SelectItem key={b.id} value={b.id}>
-                        🏢 فرع {b.name}
+                        فرع {b.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -496,7 +496,7 @@ export default function BroadcastNotificationsPage() {
               <ImageUploader
                 value={imageUrl}
                 onChange={setImageUrl}
-                label='إرفاق صورة أو بانر مع الإشعار 🖼️ (اختياري)'
+                label='إرفاق صورة أو بانر مع الإشعار (اختياري)'
                 category='broadcast'
                 description='ستظهر الصورة كـ بانر جذاب أعلى الإشعار في تطبيق المندوب مع إمكانية التكبير'
               />
@@ -622,7 +622,6 @@ export default function BroadcastNotificationsPage() {
                   />
                 ) : null}
                 <div className='flex items-center gap-2'>
-                  <span className='text-lg'>📢</span>
                   <p className='font-bold text-sm text-foreground'>
                     {previewLang === 'bn'
                       ? titleBn || titleAr || 'বিজ্ঞপ্তির শিরোনাম'
@@ -938,7 +937,7 @@ function BroadcastCardItem({
 
         <div className='flex items-center gap-2'>
           <Badge variant='secondary' className='text-xs'>
-            {item.target === 'ALL' ? '🌍 جميع الفروع' : `🏢 ${item.branch_name || 'فرع محدد'}`}
+            {item.target === 'ALL' ? 'جميع الفروع' : item.branch_name || 'فرع محدد'}
           </Badge>
 
           {item.has_poll && (

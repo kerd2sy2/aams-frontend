@@ -714,7 +714,7 @@ export default function NinjaDailyReportPage() {
                               <span>{cap.displayName}</span>
                               {isTopPerformer && (
                                 <Badge className='bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-[10px] px-1.5 py-0'>
-                                  🔥 بطل اليوم
+                                  بطل اليوم
                                 </Badge>
                               )}
                             </div>
@@ -763,7 +763,7 @@ export default function NinjaDailyReportPage() {
                       <TableCell className='text-center'>
                         {cap.deliveredOrders >= 18 ? (
                           <Badge className='bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-[10px]'>
-                            أتم المستهدف ✅
+                            أتم المستهدف
                           </Badge>
                         ) : cap.deliveredOrders >= 12 ? (
                           <Badge className='bg-primary text-primary-foreground font-mono text-[10px]'>

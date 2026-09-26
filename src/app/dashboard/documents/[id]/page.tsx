@@ -744,11 +744,11 @@ export default function DocumentDetailsPage({ params }: { params: Promise<{ id: 
                     <span className='text-muted-foreground'>حالة الوثيقة:</span>
                     <span className='font-bold'>
                       {doc.status === 'VALID'
-                        ? '✅ سارية'
+                        ? 'سارية'
                         : doc.status === 'EXPIRED'
-                          ? '❌ منتهية'
+                          ? 'منتهية'
                           : doc.status === 'REVOKED'
-                            ? '🚫 ملغية'
+                            ? 'ملغية'
                             : doc.status}
                     </span>
                   </div>

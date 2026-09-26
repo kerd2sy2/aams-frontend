@@ -143,7 +143,7 @@ export default function OdometerAuditView() {
       });
     },
     onSuccess: () => {
-      toast.success('تمت مصادقة وحفظ تعديلات الشفت بنجاح ✅');
+      toast.success('تمت مصادقة وحفظ تعديلات الشفت بنجاح');
       queryClient.invalidateQueries({ queryKey: ['odometer-audits'] });
       queryClient.invalidateQueries({ queryKey: ['reports'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
@@ -372,7 +372,7 @@ export default function OdometerAuditView() {
                 onClick={() => setStatusFilter('reviewed')}
                 className='text-emerald-500 hover:text-emerald-600'
               >
-                مصادق عليه ✅
+                مصادق عليه
               </Button>
             </div>
 
@@ -549,7 +549,7 @@ export default function OdometerAuditView() {
                               variant='outline'
                               className='text-amber-500 border-amber-500/30 text-xs'
                             >
-                              الشفت قائم الآن 🟢
+                              الشفت قائم الآن
                             </Badge>
                           )}
                         </TableCell>
@@ -576,7 +576,7 @@ export default function OdometerAuditView() {
                             {session.is_reviewed ? (
                               <Badge className='bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs gap-1'>
                                 <IconCheck className='h-3 w-3' />
-                                مصادق عليه ومحفوظ ✅
+                                مصادق عليه ومحفوظ
                               </Badge>
                             ) : (
                               <Badge
@@ -924,7 +924,7 @@ export default function OdometerAuditView() {
               className='gap-1 bg-emerald-600 hover:bg-emerald-700 text-white'
             >
               <IconCheck className='h-4 w-4' />
-              مصادقة واعتماد وتثبيت التعديلات ✅
+              مصادقة واعتماد وتثبيت التعديلات
             </Button>
           </DialogFooter>
         </DialogContent>
