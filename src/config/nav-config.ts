@@ -109,6 +109,7 @@ export const navGroups: NavGroup[] = [
         items: [
           { title: 'Vehicles', url: '/dashboard/vehicles', permission: 'vehicles.view' },
           { title: 'Violations', url: '/dashboard/violations', permission: 'violations.view' },
+          { title: 'Penalties', url: '/dashboard/penalties', permission: 'violations.view' },
           {
             title: 'Maintenance Requests',
             url: '/dashboard/maintenance-requests',
@@ -125,6 +126,7 @@ export const navGroups: NavGroup[] = [
         permission: 'employees.view',
         items: [
           { title: 'All Employees', url: '/dashboard/employees', permission: 'employees.view' },
+          { title: 'Penalties', url: '/dashboard/penalties', permission: 'violations.view' },
           {
             title: 'Print ID Cards',
             url: '/dashboard/employees/cards',

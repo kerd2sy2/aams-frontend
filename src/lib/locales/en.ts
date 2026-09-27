@@ -31,6 +31,7 @@ const en: Record<string, string> = {
   Vehicles: 'Vehicles',
   Violations: 'Violations',
   'Traffic Violations': 'Traffic Violations',
+  Penalties: 'Penalties & Deductions',
   'Maintenance Requests': 'Maintenance Requests',
   'Fuel Logs': 'Fuel Logs',
   'Documents & Banking': 'Documents & Banking',
