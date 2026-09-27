@@ -479,6 +479,7 @@ export interface TrafficViolation {
   vehicle_plate: string;
   amount: number;
   paid_amount?: number;
+  add_payment?: number;
   reason: string;
   violation_date: string;
   city?: string;
