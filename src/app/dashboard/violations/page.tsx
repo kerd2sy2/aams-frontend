@@ -48,12 +48,21 @@ import { formatRiyadhDate, getTodayRiyadh } from '@/lib/aams/riyadh-time';
 
 const STATUS_LABELS: Record<
   string,
-  { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
+  {
+    label: string;
+    variant: 'default' | 'secondary' | 'destructive' | 'outline';
+    className?: string;
+  }
 > = {
   RECORDED: { label: 'مسجلة', variant: 'secondary' },
-  DEDUCTED: { label: 'تم الخصم', variant: 'default' },
+  PARTIAL: {
+    label: 'مخصومة جزئياً',
+    variant: 'outline',
+    className: 'border-amber-500 text-amber-700 bg-amber-50 dark:bg-amber-950/30 font-semibold'
+  },
+  DEDUCTED: { label: 'تم الخصم بالكامل', variant: 'default' },
   DISPUTED: { label: 'معترض عليها', variant: 'outline' },
-  PAID: { label: 'مسددة', variant: 'default' }
+  PAID: { label: 'مسددة بالكامل', variant: 'default' }
 };
 
 export default function ViolationsPage() {
@@ -75,16 +84,23 @@ export default function ViolationsPage() {
     totalCount: 0
   });
 
-  // Modal
+  // Main Create/Edit Sheet
   const [modalOpen, setModalOpen] = useState(false);
   const [editingViolation, setEditingViolation] = useState<TrafficViolation | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Partial Payment Modal
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [payingViolation, setPayingViolation] = useState<TrafficViolation | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentSubmitting, setPaymentSubmitting] = useState(false);
 
   // Form fields
   const [violationNumber, setViolationNumber] = useState('');
   const [employeeId, setEmployeeId] = useState('');
   const [vehiclePlate, setVehiclePlate] = useState('');
   const [amount, setAmount] = useState('');
+  const [paidAmount, setPaidAmount] = useState('');
   const [reason, setReason] = useState('تجاوز سرعة');
   const [violationDate, setViolationDate] = useState(getTodayRiyadh());
   const [city, setCity] = useState('الرياض');
@@ -135,6 +151,7 @@ export default function ViolationsPage() {
     setEmployeeId('');
     setVehiclePlate('');
     setAmount('');
+    setPaidAmount('');
     setReason('تجاوز سرعة');
     setViolationDate(getTodayRiyadh());
     setCity('الرياض');
@@ -149,12 +166,44 @@ export default function ViolationsPage() {
     setEmployeeId(v.employee_id || '');
     setVehiclePlate(v.vehicle_plate || '');
     setAmount(v.amount?.toString() || '');
+    setPaidAmount((v.paid_amount || 0).toString());
     setReason(v.reason || 'تجاوز سرعة');
     setViolationDate(v.violation_date ? v.violation_date.split('T')[0] : getTodayRiyadh());
     setCity(v.city || 'الرياض');
     setStatus(v.status || 'RECORDED');
     setNotes(v.notes || '');
     setModalOpen(true);
+  };
+
+  const handleOpenPayment = (v: TrafficViolation) => {
+    setPayingViolation(v);
+    const remaining = Math.max(0, (v.amount || 0) - (v.paid_amount || 0));
+    setPaymentAmount(remaining > 0 ? remaining.toString() : '');
+    setPaymentModalOpen(true);
+  };
+
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!payingViolation) return;
+    const payVal = parseFloat(paymentAmount);
+    if (!payVal || payVal <= 0) {
+      toast.error('يرجى إدخال مبلغ صحيح للدفعة');
+      return;
+    }
+
+    setPaymentSubmitting(true);
+    try {
+      await violationApi.update(payingViolation.id, {
+        add_payment: payVal
+      });
+      toast.success(`تم تسجيل دفعة بقيمة ${payVal.toLocaleString('ar-SA')} ر.س بنجاح`);
+      setPaymentModalOpen(false);
+      fetchViolations();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'فشل في تسجيل الدفعة');
+    } finally {
+      setPaymentSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -171,6 +220,7 @@ export default function ViolationsPage() {
         employee_id: employeeId || undefined,
         vehicle_plate: vehiclePlate,
         amount: parseFloat(amount),
+        paid_amount: paidAmount ? parseFloat(paidAmount) : 0,
         reason,
         violation_date: violationDate,
         city,
@@ -192,16 +242,6 @@ export default function ViolationsPage() {
       toast.error(err.response?.data?.error || 'حدث خطأ أثناء حفظ المخالفة');
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleStatusChange = async (id: string, newStatus: string) => {
-    try {
-      await violationApi.update(id, { status: newStatus });
-      toast.success(`تم تحديث حالة المخالفة إلى: ${STATUS_LABELS[newStatus]?.label || newStatus}`);
-      fetchViolations();
-    } catch (err: any) {
-      toast.error('فشل في تحديث الحالة');
     }
   };
 
@@ -227,12 +267,12 @@ export default function ViolationsPage() {
     );
   });
 
-  const pendingAmount = stats.totalAmount - stats.deductedAmount;
+  const pendingAmount = Math.max(0, stats.totalAmount - stats.deductedAmount);
 
   return (
     <PageContainer
       pageTitle='المخالفات المرورية'
-      pageDescription='تسجيل ومتابعة المخالفات المرورية والخصم من مستحقات المناديب'
+      pageDescription='تسجيل ومتابعة المخالفات المرورية ونظام التقسيط والتجزئة للمناديب'
       pageHeaderAction={
         <Button onClick={handleOpenAdd} className='gap-2 font-bold shadow-xs'>
           <Icons.add className='size-4' />
@@ -246,7 +286,7 @@ export default function ViolationsPage() {
           <Card className='border-rose-100 bg-rose-50/40 dark:border-rose-950/40 dark:bg-rose-950/20'>
             <CardHeader className='flex flex-row items-center justify-between pb-2'>
               <CardTitle className='text-sm font-medium text-rose-900 dark:text-rose-200'>
-                إجمالي مبالغ المخالفات
+                إجمالي قيمة المخالفات
               </CardTitle>
               <Icons.dollarSign className='h-4 w-4 text-rose-600' />
             </CardHeader>
@@ -276,7 +316,7 @@ export default function ViolationsPage() {
           <Card className='border-amber-100 bg-amber-50/40 dark:border-amber-950/40 dark:bg-amber-950/20'>
             <CardHeader className='flex flex-row items-center justify-between pb-2'>
               <CardTitle className='text-sm font-medium text-amber-900 dark:text-amber-200'>
-                المتبقي / بانتظار الخصم
+                المتبقي بانتظار السداد / الخصم
               </CardTitle>
               <Icons.clock className='h-4 w-4 text-amber-600' />
             </CardHeader>
@@ -307,9 +347,10 @@ export default function ViolationsPage() {
         {/* Tabs & Search */}
         <div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
           <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full md:w-auto'>
-            <TabsList className='grid grid-cols-4 w-full md:w-auto'>
+            <TabsList className='grid grid-cols-5 w-full md:w-auto'>
               <TabsTrigger value='ALL'>الكل</TabsTrigger>
               <TabsTrigger value='RECORDED'>مسجلة</TabsTrigger>
+              <TabsTrigger value='PARTIAL'>مخصومة جزئياً</TabsTrigger>
               <TabsTrigger value='DEDUCTED'>تم الخصم</TabsTrigger>
               <TabsTrigger value='DISPUTED'>معترض عليها</TabsTrigger>
             </TabsList>
@@ -335,7 +376,7 @@ export default function ViolationsPage() {
         <Card>
           <CardHeader>
             <CardTitle>جدول المخالفات</CardTitle>
-            <CardDescription>قائمة المخالفات المرورية وحالة معالجتها</CardDescription>
+            <CardDescription>قائمة المخالفات المرورية وحالة معالجتها وتجزئة السداد</CardDescription>
           </CardHeader>
           <CardContent>
             <div className='rounded-md border overflow-x-auto'>
@@ -347,29 +388,36 @@ export default function ViolationsPage() {
                     <TableHead className='text-right'>السبب / المخالفة</TableHead>
                     <TableHead className='text-right'>المندوب</TableHead>
                     <TableHead className='text-right'>الدباب / اللوحة</TableHead>
-                    <TableHead className='text-right'>المبلغ</TableHead>
+                    <TableHead className='text-right'>المبلغ الكلي</TableHead>
+                    <TableHead className='text-right'>المخصوم / المتبقي</TableHead>
                     <TableHead className='text-right'>الحالة</TableHead>
-                    <TableHead className='text-center'>تحديث الحالة</TableHead>
+                    <TableHead className='text-center'>تجزئة / خصم دفعة</TableHead>
                     <TableHead className='text-center'>إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={9} className='h-32 text-center text-slate-500'>
+                      <TableCell colSpan={10} className='h-32 text-center text-slate-500'>
                         <Icons.spinner className='h-6 w-6 animate-spin mx-auto mb-2 text-rose-600' />
                         جارٍ تحميل المخالفات...
                       </TableCell>
                     </TableRow>
                   ) : filteredViolations.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className='h-32 text-center text-slate-500'>
+                      <TableCell colSpan={10} className='h-32 text-center text-slate-500'>
                         لا توجد مخالفات مرورية مطابقة
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredViolations.map((v) => {
                       const st = STATUS_LABELS[v.status] || { label: v.status, variant: 'outline' };
+                      const totalAmt = v.amount || 0;
+                      const paidAmt = v.paid_amount || 0;
+                      const remAmt = Math.max(0, totalAmt - paidAmt);
+                      const percent =
+                        totalAmt > 0 ? Math.min(100, Math.round((paidAmt / totalAmt) * 100)) : 0;
+
                       return (
                         <TableRow
                           key={v.id}
@@ -413,34 +461,45 @@ export default function ViolationsPage() {
                             )}
                           </TableCell>
                           <TableCell className='font-bold text-rose-600 dark:text-rose-400 whitespace-nowrap'>
-                            {v.amount} ر.س
+                            {totalAmt.toLocaleString('ar-SA')} ر.س
+                          </TableCell>
+                          <TableCell className='min-w-[140px]'>
+                            <div className='flex flex-col gap-1 text-xs'>
+                              <div className='flex justify-between'>
+                                <span className='text-emerald-600 font-semibold'>
+                                  مخصوم: {paidAmt.toLocaleString('ar-SA')}
+                                </span>
+                                <span className='text-amber-600 font-semibold'>
+                                  متبقي: {remAmt.toLocaleString('ar-SA')}
+                                </span>
+                              </div>
+                              <div className='h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden'>
+                                <div
+                                  className='h-full bg-emerald-500 rounded-full transition-all'
+                                  style={{ width: `${percent}%` }}
+                                />
+                              </div>
+                            </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={st.variant}>{st.label}</Badge>
+                            <Badge variant={st.variant} className={st.className}>
+                              {st.label}
+                            </Badge>
                           </TableCell>
                           <TableCell className='text-center'>
-                            {v.status === 'RECORDED' ? (
+                            {remAmt > 0 ? (
                               <Button
                                 size='sm'
                                 variant='outline'
-                                onClick={() => handleStatusChange(v.id, 'DEDUCTED')}
-                                className='h-7 text-xs text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
+                                onClick={() => handleOpenPayment(v)}
+                                className='h-7 text-xs font-bold text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
                               >
-                                خصم من المندوب
+                                خصم دفعة ({remAmt} ر.س)
                               </Button>
-                            ) : v.status === 'DEDUCTED' ? (
-                              <span className='text-xs text-emerald-600 font-medium'>
-                                ✓ تم الخصم
-                              </span>
                             ) : (
-                              <Button
-                                size='sm'
-                                variant='outline'
-                                onClick={() => handleStatusChange(v.id, 'DEDUCTED')}
-                                className='h-7 text-xs'
-                              >
-                                تسوية الخصم
-                              </Button>
+                              <span className='text-xs text-emerald-600 font-semibold'>
+                                ✓ تم السداد بالكامل
+                              </span>
                             )}
                           </TableCell>
                           <TableCell className='text-center'>
@@ -472,6 +531,119 @@ export default function ViolationsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Partial Payment Dialog */}
+        <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+          <DialogContent className='sm:max-w-md' dir='rtl'>
+            <DialogHeader>
+              <DialogTitle className='flex items-center gap-2 text-emerald-600'>
+                <Icons.check className='h-5 w-5' />
+                تسجيل دفعة / تجزئة خصم المخالفة
+              </DialogTitle>
+              <DialogDescription>
+                يمكنك خصم جزء من مبلغ المخالفة أو تسديدها بالكامل.
+              </DialogDescription>
+            </DialogHeader>
+
+            {payingViolation && (
+              <form onSubmit={handlePaymentSubmit} className='space-y-4 py-2'>
+                <div className='rounded-lg bg-slate-50 dark:bg-slate-900/60 p-3 space-y-2 border text-sm'>
+                  <div className='flex justify-between'>
+                    <span className='text-slate-500'>رقم المخالفة:</span>
+                    <span className='font-mono font-bold'>
+                      {payingViolation.violation_number || '-'}
+                    </span>
+                  </div>
+                  <div className='flex justify-between'>
+                    <span className='text-slate-500'>المندوب:</span>
+                    <span className='font-semibold'>{payingViolation.employee?.name || '-'}</span>
+                  </div>
+                  <div className='flex justify-between'>
+                    <span className='text-slate-500'>إجمالي المبلغ:</span>
+                    <span className='font-bold text-rose-600'>{payingViolation.amount} ر.س</span>
+                  </div>
+                  <div className='flex justify-between border-t pt-1'>
+                    <span className='text-slate-500'>المخصوم سابقاً:</span>
+                    <span className='font-bold text-emerald-600'>
+                      {payingViolation.paid_amount || 0} ر.س
+                    </span>
+                  </div>
+                  <div className='flex justify-between font-bold'>
+                    <span className='text-slate-700 dark:text-slate-300'>المتبقي حالياً:</span>
+                    <span className='text-amber-600'>
+                      {Math.max(
+                        0,
+                        (payingViolation.amount || 0) - (payingViolation.paid_amount || 0)
+                      )}{' '}
+                      ر.س
+                    </span>
+                  </div>
+                </div>
+
+                <div className='space-y-2'>
+                  <Label className='text-xs font-semibold'>
+                    المبلغ المراد خصمه / دفعه الآن (ر.س) <span className='text-destructive'>*</span>
+                  </Label>
+                  <Input
+                    type='number'
+                    step='0.01'
+                    placeholder='أدخل المبلغ...'
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    required
+                    className='font-mono font-bold text-lg text-start'
+                  />
+                  <div className='flex gap-2 pt-1'>
+                    {[50, 100, 200].map((quickVal) => (
+                      <Button
+                        key={quickVal}
+                        type='button'
+                        size='sm'
+                        variant='outline'
+                        onClick={() => setPaymentAmount(quickVal.toString())}
+                        className='text-xs h-7'
+                      >
+                        +{quickVal} ر.س
+                      </Button>
+                    ))}
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='outline'
+                      onClick={() => {
+                        const rem = Math.max(
+                          0,
+                          (payingViolation.amount || 0) - (payingViolation.paid_amount || 0)
+                        );
+                        setPaymentAmount(rem.toString());
+                      }}
+                      className='text-xs h-7 text-emerald-600 border-emerald-300 hover:bg-emerald-50'
+                    >
+                      كامل المتبقي
+                    </Button>
+                  </div>
+                </div>
+
+                <DialogFooter className='gap-2 sm:gap-0 pt-2'>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => setPaymentModalOpen(false)}
+                  >
+                    إلغاء
+                  </Button>
+                  <Button
+                    type='submit'
+                    disabled={paymentSubmitting}
+                    className='bg-emerald-600 hover:bg-emerald-700 text-white font-bold'
+                  >
+                    {paymentSubmitting ? 'جارٍ الحفظ...' : 'تأكيد الخصم'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Modal */}
         <Sheet open={modalOpen} onOpenChange={setModalOpen}>
@@ -506,7 +678,7 @@ export default function ViolationsPage() {
                   </div>
                   <div className='space-y-1.5'>
                     <Label className='text-xs font-semibold'>
-                      المبلغ (ر.س) <span className='text-destructive'>*</span>
+                      المبلغ الإجمالي (ر.س) <span className='text-destructive'>*</span>
                     </Label>
                     <Input
                       type='number'
@@ -517,6 +689,35 @@ export default function ViolationsPage() {
                       required
                       className='h-10 text-start font-mono font-bold'
                     />
+                  </div>
+                </div>
+
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-semibold'>المبلغ المخصوم / المسدد (ر.س)</Label>
+                    <Input
+                      type='number'
+                      step='0.01'
+                      placeholder='0.00'
+                      value={paidAmount}
+                      onChange={(e) => setPaidAmount(e.target.value)}
+                      className='h-10 text-start font-mono text-emerald-600 font-bold'
+                    />
+                  </div>
+                  <div className='space-y-1.5'>
+                    <Label className='text-xs font-semibold'>حالة المخالفة</Label>
+                    <Select value={status} onValueChange={(val) => setStatus(val || '')}>
+                      <SelectTrigger className='h-10'>
+                        <SelectValue placeholder='الحالة' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='RECORDED'>مسجلة (جديدة)</SelectItem>
+                        <SelectItem value='PARTIAL'>مخصومة جزئياً</SelectItem>
+                        <SelectItem value='DEDUCTED'>تم الخصم من المندوب</SelectItem>
+                        <SelectItem value='DISPUTED'>معترض عليها</SelectItem>
+                        <SelectItem value='PAID'>مسددة بالكامل</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -611,23 +812,6 @@ export default function ViolationsPage() {
                   </div>
 
                   <div className='space-y-1.5'>
-                    <Label className='text-xs font-semibold'>حالة المخالفة</Label>
-                    <Select value={status} onValueChange={(val) => setStatus(val || '')}>
-                      <SelectTrigger className='h-10'>
-                        <SelectValue placeholder='الحالة' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value='RECORDED'>مسجلة (جديدة)</SelectItem>
-                        <SelectItem value='DEDUCTED'>تم الخصم من المندوب</SelectItem>
-                        <SelectItem value='DISPUTED'>معترض عليها</SelectItem>
-                        <SelectItem value='PAID'>مسددة بالكامل</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className='grid grid-cols-2 gap-4'>
-                  <div className='space-y-1.5'>
                     <Label className='text-xs font-semibold'>تاريخ المخالفة</Label>
                     <Input
                       type='date'
@@ -636,15 +820,16 @@ export default function ViolationsPage() {
                       className='h-10'
                     />
                   </div>
-                  <div className='space-y-1.5'>
-                    <Label className='text-xs font-semibold'>المدينة</Label>
-                    <Input
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder='مثال: الرياض'
-                      className='h-10'
-                    />
-                  </div>
+                </div>
+
+                <div className='space-y-1.5'>
+                  <Label className='text-xs font-semibold'>المدينة</Label>
+                  <Input
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder='مثال: الرياض'
+                    className='h-10'
+                  />
                 </div>
 
                 <div className='space-y-1.5'>
