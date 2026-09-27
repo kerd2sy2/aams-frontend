@@ -588,12 +588,23 @@ export default function ViolationsPage() {
                       <SelectContent>
                         <SelectItem value='تجاوز سرعة'>تجاوز سرعة</SelectItem>
                         <SelectItem value='قطع إشارة'>قطع إشارة</SelectItem>
+                        <SelectItem value='عدم ارتداء الخوذة الواقية'>
+                          عدم ارتداء الخوذة الواقية
+                        </SelectItem>
                         <SelectItem value='عدم ارتداء حزام الأمان'>عدم ارتداء حزام الأمان</SelectItem>
                         <SelectItem value='استخدام الجوال أثناء القيادة'>
                           استخدام الجوال أثناء القيادة
                         </SelectItem>
+                        <SelectItem value='عكس اتجاه السير'>عكس اتجاه السير</SelectItem>
                         <SelectItem value='وقوف ممنوع'>وقوف ممنوع</SelectItem>
                         <SelectItem value='عدم حمل رخصة قيادة'>عدم حمل رخصة قيادة</SelectItem>
+                        <SelectItem value='تأخير عن الدوام'>تأخير عن الدوام (جزاء)</SelectItem>
+                        <SelectItem value='عدم الالتزام بالزي الرسمي'>
+                          عدم الالتزام بالزي الرسمي (جزاء)
+                        </SelectItem>
+                        <SelectItem value='تلف أو فقدان عهدة'>تلف أو فقدان عهدة (خصم)</SelectItem>
+                        <SelectItem value='جزاء إداري'>جزاء إداري عام</SelectItem>
+                        <SelectItem value='خصم مباشر'>خصم مالي مباشر</SelectItem>
                         <SelectItem value='مخالفة أخرى'>مخالفة أخرى</SelectItem>
                       </SelectContent>
                     </Select>
