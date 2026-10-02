@@ -27,6 +27,7 @@ import {
   Camera,
   Users,
   User,
+  CreditCard,
   Check,
   X,
   Plus,
@@ -750,24 +751,24 @@ export function InvestigationPageContent({
 
     if (supervisorOnly) {
       return (
-        <div className='px-10 pt-8 pb-4' dir='rtl'>
+        <div className='px-10 pt-10 pb-6' dir='rtl'>
           <div className='flex items-start justify-between gap-12'>
             {/* Right Side (اليمين): المشرف */}
             <div className='space-y-4 text-right'>
-              <div>
-                <span className='text-base font-black text-slate-950'>المشرف : </span>
+              <div className='flex items-center gap-2'>
+                <span className='text-base font-black text-slate-950'>المشرف :</span>
                 <span className='text-base font-bold text-slate-900'>{supName || '—'}</span>
               </div>
-              <div className='pt-2'>
-                <span className='text-base font-black text-slate-950 block mb-1'>التوقيع :</span>
-                <div className='w-48 border-b-2 border-slate-400 min-h-[36px]'></div>
+              <div className='space-y-1'>
+                <span className='text-base font-black text-slate-950 block'>التوقيع :</span>
+                <div className='min-h-[40px]'></div>
               </div>
             </div>
 
             {/* Left Side (الشمال): إجراء الإدارة */}
             <div className='min-w-[240px] max-w-[45%] flex-1 space-y-3 text-right'>
               <span className='text-base font-black text-slate-950 block'>إجراء الإدارة /</span>
-              <div className='w-full min-h-[60px] border-b-2 border-dashed border-slate-300'></div>
+              <div className='min-h-[60px]'></div>
             </div>
           </div>
         </div>
@@ -1487,58 +1488,67 @@ export function InvestigationPageContent({
                         return (
                           <div className='px-10 my-4 text-right' dir='rtl'>
                             {docEmps.length > 1 ? (
-                              <div className='space-y-3 text-right'>
-                                <div className='flex items-center gap-2'>
-                                  <span className='font-black text-slate-950 text-base'>
-                                    الموظفون المشمولون بالتقرير ({docEmps.length}):
-                                  </span>
+                              <div className='border-y border-slate-200/80 py-3 space-y-3'>
+                                <div className='flex items-center justify-between'>
+                                  <div className='flex items-center gap-2'>
+                                    <div className='size-8 rounded-full bg-orange-500/10 text-[#f97316] flex items-center justify-center shrink-0'>
+                                      <Users className='size-4' />
+                                    </div>
+                                    <span className='font-black text-slate-950 text-base'>
+                                      الموظفون المشمولون بالتقرير ({docEmps.length})
+                                    </span>
+                                  </div>
+                                  <div className='flex items-center gap-2'>
+                                    <div className='size-7 rounded-full bg-orange-500/10 text-[#f97316] flex items-center justify-center shrink-0'>
+                                      <Calendar className='size-3.5' />
+                                    </div>
+                                    <span className='font-bold font-mono text-slate-900 text-sm sm:text-base'>
+                                      {formatReportDate(t.created_at)}
+                                    </span>
+                                  </div>
                                 </div>
-                                <div className='space-y-1.5 pr-2'>
+                                <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1'>
                                   {docEmps.map((emp, idx) => (
                                     <div
                                       key={idx}
-                                      className='text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2'
+                                      className='flex items-center justify-between py-1.5 px-3 rounded-lg border border-slate-200/60 text-xs sm:text-sm font-bold'
                                     >
-                                      <span>
-                                        {idx + 1}. {emp.name}
-                                      </span>
-                                      <span className='text-slate-400'>-</span>
-                                      <span>رقم الهوية:</span>
-                                      <span className='font-mono'>{emp.national_id}</span>
+                                      <div className='flex items-center gap-2'>
+                                        <User className='size-3.5 text-[#f97316]' />
+                                        <span className='text-slate-950'>{emp.name}</span>
+                                      </div>
+                                      <div className='flex items-center gap-1.5 font-mono text-slate-600'>
+                                        <CreditCard className='size-3 text-slate-400' />
+                                        <span>{emp.national_id}</span>
+                                      </div>
                                     </div>
                                   ))}
                                 </div>
-                                <div className='flex items-center gap-2 pt-1'>
-                                  <span className='font-black text-slate-950 text-base'>
-                                    التاريخ :
-                                  </span>
-                                  <span className='font-bold font-mono text-slate-900 text-base'>
-                                    {formatReportDate(t.created_at)}
-                                  </span>
-                                </div>
                               </div>
                             ) : (
-                              <div className='space-y-2 text-right'>
-                                <div className='flex items-center gap-2'>
-                                  <span className='font-black text-slate-950 text-base min-w-[95px]'>
-                                    اسم الموظف :
-                                  </span>
-                                  <span className='font-bold text-slate-900 text-base'>
+                              <div className='flex flex-wrap items-center justify-between border-y border-slate-200/80 py-3 gap-4'>
+                                <div className='flex items-center gap-2.5'>
+                                  <div className='size-8 rounded-full bg-orange-500/10 text-[#f97316] flex items-center justify-center shrink-0'>
+                                    <User className='size-4' />
+                                  </div>
+                                  <span className='font-black text-slate-950 text-base'>
                                     {currentEmpName}
                                   </span>
                                 </div>
-                                <div className='flex items-center gap-2'>
-                                  <span className='font-black text-slate-950 text-base min-w-[95px]'>
-                                    رقم الهوية :
-                                  </span>
-                                  <span className='font-bold font-mono text-slate-900 tracking-wider text-base'>
+
+                                <div className='flex items-center gap-2.5'>
+                                  <div className='size-8 rounded-full bg-orange-500/10 text-[#f97316] flex items-center justify-center shrink-0'>
+                                    <CreditCard className='size-4' />
+                                  </div>
+                                  <span className='font-bold font-mono text-slate-900 text-base tracking-wider'>
                                     {currentNatId}
                                   </span>
                                 </div>
-                                <div className='flex items-center gap-2'>
-                                  <span className='font-black text-slate-950 text-base min-w-[95px]'>
-                                    التاريخ :
-                                  </span>
+
+                                <div className='flex items-center gap-2.5'>
+                                  <div className='size-8 rounded-full bg-orange-500/10 text-[#f97316] flex items-center justify-center shrink-0'>
+                                    <Calendar className='size-4' />
+                                  </div>
                                   <span className='font-bold font-mono text-slate-900 text-base'>
                                     {formatReportDate(t.created_at)}
                                   </span>
@@ -1921,56 +1931,67 @@ export function InvestigationPageContent({
             return (
               <div className='px-10 my-4 text-right' dir='rtl'>
                 {docEmps.length > 1 ? (
-                  <div className='space-y-3 text-right'>
-                    <div className='flex items-center gap-2'>
-                      <span className='font-black text-slate-950 text-base'>
-                        الموظفون المشمولون بالتقرير ({docEmps.length}):
-                      </span>
+                  <div className='border-y border-slate-200/80 py-3 space-y-3'>
+                    <div className='flex items-center justify-between'>
+                      <div className='flex items-center gap-2'>
+                        <div className='size-8 rounded-full bg-orange-500/10 text-[#f97316] flex items-center justify-center shrink-0'>
+                          <Users className='size-4' />
+                        </div>
+                        <span className='font-black text-slate-950 text-base'>
+                          الموظفون المشمولون بالتقرير ({docEmps.length})
+                        </span>
+                      </div>
+                      <div className='flex items-center gap-2'>
+                        <div className='size-7 rounded-full bg-orange-500/10 text-[#f97316] flex items-center justify-center shrink-0'>
+                          <Calendar className='size-3.5' />
+                        </div>
+                        <span className='font-bold font-mono text-slate-900 text-sm sm:text-base'>
+                          {formatReportDate(t.created_at)}
+                        </span>
+                      </div>
                     </div>
-                    <div className='space-y-1.5 pr-2'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1'>
                       {docEmps.map((emp, idx) => (
                         <div
                           key={idx}
-                          className='text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2'
+                          className='flex items-center justify-between py-1.5 px-3 rounded-lg border border-slate-200/60 text-xs sm:text-sm font-bold'
                         >
-                          <span>
-                            {idx + 1}. {emp.name}
-                          </span>
-                          <span className='text-slate-400'>-</span>
-                          <span>رقم الهوية:</span>
-                          <span className='font-mono'>{emp.national_id}</span>
+                          <div className='flex items-center gap-2'>
+                            <User className='size-3.5 text-[#f97316]' />
+                            <span className='text-slate-950'>{emp.name}</span>
+                          </div>
+                          <div className='flex items-center gap-1.5 font-mono text-slate-600'>
+                            <CreditCard className='size-3 text-slate-400' />
+                            <span>{emp.national_id}</span>
+                          </div>
                         </div>
                       ))}
                     </div>
-                    <div className='flex items-center gap-2 pt-1'>
-                      <span className='font-black text-slate-950 text-base'>التاريخ :</span>
-                      <span className='font-bold font-mono text-slate-900 text-base'>
-                        {formatReportDate(t.created_at)}
-                      </span>
-                    </div>
                   </div>
                 ) : (
-                  <div className='space-y-2 text-right'>
-                    <div className='flex items-center gap-2'>
-                      <span className='font-black text-slate-950 text-base min-w-[95px]'>
-                        اسم الموظف :
-                      </span>
-                      <span className='font-bold text-slate-900 text-base'>
+                  <div className='flex flex-wrap items-center justify-between border-y border-slate-200/80 py-3 gap-4'>
+                    <div className='flex items-center gap-2.5'>
+                      <div className='size-8 rounded-full bg-orange-500/10 text-[#f97316] flex items-center justify-center shrink-0'>
+                        <User className='size-4' />
+                      </div>
+                      <span className='font-black text-slate-950 text-base'>
                         {t.employee_name || '—'}
                       </span>
                     </div>
-                    <div className='flex items-center gap-2'>
-                      <span className='font-black text-slate-950 text-base min-w-[95px]'>
-                        رقم الهوية :
-                      </span>
-                      <span className='font-bold font-mono text-slate-900 tracking-wider text-base'>
+
+                    <div className='flex items-center gap-2.5'>
+                      <div className='size-8 rounded-full bg-orange-500/10 text-[#f97316] flex items-center justify-center shrink-0'>
+                        <CreditCard className='size-4' />
+                      </div>
+                      <span className='font-bold font-mono text-slate-900 text-base tracking-wider'>
                         {t.national_id || '—'}
                       </span>
                     </div>
-                    <div className='flex items-center gap-2'>
-                      <span className='font-black text-slate-950 text-base min-w-[95px]'>
-                        التاريخ :
-                      </span>
+
+                    <div className='flex items-center gap-2.5'>
+                      <div className='size-8 rounded-full bg-orange-500/10 text-[#f97316] flex items-center justify-center shrink-0'>
+                        <Calendar className='size-4' />
+                      </div>
                       <span className='font-bold font-mono text-slate-900 text-base'>
                         {formatReportDate(t.created_at)}
                       </span>
