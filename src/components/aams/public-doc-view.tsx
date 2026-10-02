@@ -422,8 +422,10 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
             {/* Document Title */}
             {isReport ? (
-              <div className='text-center my-4'>
-                <h1 className='text-2xl font-black tracking-wide text-slate-950'>تقرير مشرف</h1>
+              <div className='text-center my-3'>
+                <h1 className='text-xl sm:text-2xl font-black tracking-wide text-slate-950 inline-block border-b-2 border-[#f97316] pb-1 px-10'>
+                  تقرير مشرف
+                </h1>
               </div>
             ) : (
               <div className='text-center my-3'>
@@ -433,67 +435,66 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
               </div>
             )}
 
-            {/* Employee Info & Date for Supervisor Report without Table */}
+            {/* Employee Info & Date for Supervisor Report */}
             {isReport ? (
-              <div className='px-8 my-3 flex justify-end' dir='rtl'>
+              <div className='px-8 my-4' dir='rtl'>
                 {isGroupReport ? (
-                  <div className='space-y-3 bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 shadow-2xs text-right min-w-[240px]'>
-                    <div className='space-y-2'>
+                  <div className='rounded-xl border border-slate-200/90 bg-slate-50/70 p-4 sm:p-5 shadow-2xs text-right space-y-3'>
+                    <div className='flex items-center justify-between border-b border-slate-200 pb-2.5'>
                       <div className='flex items-center gap-2'>
-                        <Users className='size-4 text-blue-600' />
-                        <span className='font-black text-slate-950 text-sm'>
+                        <Users className='size-4 text-[#f97316]' />
+                        <span className='font-black text-slate-950 text-sm sm:text-base'>
                           الموظفون المشمولون بالتقرير ({employees.length}):
                         </span>
                       </div>
-                      <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 pr-1'>
-                        {employees.map((emp, idx) => (
-                          <div
-                            key={idx}
-                            className='flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200/70 text-xs font-bold'
-                          >
-                            <span className='text-slate-950'>
-                              {idx + 1}. {emp.name}
-                            </span>
-                            <span className='font-mono text-slate-600'>{emp.national_id}</span>
-                          </div>
-                        ))}
+                      <div className='text-xs font-bold text-slate-600'>
+                        تاريخ التقرير:{' '}
+                        <span className='font-mono font-bold text-slate-900'>
+                          {formatReportDate(t.created_at)}
+                        </span>
                       </div>
                     </div>
-                    <div className='space-y-0.5 pt-2 border-t border-slate-200 text-xs font-bold text-slate-700'>
-                      <div className='flex items-center gap-1.5'>
-                        <Calendar className='size-3.5 text-emerald-600' />
-                        <span>التاريخ:</span>
-                      </div>
-                      <span className='font-mono font-black text-slate-900 block'>
-                        {formatReportDate(t.created_at)}
-                      </span>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
+                      {employees.map((emp, idx) => (
+                        <div
+                          key={idx}
+                          className='flex items-center justify-between p-2.5 bg-white rounded-lg border border-slate-200/80 text-xs sm:text-sm font-bold shadow-2xs'
+                        >
+                          <span className='text-slate-950'>
+                            {idx + 1}. {emp.name}
+                          </span>
+                          <span className='font-mono text-slate-600'>{emp.national_id}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ) : (
-                  <div className='space-y-3 text-base sm:text-lg text-right min-w-[190px]'>
-                    <div className='space-y-0.5'>
-                      <span className='font-black text-slate-950 block text-sm sm:text-base'>
-                        اسم الموظف :
-                      </span>
-                      <span className='font-bold text-slate-900 block text-base sm:text-lg'>
-                        {t.employee_name || '—'}
-                      </span>
-                    </div>
-                    <div className='space-y-0.5'>
-                      <span className='font-black text-slate-950 block text-sm sm:text-base'>
-                        رقم الهوية :
-                      </span>
-                      <span className='font-bold font-mono text-slate-900 tracking-wider block text-base sm:text-lg'>
-                        {t.national_id || '—'}
-                      </span>
-                    </div>
-                    <div className='space-y-0.5'>
-                      <span className='font-black text-slate-950 block text-sm sm:text-base'>
-                        التاريخ :
-                      </span>
-                      <span className='font-bold font-mono text-slate-900 block text-base sm:text-lg'>
-                        {formatReportDate(t.created_at)}
-                      </span>
+                  <div className='rounded-xl border border-slate-200/90 bg-slate-50/70 p-4 sm:p-5 shadow-2xs text-right'>
+                    <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
+                      <div className='space-y-1 text-right'>
+                        <span className='text-xs font-bold text-slate-500 block'>
+                          اسم الموظف / المندوب:
+                        </span>
+                        <span className='text-base font-black text-slate-950 block'>
+                          {t.employee_name || '—'}
+                        </span>
+                      </div>
+                      <div className='space-y-1 text-right'>
+                        <span className='text-xs font-bold text-slate-500 block'>
+                          رقم الهوية / الإقامة:
+                        </span>
+                        <span className='text-base font-bold font-mono text-slate-900 tracking-wider block'>
+                          {t.national_id || '—'}
+                        </span>
+                      </div>
+                      <div className='space-y-1 text-right'>
+                        <span className='text-xs font-bold text-slate-500 block'>
+                          تاريخ التقرير:
+                        </span>
+                        <span className='text-base font-bold font-mono text-slate-900 block'>
+                          {formatReportDate(t.created_at)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -641,12 +642,17 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
             {/* Report Text (Supervisor Report / Absence) */}
             {isReport && t.report_text ? (
-              <div className='px-8 my-6 text-right' dir='rtl'>
-                <h2 className='text-base sm:text-lg font-black text-slate-950 mb-3'>
-                  موضوع ونص التقرير :
-                </h2>
-                <div className='whitespace-pre-wrap font-medium leading-[2.2] text-slate-950 text-base sm:text-lg text-right'>
-                  {renderBoldText(t.report_text)}
+              <div className='px-8 my-4 text-right' dir='rtl'>
+                <div className='rounded-xl border border-slate-200/90 bg-white p-5 shadow-2xs'>
+                  <div className='flex items-center gap-2 mb-3 pb-2 border-b border-slate-100'>
+                    <span className='inline-block size-2.5 rounded-full bg-[#f97316]'></span>
+                    <h2 className='text-sm sm:text-base font-black text-slate-950'>
+                      موضوع ونص التقرير:
+                    </h2>
+                  </div>
+                  <div className='whitespace-pre-wrap font-medium leading-[2.2] text-slate-950 text-base sm:text-lg text-right'>
+                    {renderBoldText(t.report_text)}
+                  </div>
                 </div>
               </div>
             ) : isAbsence && t.report_text ? (
@@ -758,30 +764,30 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
 
             {/* Signatures */}
             {isReport ? (
-              <div className='px-8 pt-8 pb-4' dir='rtl'>
-                <div className='flex items-start justify-between gap-12'>
-                  {/* Right Side (اليمين): المشرف وتحته اسمه، وتحته التوقيع فارغ */}
-                  <div className='space-y-4 text-right'>
-                    <div className='space-y-0.5'>
-                      <span className='text-base sm:text-lg font-black text-slate-950 block'>
-                        المشرف :
+              <div className='px-8 pt-6 pb-4' dir='rtl'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-6 items-start'>
+                  {/* Right Side (اليمين): المشرف */}
+                  <div className='space-y-3 text-right bg-slate-50/60 p-4 rounded-xl border border-slate-200/80'>
+                    <div className='space-y-1'>
+                      <span className='text-xs font-bold text-slate-500 block'>
+                        المشرف معد التقرير:
                       </span>
-                      <span className='text-base sm:text-lg font-bold text-slate-900 block'>
+                      <span className='text-base font-black text-slate-950 block'>
                         {t.supervisor_name || '—'}
                       </span>
                     </div>
-                    <div className='space-y-1 pt-1'>
-                      <span className='text-base sm:text-lg font-black text-slate-950 block'>
-                        التوقيع :
-                      </span>
-                      <div className='w-48 border-b-2 border-slate-400 min-h-[40px]'></div>
+                    <div className='pt-2'>
+                      <span className='text-xs font-bold text-slate-500 block mb-1'>التوقيع:</span>
+                      <div className='w-48 border-b-2 border-slate-400 min-h-[36px]'></div>
                     </div>
                   </div>
 
                   {/* Left Side (الشمال): إجراء الإدارة */}
-                  <div className='min-w-[220px] max-w-[45%] flex-1 space-y-3 text-right'>
-                    <p className='text-base sm:text-lg font-black text-slate-950'>إجراء الإدارة /</p>
-                    <div className='w-full min-h-[60px] border-b-2 border-dashed border-slate-300'></div>
+                  <div className='space-y-2 text-right bg-slate-50/60 p-4 rounded-xl border border-dashed border-slate-300 min-h-[110px]'>
+                    <span className='text-xs font-bold text-slate-600 block'>
+                      إجراء وتوجيه الإدارة:
+                    </span>
+                    <div className='w-full min-h-[60px]'></div>
                   </div>
                 </div>
               </div>
