@@ -338,8 +338,10 @@ export const auditApi = {
 // Admin Management API
 export const adminApi = {
   getAll: async () => {
-    const res = await apiClient.get<Admin[]>('/users');
-    return res.data;
+    const res = await apiClient.get<any>('/users');
+    if (Array.isArray(res.data)) return res.data as Admin[];
+    if (res.data && Array.isArray((res.data as any).data)) return (res.data as any).data as Admin[];
+    return [] as Admin[];
   },
   create: async (data: {
     name: string;
@@ -381,8 +383,10 @@ export const adminApi = {
 // Roles & Permissions API
 export const roleApi = {
   getAll: async () => {
-    const res = await apiClient.get<Role[]>('/roles');
-    return res.data;
+    const res = await apiClient.get<any>('/roles');
+    if (Array.isArray(res.data)) return res.data as Role[];
+    if (res.data && Array.isArray((res.data as any).data)) return (res.data as any).data as Role[];
+    return [] as Role[];
   },
   getByID: async (id: string) => {
     const res = await apiClient.get<Role>(`/roles/${id}`);
@@ -626,8 +630,11 @@ export const attendanceApi = {
 // Branch API
 export const branchApi = {
   getAll: async () => {
-    const res = await apiClient.get<Branch[]>('/branches');
-    return res.data;
+    const res = await apiClient.get<any>('/branches');
+    if (Array.isArray(res.data)) return res.data as Branch[];
+    if (res.data && Array.isArray((res.data as any).data))
+      return (res.data as any).data as Branch[];
+    return [] as Branch[];
   },
   create: async (name: string) => {
     const res = await apiClient.post<Branch>('/branches', { name });
@@ -1019,9 +1026,12 @@ export interface NotificationResponse {
 }
 
 export const notificationApi = {
-  getAll: async (params?: { status?: string }) => {
-    const res = await apiClient.get<NotificationResponse[]>('/notifications', { params });
-    return res.data;
+  getAll: async (params?: { status?: string }): Promise<NotificationResponse[]> => {
+    const res = await apiClient.get<any>('/notifications', { params });
+    if (Array.isArray(res.data)) return res.data as NotificationResponse[];
+    if (res.data && Array.isArray((res.data as any).data))
+      return (res.data as any).data as NotificationResponse[];
+    return [] as NotificationResponse[];
   },
   markAsRead: async (id: string) => {
     const res = await apiClient.put(`/notifications/${id}/read`);

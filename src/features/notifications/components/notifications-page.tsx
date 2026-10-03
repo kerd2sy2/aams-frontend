@@ -40,7 +40,23 @@ export default function NotificationsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] })
   });
 
-  const notifications = (rawNotifications || []).map((n: NotificationResponse) => {
+  interface PageNotificationItem {
+    id: string;
+    title: string;
+    body: string;
+    type?: string;
+    status: NotificationStatus;
+    createdAt: string;
+    actions: { id: string; label: string; type: ActionType }[];
+  }
+
+  const notifList: NotificationResponse[] = Array.isArray(rawNotifications)
+    ? rawNotifications
+    : Array.isArray((rawNotifications as any)?.data)
+      ? (rawNotifications as any).data
+      : [];
+
+  const notifications: PageNotificationItem[] = notifList.map((n: NotificationResponse) => {
     let actions: { id: string; label: string; type: ActionType }[] = [];
     if (n.type === 'iqama_expiry') {
       actions = [{ id: 'view-employee', label: 'عرض الموظف', type: 'redirect' as ActionType }];
@@ -66,15 +82,17 @@ export default function NotificationsPage() {
     };
   });
 
-  const count = notifications.filter((n) => n.status === 'unread').length;
+  const count = notifications.filter((n: PageNotificationItem) => n.status === 'unread').length;
 
   const handleMarkAsRead = (id: string) => markAsReadMutation.mutate(id);
   const handleMarkAllAsRead = () => markAllAsReadMutation.mutate();
 
-  const unreadNotifications = notifications.filter((n) => n.status === 'unread');
-  const readNotifications = notifications.filter((n) => n.status === 'read');
+  const unreadNotifications = notifications.filter(
+    (n: PageNotificationItem) => n.status === 'unread'
+  );
+  const readNotifications = notifications.filter((n: PageNotificationItem) => n.status === 'read');
 
-  const renderList = (items: typeof notifications) => {
+  const renderList = (items: PageNotificationItem[]) => {
     if (items.length === 0) {
       return (
         <div className='flex flex-col items-center justify-center py-16'>
@@ -86,7 +104,7 @@ export default function NotificationsPage() {
 
     return (
       <div className='flex flex-col gap-2'>
-        {items.map((notification) => (
+        {items.map((notification: PageNotificationItem) => (
           <NotificationCard
             key={notification.id}
             id={notification.id}

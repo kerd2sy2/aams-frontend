@@ -48,7 +48,22 @@ export function NotificationCenter() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] })
   });
 
-  const notifications = (rawNotifications || []).map((n: NotificationResponse) => ({
+  interface TransformedNotification {
+    id: string;
+    title: string;
+    body: string;
+    status: NotificationStatus;
+    createdAt: string;
+    actions: { id: string; label: string; type: ActionType }[];
+  }
+
+  const notifList: NotificationResponse[] = Array.isArray(rawNotifications)
+    ? rawNotifications
+    : Array.isArray((rawNotifications as any)?.data)
+      ? (rawNotifications as any).data
+      : [];
+
+  const notifications: TransformedNotification[] = notifList.map((n: NotificationResponse) => ({
     id: n.id,
     title: n.title,
     body: n.body,
@@ -60,7 +75,9 @@ export function NotificationCenter() {
         : []
   }));
 
-  const unreadCount = notifications.filter((n) => n.status === 'unread').length;
+  const unreadCount = notifications.filter(
+    (n: TransformedNotification) => n.status === 'unread'
+  ).length;
   const count = unreadCount;
   const visibleNotifications = notifications.slice(0, MAX_VISIBLE);
 
@@ -111,7 +128,7 @@ export function NotificationCenter() {
             </div>
           ) : (
             <div className='flex flex-col gap-1 p-2'>
-              {visibleNotifications.map((notification) => (
+              {visibleNotifications.map((notification: TransformedNotification) => (
                 <NotificationCard
                   key={notification.id}
                   id={notification.id}
