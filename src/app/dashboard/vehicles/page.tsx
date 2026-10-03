@@ -492,14 +492,14 @@ export default function VehiclesPage() {
                             ) : (
                               <>
                                 <div className='font-mono font-bold text-foreground'>
-                                  {vehicle.current_km.toLocaleString('en-US')}{' '}
+                                  {(vehicle.current_km ?? 0).toLocaleString('en-US')}{' '}
                                   <span className='text-xs font-normal text-muted-foreground'>
                                     كم
                                   </span>
                                 </div>
                                 <div className='text-[10px] text-muted-foreground font-mono'>
-                                  المسافة الكلية: {vehicle.total_distance.toLocaleString('en-US')}{' '}
-                                  كم
+                                  المسافة الكلية:{' '}
+                                  {(vehicle.total_distance ?? 0).toLocaleString('en-US')} كم
                                 </div>
                               </>
                             )}
@@ -514,7 +514,10 @@ export default function VehiclesPage() {
                                   className='text-[11px] font-medium gap-1'
                                 >
                                   <Icons.warning className='size-3' />
-                                  يجب غيار الزيت! ({drivenSinceOil.toLocaleString('en-US')} كم)
+                                  يجب غيار الزيت! ({(drivenSinceOil ?? 0).toLocaleString(
+                                    'en-US'
+                                  )}{' '}
+                                  كم)
                                 </Badge>
                               ) : (
                                 <div className='flex items-center gap-1.5'>
@@ -527,7 +530,8 @@ export default function VehiclesPage() {
                                 </div>
                               )}
                               <p className='text-[10px] text-muted-foreground font-mono'>
-                                آخر تغيير: {vehicle.last_oil_change_km.toLocaleString('en-US')} كم
+                                آخر تغيير:{' '}
+                                {(vehicle.last_oil_change_km ?? 0).toLocaleString('en-US')} كم
                               </p>
                             </div>
                           </TableCell>
@@ -907,7 +911,7 @@ export default function VehiclesPage() {
               </DialogTitle>
               <DialogDescription className='text-xs'>
                 سيتم تصفير عداد الزيت وتعيين قراءة آخر غيار زيت لتكون مساوية للعداد الحالي (
-                {oilChangingVehicle?.current_km.toLocaleString('en-US')} كم).
+                {(oilChangingVehicle?.current_km ?? 0).toLocaleString('en-US')} كم).
               </DialogDescription>
             </DialogHeader>
 
@@ -915,7 +919,7 @@ export default function VehiclesPage() {
               <div className='flex justify-between'>
                 <span className='text-muted-foreground'>العداد الحالي للدباب:</span>
                 <span className='font-mono font-bold'>
-                  {oilChangingVehicle?.current_km.toLocaleString('en-US')} كم
+                  {(oilChangingVehicle?.current_km ?? 0).toLocaleString('en-US')} كم
                 </span>
               </div>
               <div className='flex justify-between'>

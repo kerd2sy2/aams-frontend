@@ -718,6 +718,19 @@ export const custodyApi = {
   }
 };
 
+// Helper to normalize vehicle item whether backend returns { vehicle: {...}, needs_oil_change, remaining_oil_km } or flat Vehicle
+function normalizeVehicle(item: any): Vehicle {
+  if (!item) return {} as Vehicle;
+  if (item.vehicle && typeof item.vehicle === 'object') {
+    return {
+      ...item.vehicle,
+      needs_oil_change: item.needs_oil_change ?? item.vehicle.needs_oil_change,
+      remaining_oil_km: item.remaining_oil_km ?? item.vehicle.remaining_oil_km
+    };
+  }
+  return item as Vehicle;
+}
+
 // Vehicle Management API (الدبابات والمركبات)
 export const vehicleApi = {
   getAll: async (params?: {
@@ -727,18 +740,24 @@ export const vehicleApi = {
     search?: string;
     page?: number;
     limit?: number;
-  }) => {
-    const res = await apiClient.get<{
-      data: Vehicle[];
-      total: number;
-      page: number;
-      limit: number;
-    }>('/vehicles', { params });
-    return res.data;
+  }): Promise<{ data: Vehicle[]; total: number; page: number; limit: number }> => {
+    const res = await apiClient.get<any>('/vehicles', { params });
+    const rawList = Array.isArray(res.data)
+      ? res.data
+      : Array.isArray(res.data?.data)
+        ? res.data.data
+        : [];
+    const normalizedData: Vehicle[] = rawList.map(normalizeVehicle);
+    return {
+      data: normalizedData,
+      total: typeof res.data?.total === 'number' ? res.data.total : normalizedData.length,
+      page: typeof res.data?.page === 'number' ? res.data.page : 1,
+      limit: typeof res.data?.limit === 'number' ? res.data.limit : normalizedData.length
+    };
   },
-  getById: async (id: string) => {
-    const res = await apiClient.get<Vehicle>(`/vehicles/${id}`);
-    return res.data;
+  getById: async (id: string): Promise<Vehicle> => {
+    const res = await apiClient.get<any>(`/vehicles/${id}`);
+    return normalizeVehicle(res.data);
   },
   create: async (data: Partial<Vehicle>) => {
     const res = await apiClient.post<Vehicle>('/vehicles', data);
