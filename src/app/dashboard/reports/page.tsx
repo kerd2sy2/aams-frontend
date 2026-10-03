@@ -44,6 +44,36 @@ import type { Employee, PaginatedResponse, WorkSessionDetail } from '@/types/aam
 const PAGE_SIZE = 10;
 const ALL_EMPLOYEES = '__all__';
 
+function getWorkingDuration(row: WorkSessionDetail): string {
+  if (row.working_duration && row.working_duration.trim() && row.working_duration !== '—') {
+    return row.working_duration;
+  }
+  if (!row.start_time) return '—';
+  const start = new Date(row.start_time);
+  if (isNaN(start.getTime())) return '—';
+
+  if (!row.end_time || row.status === 'ACTIVE') {
+    return 'قائم الآن';
+  }
+
+  const end = new Date(row.end_time);
+  if (isNaN(end.getTime())) return '—';
+
+  const diffMs = end.getTime() - start.getTime();
+  if (diffMs <= 0) return '0 د';
+
+  const totalMinutes = Math.floor(diffMs / (1000 * 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours > 0 && minutes > 0) {
+    return `${hours} س و ${minutes} د`;
+  } else if (hours > 0) {
+    return `${hours} س`;
+  }
+  return `${minutes} د`;
+}
+
 function getErrorMessage(err: unknown, fallback: string): string {
   const e = err as {
     response?: { data?: { error?: string; message?: string }; status?: number };
@@ -346,7 +376,7 @@ export default function ReportsPage() {
                       </div>
                       <div className='flex flex-col items-end gap-1 shrink-0'>
                         <Badge variant='secondary' className='font-bold'>
-                          {row.working_duration}
+                          {getWorkingDuration(row)}
                         </Badge>
                         {row.is_reviewed ? (
                           <Badge className='bg-emerald-100 text-emerald-700 border-emerald-300 text-[10px] dark:bg-emerald-950/30 dark:text-emerald-400'>
@@ -485,7 +515,7 @@ export default function ReportsPage() {
                         </TableCell>
                         <TableCell className='py-2.5 text-center'>
                           <Badge variant='secondary' className='font-bold text-xs tabular-nums'>
-                            {row.working_duration}
+                            {getWorkingDuration(row)}
                           </Badge>
                         </TableCell>
                         <TableCell className='py-2.5 text-center font-mono text-xs tabular-nums'>
