@@ -47,6 +47,7 @@ const CATEGORY_NAMES: Record<string, string> = {
   fuel: 'الوقود',
   license: 'رخصة القيادة',
   spare_parts: 'قطع غيار',
+  advance: 'سلفة',
   other: 'مصاريف أخرى',
   custody: 'مبلغ عهدة'
 };
@@ -422,11 +423,17 @@ export default function CustodyLogsPage() {
                             <span
                               className={cn(
                                 'text-base',
-                                (isAddCustody || isDeleteExpense) && 'text-emerald-600 dark:text-emerald-400',
-                                (isAddExpense || isDeleteCustody) && 'text-rose-600 dark:text-rose-400'
+                                (isAddCustody || isDeleteExpense) &&
+                                  'text-emerald-600 dark:text-emerald-400',
+                                (isAddExpense || isDeleteCustody) &&
+                                  'text-rose-600 dark:text-rose-400'
                               )}
                             >
-                              {(isAddCustody || isDeleteExpense) ? '+' : (isAddExpense || isDeleteCustody) ? '-' : ''}
+                              {isAddCustody || isDeleteExpense
+                                ? '+'
+                                : isAddExpense || isDeleteCustody
+                                  ? '-'
+                                  : ''}
                               {money(log.amount)} ريال
                             </span>
                           </td>

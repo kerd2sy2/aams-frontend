@@ -17,7 +17,7 @@ import { formatRiyadh } from '@/lib/aams/riyadh-time';
 import { custodyApi, branchApi, authApi } from '@/lib/aams/services';
 import type { CustodyDay } from '@/types/aams';
 
-type CategoryKey = 'fuel' | 'license' | 'spare_parts' | 'other';
+type CategoryKey = 'fuel' | 'license' | 'spare_parts' | 'advance' | 'other';
 
 const CATEGORIES: {
   key: CategoryKey;
@@ -46,6 +46,13 @@ const CATEGORIES: {
     icon: Icons.tool,
     color: 'text-purple-600 dark:text-purple-400',
     bg: 'bg-purple-50 border-purple-200 dark:bg-purple-950/30 dark:border-purple-800'
+  },
+  {
+    key: 'advance',
+    label: 'سلفة',
+    icon: Icons.dollarSign,
+    color: 'text-indigo-600 dark:text-indigo-400',
+    bg: 'bg-indigo-50 border-indigo-200 dark:bg-indigo-950/30 dark:border-indigo-800'
   },
   {
     key: 'other',
@@ -385,7 +392,7 @@ export default function CustodyPage() {
                 </div>
 
                 {/* Category pills */}
-                <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+                <div className='grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5'>
                   {CATEGORIES.map((cat) => {
                     const Icon = cat.icon;
                     const active = activeCategory === cat.key;
@@ -487,7 +494,7 @@ export default function CustodyPage() {
                     const list = todayDay.expenses.filter((e) => e.category === cat.key);
                     if (list.length === 0) return null;
                     const Icon = cat.icon;
-                    const total = todayDay.totals[cat.key];
+                    const total = todayDay.totals?.[cat.key] ?? 0;
                     return (
                       <div key={cat.key}>
                         <div className='mb-1.5 flex items-center gap-2'>

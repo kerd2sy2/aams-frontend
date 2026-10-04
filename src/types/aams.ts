@@ -380,7 +380,7 @@ export interface AppSettings {
 export interface CustodyExpense {
   id: string;
   custody_day_id: string;
-  category: 'fuel' | 'license' | 'spare_parts' | 'other';
+  category: 'fuel' | 'license' | 'spare_parts' | 'advance' | 'other' | string;
   amount: number;
   recipient_name: string;
   created_at: string;
@@ -390,6 +390,7 @@ export interface CustodyTotals {
   fuel: number;
   license: number;
   spare_parts: number;
+  advance?: number;
   other: number;
 }
 
