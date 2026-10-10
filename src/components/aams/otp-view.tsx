@@ -97,9 +97,12 @@ export default function OtpView() {
 
   // Stats calculation
   const stats = useMemo(() => {
-    const pending = data.filter((o) => o.status === 'PENDING').length;
-    const verified = data.filter((o) => o.status === 'VERIFIED').length;
-    const expired = data.filter((o) => o.status === 'EXPIRED' || o.status === 'CANCELLED').length;
+    const pending = data.filter((o) => (o.status || '').toUpperCase() === 'PENDING').length;
+    const verified = data.filter((o) => (o.status || '').toUpperCase() === 'VERIFIED').length;
+    const expired = data.filter((o) => {
+      const s = (o.status || '').toUpperCase();
+      return s === 'EXPIRED' || s === 'CANCELLED';
+    }).length;
     return { pending, verified, expired, total: data.length };
   }, [data]);
 
@@ -339,7 +342,8 @@ export default function OtpView() {
                 ) : (
                   data.map((otp) => {
                     const remaining = getTimeRemaining(otp.expires_at);
-                    const isPending = otp.status === 'PENDING' && !remaining.isExpired;
+                    const statusUpper = (otp.status || '').toUpperCase();
+                    const isPending = (statusUpper === 'PENDING' || statusUpper === '') && !remaining.isExpired;
 
                     return (
                       <TableRow
@@ -386,7 +390,7 @@ export default function OtpView() {
                               className={`px-4 py-1.5 rounded-xl font-mono text-xl font-black tracking-widest border shadow-sm ${
                                 isPending
                                   ? 'bg-gradient-to-r from-orange-500/20 to-amber-500/20 text-orange-600 dark:text-orange-400 border-orange-500/40 ring-2 ring-orange-500/20'
-                                  : otp.status === 'VERIFIED'
+                                  : statusUpper === 'VERIFIED'
                                     ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                                     : 'bg-muted text-muted-foreground border-border opacity-60'
                               }`}
@@ -411,10 +415,15 @@ export default function OtpView() {
 
                         {/* Status */}
                         <TableCell>
-                          {otp.status === 'VERIFIED' ? (
+                          {statusUpper === 'VERIFIED' ? (
                             <Badge className='bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'>
                               <IconCheck className='size-3 mr-1' />
                               {isRTL ? 'تم التوثيق' : 'Verified'}
+                            </Badge>
+                          ) : statusUpper === 'CANCELLED' || statusUpper === 'REJECTED' ? (
+                            <Badge variant='outline' className='text-muted-foreground'>
+                              <IconX className='size-3 mr-1' />
+                              {isRTL ? 'ملغي' : 'Cancelled'}
                             </Badge>
                           ) : isPending ? (
                             <Badge className='bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30 hover:bg-orange-500/20 animate-pulse'>
@@ -422,15 +431,9 @@ export default function OtpView() {
                               {isRTL ? 'نشط (بانتظار المندوب)' : 'Pending Entry'}
                             </Badge>
                           ) : (
-                            <Badge variant='outline' className='text-muted-foreground'>
+                            <Badge variant='outline' className='text-destructive/80 border-destructive/30'>
                               <IconX className='size-3 mr-1' />
-                              {otp.status === 'CANCELLED'
-                                ? isRTL
-                                  ? 'ملغي'
-                                  : 'Cancelled'
-                                : isRTL
-                                  ? 'منتهي الصلاحية'
-                                  : 'Expired'}
+                              {isRTL ? 'منتهي الصلاحية' : 'Expired'}
                             </Badge>
                           )}
                         </TableCell>
