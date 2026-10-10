@@ -440,11 +440,18 @@ export default function OtpView() {
 
                         {/* Device Info */}
                         <TableCell>
-                          <div className='flex items-center gap-1.5 text-xs text-muted-foreground'>
-                            <IconDeviceMobile className='size-4 shrink-0 text-foreground/70' />
-                            <span className='truncate max-w-[140px]'>
-                              {otp.device_info || (isRTL ? 'تطبيق المندوب' : 'Delegate App')}
-                            </span>
+                          <div className='flex items-start gap-1.5 text-xs text-muted-foreground'>
+                            <IconDeviceMobile className='size-4 shrink-0 text-foreground/70 mt-0.5' />
+                            <div className='flex flex-col min-w-0'>
+                              <span className='font-medium text-foreground truncate max-w-[200px]' title={otp.device_info}>
+                                {otp.device_info || (isRTL ? 'هاتف المندوب' : 'Delegate Phone')}
+                              </span>
+                              {otp.device_uuid && (
+                                <span className='text-[10px] text-muted-foreground/80 font-mono truncate max-w-[200px]' title={otp.device_uuid}>
+                                  {isRTL ? 'معرّف:' : 'ID:'} {otp.device_uuid.replace(/^dev_/, '')}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
 
