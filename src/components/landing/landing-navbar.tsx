@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShieldCheck, Download, Menu, X } from 'lucide-react';
+import { ShieldCheck, QrCode, Menu, X, Download } from 'lucide-react';
 
 interface LandingNavbarProps {
   logoUrl?: string;
@@ -17,11 +17,11 @@ export function LandingNavbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className='sticky top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs'>
+    <header className='sticky top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex items-center justify-between h-20'>
-          {/* Official Brand Logo */}
-          <Link href='/' className='flex items-center gap-3.5 group'>
+          {/* Brand Lockup: Exactly matching the mobile driver app header */}
+          <Link href='/' className='flex items-center gap-3.5 group cursor-pointer select-none'>
             <div className='relative w-12 h-12 flex items-center justify-center shrink-0'>
               <Image
                 src={logoUrl || '/logo.png'}
@@ -33,17 +33,17 @@ export function LandingNavbar({
               />
             </div>
             <div className='flex flex-col text-right'>
-              <span className='font-black text-xl text-slate-900 tracking-tight leading-none'>
-                AAMS <span className='text-orange-600 font-bold'>LOGISTICS</span>
+              <span className='font-black text-2xl text-slate-900 tracking-wider leading-none'>
+                AAMS
               </span>
-              <span className='text-xs text-slate-500 font-medium mt-1'>
-                شركة أسطول التوصيل للخدمات اللوجستية
+              <span className='text-[10px] sm:text-[11px] font-bold text-orange-600 tracking-[3px] uppercase mt-1'>
+                LOGISTICS
               </span>
             </div>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className='hidden md:flex items-center gap-8'>
+          <nav className='hidden md:flex items-center gap-7'>
             <a
               href='#about'
               className='text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors'
@@ -70,7 +70,7 @@ export function LandingNavbar({
             </a>
           </nav>
 
-          {/* CTAs */}
+          {/* Action CTAs */}
           <div className='hidden sm:flex items-center gap-3'>
             <Link
               href='/login'
@@ -79,11 +79,13 @@ export function LandingNavbar({
               <ShieldCheck className='w-4 h-4 text-orange-600' />
               <span>بوابة المشرفين</span>
             </Link>
+
+            {/* Mobile App Style QR Code Trigger button */}
             <a
               href='#download'
-              className='inline-flex items-center gap-2 py-2.5 px-5 rounded-xl text-sm font-bold text-white bg-orange-600 hover:bg-orange-700 shadow-sm shadow-orange-600/30 transition-all duration-150'
+              className='inline-flex items-center gap-2 py-2.5 px-4.5 rounded-xl text-sm font-bold text-white bg-orange-600 hover:bg-orange-700 shadow-sm transition-all duration-150'
             >
-              <Download className='w-4 h-4' />
+              <QrCode className='w-4 h-4' />
               <span>تحميل التطبيق</span>
             </a>
           </div>

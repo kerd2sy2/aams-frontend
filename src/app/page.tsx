@@ -22,7 +22,6 @@ export const metadata: Metadata = {
     'توصيل الطلبات',
     'كيتا',
     'نينجا',
-    'تويو',
     'Google Play'
   ],
   openGraph: {
@@ -83,8 +82,8 @@ export default async function LandingPage() {
 
       {/* Main Content */}
       <main>
-        {/* 2. Hero with Company Overview + Dynamic App Download QR */}
-        <LandingHero appUrl={appUrl} logoUrl={logoUrl} />
+        {/* 2. Hero with Company Overview */}
+        <LandingHero />
 
         {/* 3. About Company and Operational Pillars */}
         <LandingAbout />
@@ -92,7 +91,7 @@ export default async function LandingPage() {
         {/* 4. Features & Mobile App Workflows */}
         <LandingFeatures />
 
-        {/* 5. Delivery Partners (Keeta, Ninja, ToYou) */}
+        {/* 5. Delivery Partners (Keeta, Ninja) */}
         <LandingPartners />
 
         {/* 6. Download Section with QR Code */}
