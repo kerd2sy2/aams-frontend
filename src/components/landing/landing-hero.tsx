@@ -12,12 +12,12 @@ interface LandingHeroProps {
 
 export function LandingHero({ heroImage = '/hero-car.png' }: LandingHeroProps) {
   return (
-    <section className='relative pt-8 pb-16 md:pt-12 md:pb-24 bg-white overflow-hidden border-b border-slate-100'>
+    <section className='relative pt-8 pb-16 md:pt-14 md:pb-24 bg-white overflow-hidden border-b border-slate-100'>
       {/* Crisp technical architectural grid background */}
       <div className='absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none' />
 
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10'>
-        <div className='grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center'>
+        <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center'>
           {/* Right Column: Hero Content */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
@@ -104,33 +104,22 @@ export function LandingHero({ heroImage = '/hero-car.png' }: LandingHeroProps) {
             </div>
           </motion.div>
 
-          {/* Left Column: Delivery Fleet Car Image */}
+          {/* Left Column: Direct Vehicle Showcase (No Card, No Frame, Directly in Hero) */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.15 }}
-            className='lg:col-span-5 flex justify-center lg:justify-end'
+            className='lg:col-span-5 flex items-center justify-center'
           >
-            <div className='w-full max-w-lg rounded-3xl overflow-hidden border border-slate-200/90 bg-white p-3 shadow-xl shadow-slate-200/70'>
-              <div className='relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100'>
-                <Image
-                  src={heroImage}
-                  alt='أسطول AAMS للخدمات اللوجستية'
-                  fill
-                  sizes='(max-width: 768px) 100vw, 520px'
-                  className='object-cover object-center transition-transform duration-500 hover:scale-102'
-                  priority
-                />
-              </div>
-
-              {/* Status bar under car photo */}
-              <div className='mt-3 flex items-center justify-between px-2 text-xs'>
-                <div className='flex items-center gap-2'>
-                  <span className='w-2 h-2 rounded-full bg-emerald-500 animate-pulse' />
-                  <span className='font-bold text-slate-800'>أسطول مركبات معتمد وموثق</span>
-                </div>
-                <span className='font-semibold text-orange-600'>AAMS Fleet</span>
-              </div>
+            <div className='relative w-full max-w-lg lg:max-w-none flex justify-center'>
+              <Image
+                src={heroImage}
+                alt='أسطول AAMS للخدمات اللوجستية'
+                width={620}
+                height={465}
+                className='w-full h-auto max-h-[460px] object-contain drop-shadow-2xl rounded-2xl'
+                priority
+              />
             </div>
           </motion.div>
         </div>

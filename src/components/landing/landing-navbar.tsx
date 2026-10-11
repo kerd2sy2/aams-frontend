@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ShieldCheck, QrCode, Menu, X } from 'lucide-react';
@@ -16,66 +16,59 @@ export function LandingNavbar({
 }: LandingNavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visible, setVisible] = useState(true);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const lastScrollY = useRef(0);
-  const scrollDelta = useRef(0);
 
   useEffect(() => {
-    const handleScroll = () => {
+    let lastY = window.scrollY;
+    let ticking = false;
+
+    const updateScroll = () => {
       const currentY = window.scrollY;
-      const diff = currentY - lastScrollY.current;
-      lastScrollY.current = currentY;
+      const diff = currentY - lastY;
 
-      // Update background shadow state
-      setIsScrolled(currentY > 15);
-
-      // At the top of the page: always show
-      if (currentY <= 20) {
-        scrollDelta.current = 0;
+      // When near the top, always keep header visible
+      if (currentY <= 60) {
         setVisible(true);
-        return;
+      }
+      // Scrolling DOWN with noticeable delta
+      else if (diff > 10 && currentY > 100) {
+        setVisible(false);
+      }
+      // Scrolling UP with noticeable delta
+      else if (diff < -8) {
+        setVisible(true);
       }
 
-      // Scrolling DOWN
-      if (diff > 0) {
-        if (scrollDelta.current < 0) scrollDelta.current = 0;
-        scrollDelta.current += diff;
-        // Hide after 8px of accumulated downward scroll
-        if (scrollDelta.current >= 8 && currentY > 72) {
-          setVisible(false);
-        }
-      }
-      // Scrolling UP
-      else if (diff < 0) {
-        if (scrollDelta.current > 0) scrollDelta.current = 0;
-        scrollDelta.current += diff;
-        // Show immediately after 6px of accumulated upward scroll
-        if (scrollDelta.current <= -6) {
-          setVisible(true);
-        }
+      lastY = currentY;
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateScroll);
+        ticking = true;
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   return (
     <>
-      {/* Spacer to prevent content jump when navbar is fixed */}
+      {/* Spacer to prevent content jump */}
       <div className='h-[72px] w-full' />
 
       <header
-        className={`fixed top-0 left-0 right-0 z-50 h-[72px] bg-white/95 backdrop-blur-md border-b transition-all duration-300 ease-in-out ${
-          isScrolled ? 'border-slate-200 shadow-sm' : 'border-slate-100'
-        } ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
+        className={`fixed top-0 left-0 right-0 z-50 h-[72px] bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs will-change-transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          visible ? 'translate-y-0' : '-translate-y-full'
+        }`}
       >
         <div className='max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8'>
           <div className='flex items-center justify-between h-full'>
             {/* Right Side (RTL): Clean Logo and Brand Lockup */}
             <Link
               href='/'
-              className='flex items-center gap-3 group cursor-pointer select-none transition-transform active:scale-95'
+              className='flex items-center gap-3 group cursor-pointer select-none transition-transform active:scale-98'
             >
               {/* Clean logo directly on navbar without background or border */}
               <div className='relative w-11 h-11 flex items-center justify-center shrink-0'>
@@ -89,7 +82,7 @@ export function LandingNavbar({
                 />
               </div>
 
-              {/* Clean brand text */}
+              {/* Clean brand text: AAMS in all caps, Logistics capitalized, without any icons */}
               <div className='flex flex-col text-right justify-center'>
                 <span className='font-extrabold text-[16px] text-slate-900 tracking-tight leading-tight group-hover:text-orange-600 transition-colors'>
                   AAMS Logistics
@@ -128,12 +121,12 @@ export function LandingNavbar({
               </a>
             </nav>
 
-            {/* Left Side (RTL): Actions matching HomeHeader Action buttons */}
+            {/* Left Side (RTL): Action Buttons */}
             <div className='flex items-center gap-2 sm:gap-3'>
-              {/* QR Button: Exactly matching headerQrBtn in HomeHeader */}
+              {/* QR Button */}
               <a
                 href='#download'
-                title='مسح رمز QR وتحميل التطبيق'
+                title='تحميل التطبيق'
                 className='flex items-center justify-center p-2.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200/80 transition-colors active:scale-95'
                 aria-label='تحميل التطبيق'
               >
