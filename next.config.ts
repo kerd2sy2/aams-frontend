@@ -1,5 +1,4 @@
 import type { NextConfig } from 'next';
-import { withSentryConfig } from '@sentry/nextjs';
 
 // Define the base Next.js configuration
 const baseConfig: NextConfig = {
@@ -66,11 +65,14 @@ if (
   Boolean(process.env.SENTRY_AUTH_TOKEN) &&
   Boolean(process.env.NEXT_PUBLIC_SENTRY_ORG)
 ) {
-  configWithPlugins = withSentryConfig(configWithPlugins, {
-    org: process.env.NEXT_PUBLIC_SENTRY_ORG,
-    project: process.env.NEXT_PUBLIC_SENTRY_PROJECT,
-    authToken: process.env.SENTRY_AUTH_TOKEN,
-    silent: true,
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { withSentryConfig } = require('@sentry/nextjs');
+    configWithPlugins = withSentryConfig(configWithPlugins, {
+      org: process.env.NEXT_PUBLIC_SENTRY_ORG,
+      project: process.env.NEXT_PUBLIC_SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      silent: true,
 
     // Upload a larger set of source maps for prettier stack traces (increases build time)
     widenClientFileUpload: true,
@@ -95,6 +97,9 @@ if (
       disable: false
     }
   });
+  } catch (err) {
+    console.warn('Failed to load Sentry plugin:', err);
+  }
 }
 
 const nextConfig = configWithPlugins;

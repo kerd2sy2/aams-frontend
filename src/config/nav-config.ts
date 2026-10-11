@@ -192,15 +192,7 @@ export const navGroups: NavGroup[] = [
         ]
       },
 
-      // 12. رموز التحقق OTP
-      {
-        title: 'OTP Verifications',
-        url: '/dashboard/otp',
-        icon: 'key',
-        permission: 'work.view'
-      },
-
-      // 13. مراجعة وتدقيق العدادات
+      // 12. مراجعة وتدقيق العدادات
       {
         title: 'Odometer Audits',
         url: '/dashboard/odometer-audits',
