@@ -7,71 +7,100 @@ import { LandingFeatures } from '@/components/landing/landing-features';
 import { LandingPartners } from '@/components/landing/landing-partners';
 import { LandingDownloadSection } from '@/components/landing/landing-download-section';
 import { LandingFooter } from '@/components/landing/landing-footer';
+import type { AppSettings } from '@/types/aams';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://aams.kerd2sy.com'),
-  title: 'AAMS Logistics | المنظومة الذكية لإدارة الأساطيل وتطبيق المناديب',
+  title: 'AAMS Logistics | شركة أسطول التوصيل للخدمات اللوجستية',
   description:
-    'الصفحة الرسمية لشركة AAMS اللوجستية وتطبيق المناديب الميداني على متجر Google Play. حلول متكاملة لإدارة الأساطيل، قراءة العدادات بالذكاء الاصطناعي، وتتبع الورديات لحظياً.',
+    'شركة AAMS للخدمات اللوجستية - المنظومة التشغيلية المتكاملة لإدارة أساطيل التوصيل وتشغيل المناديب الميدانيين بالمملكة العربية السعودية.',
   keywords: [
     'AAMS',
     'AAMS Logistics',
-    'إدارة الأساطيل',
+    'أسطول التوصيل',
     'تطبيق المناديب',
     'توصيل الطلبات',
     'كيتا',
     'نينجا',
     'تويو',
-    'قراءة العدادات بالذكاء الاصطناعي',
     'Google Play'
   ],
   openGraph: {
-    title: 'AAMS Logistics | المنظومة الذكية لإدارة الأساطيل وتطبيق المناديب',
+    title: 'AAMS Logistics | شركة أسطول التوصيل للخدمات اللوجستية',
     description:
-      'الصفحة الرسمية لشركة AAMS اللوجستية وتطبيق المناديب الميداني على Google Play. ابدأ ورديتك وتتبع أداءك بدقة وذكاء.',
+      'المنظومة التشغيلية المتكاملة لإدارة أساطيل التوصيل وتشغيل المناديب الميدانيين بالمملكة العربية السعودية.',
     url: 'https://aams.kerd2sy.com',
     siteName: 'AAMS Logistics',
     type: 'website',
     images: [
       {
-        url: '/logo-glow.png',
-        width: 604,
-        height: 604,
+        url: '/logo.png',
+        width: 240,
+        height: 240,
         alt: 'AAMS Logistics'
       }
     ]
   }
 };
 
-export default function LandingPage() {
+async function getPublicSettings(): Promise<AppSettings> {
+  const fallback: AppSettings = {
+    site_name: 'AAMS Logistics',
+    logo_url: '/logo.png',
+    app_download_url: 'https://play.google.com/store/apps/details?id=com.aams.app'
+  };
+
+  try {
+    const apiHost = process.env.API_HOST || 'http://localhost:8081';
+    const res = await fetch(`${apiHost}/api/v1/settings/public`, {
+      next: { revalidate: 30 }
+    });
+    if (!res.ok) return fallback;
+    const data = await res.json();
+    return {
+      site_name: data.site_name || fallback.site_name,
+      logo_url: data.logo_url || fallback.logo_url,
+      app_download_url: data.app_download_url || fallback.app_download_url
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+export default async function LandingPage() {
+  const settings = await getPublicSettings();
+  const logoUrl = settings.logo_url || '/logo.png';
+  const appUrl =
+    settings.app_download_url || 'https://play.google.com/store/apps/details?id=com.aams.app';
+
   return (
     <div
       dir='rtl'
-      className='min-h-screen bg-[#09090b] text-zinc-100 selection:bg-orange-500/30 selection:text-orange-200 antialiased overflow-x-hidden'
+      className='min-h-screen bg-white text-slate-800 selection:bg-orange-100 selection:text-orange-900 antialiased overflow-x-hidden font-sans'
     >
-      {/* Top Navigation */}
-      <LandingNavbar />
+      {/* 1. Navbar with Official Logo */}
+      <LandingNavbar logoUrl={logoUrl} siteName={settings.site_name} />
 
-      {/* Main Content Sections */}
+      {/* Main Content */}
       <main>
-        {/* 1. Hero Section with Company Intro + QR Card Showcase */}
-        <LandingHero />
+        {/* 2. Hero with Company Overview + Dynamic App Download QR */}
+        <LandingHero appUrl={appUrl} logoUrl={logoUrl} />
 
-        {/* 2. About Company & Vision Pillars */}
+        {/* 3. About Company and Operational Pillars */}
         <LandingAbout />
 
-        {/* 3. Deep-Dive App Features & Capabilities */}
+        {/* 4. Features & Mobile App Workflows */}
         <LandingFeatures />
 
-        {/* 4. Strategic Delivery Partners (Keeta, Ninja, ToYou) */}
+        {/* 5. Delivery Partners (Keeta, Ninja, ToYou) */}
         <LandingPartners />
 
-        {/* 5. Focal Download Section with Large QR Code & Guidance */}
-        <LandingDownloadSection />
+        {/* 6. Download Section with QR Code */}
+        <LandingDownloadSection appUrl={appUrl} logoUrl={logoUrl} />
       </main>
 
-      {/* Official Footer */}
-      <LandingFooter />
+      {/* 7. Footer */}
+      <LandingFooter logoUrl={logoUrl} siteName={settings.site_name} />
     </div>
   );
 }

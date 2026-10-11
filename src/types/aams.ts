@@ -375,6 +375,7 @@ export interface Branch {
 export interface AppSettings {
   site_name: string;
   logo_url: string;
+  app_download_url?: string;
 }
 
 export interface CustodyExpense {

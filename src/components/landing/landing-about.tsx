@@ -1,110 +1,110 @@
 'use client';
 
 import React from 'react';
-import { Target, Shield, Zap, TrendingUp, CheckCircle, Users } from 'lucide-react';
+import { Target, Shield, TrendingUp, Zap, CheckCircle2 } from 'lucide-react';
 
 export function LandingAbout() {
   const pillars = [
     {
       icon: Target,
-      title: 'دقة تشغيلية متناهية',
+      title: 'دقة تشغيلية وتوثيق متكامل',
       description:
-        'إلغاء التسجيل اليدوي للأميال والطلبات عبر أتمتة كاملة وتقنيات رؤية حاسوبية مدعومة بالذكاء الاصطناعي.'
+        'أتمتة كاملة لتسجيل حضور وانصراف المناديب، ومطابقة قراءات عدادات الكيلومتر واللوحات لحماية أصول الأسطول ومنع الأخطاء.'
     },
     {
       icon: Shield,
-      title: 'حماية وصيانة الأسطول',
+      title: 'جدولة الصيانة الدورية',
       description:
-        'مراقبة استباقية لمسافات الدبابات والمركبات، وتنبيهات فورية لجدولة تغيير الزيت والصيانة الدورية لمنع الأعطال.'
+        'متابعة المسافات الفعلية المقطوعة لكل دباب وتنبيهات مسبقة لتغيير الزيت والفحص الدوري لضمان سلامة المركبة واستمرارية العمل.'
     },
     {
       icon: TrendingUp,
-      title: 'حوافز وشفافية للمناديب',
+      title: 'شفافية الحوافز والأهداف',
       description:
-        'لوحة أداء فورية لكل مندوب توضح عدد الطلبات المنجزة، ونسبة تحقيق الهدف الشهري، والراتب المتوقع بدقة.'
+        'لوحة أداء واضحة للمندوب تعرض الطلبات المعتمدة، شريط تحقيق الهدف الشهري، والراتب المتوقع بدقة ودون تعقيد.'
     },
     {
       icon: Zap,
-      title: 'ربط وتشغيل فوري',
+      title: 'تشغيل ميداني على مدار الساعة',
       description:
-        'تكامل كامل وتوزيع ذكي للطلبات بالتعاون مع كبرى منصات التوصيل العاملة في المملكة العربية السعودية.'
+        'توزيع تشغيلي مرن يلبي متطلبات كبرى منصات التوصيل في المملكة، مع دعم ميداني متواصل لحل العقبات فوراً.'
     }
   ];
 
   return (
-    <section id='about' className='py-20 md:py-28 bg-zinc-950/60 relative border-t border-zinc-850'>
+    <section id='about' className='py-20 bg-slate-50 border-b border-slate-200'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         {/* Section Header */}
-        <div className='text-center max-w-3xl mx-auto mb-16'>
-          <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/25 text-orange-400 text-xs font-semibold mb-3'>
-            <span>نبذة عن الشركة ورؤيتنا</span>
-          </div>
-          <h2 className='text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4'>
-            ريادة تقنية في إدارة أساطيل التوصيل السريع
+        <div className='text-center max-w-3xl mx-auto mb-14'>
+          <span className='inline-block px-3 py-1 rounded-md bg-orange-100 text-orange-800 text-xs font-bold mb-3'>
+            عن شركة AAMS
+          </span>
+          <h2 className='text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4'>
+            شريكك التشغيلي الموثوق لإدارة وتنمية الأسطول
           </h2>
-          <p className='text-base sm:text-lg text-zinc-300 leading-relaxed'>
-            تأسست <strong className='text-white'>AAMS Logistics</strong> لتكون الشريك التشغيلي
-            والتقني الأول لمنصات التوصيل والمشرفين والمناديب الميدانيين، مبتكرين بيئة عمل ذكية تحول
-            التحديات الميدانية إلى كفاءة وإنتاجية قياسية.
+          <p className='text-base sm:text-lg text-slate-600 leading-relaxed'>
+            نعمل في <strong className='text-slate-900 font-bold'>AAMS Logistics</strong> على تطوير
+            منظومة عمل ميدانية متقدمة تخدم كلاً من المندوب وإدارة الأسطول، تجمع بين سهولة الاستخدام، دقة
+            التوثيق، وحفظ حقوق جميع الأطراف.
           </p>
         </div>
 
-        {/* Pillars Grid */}
+        {/* Pillars Cards */}
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
           {pillars.map((pillar, idx) => {
             const Icon = pillar.icon;
             return (
               <div
                 key={idx}
-                className='rounded-2xl bg-zinc-900/60 border border-zinc-800 p-6 text-right transition-all duration-300 hover:border-orange-500/40 hover:bg-zinc-900/90 hover:-translate-y-1 group'
+                className='bg-white rounded-2xl border border-slate-200 p-6 text-right shadow-xs hover:shadow-md transition-shadow duration-200'
               >
-                <div className='w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-orange-500/20 transition-all'>
-                  <Icon className='w-6 h-6' />
+                <div className='w-11 h-11 rounded-xl bg-orange-50 border border-orange-100 text-orange-600 flex items-center justify-center mb-5'>
+                  <Icon className='w-5 h-5' />
                 </div>
-                <h3 className='text-lg font-bold text-white mb-2 group-hover:text-orange-400 transition-colors'>
-                  {pillar.title}
-                </h3>
-                <p className='text-sm text-zinc-400 leading-relaxed'>{pillar.description}</p>
+                <h3 className='text-lg font-bold text-slate-900 mb-2'>{pillar.title}</h3>
+                <p className='text-sm text-slate-600 leading-relaxed'>{pillar.description}</p>
               </div>
             );
           })}
         </div>
 
-        {/* Company Commitment Banner */}
-        <div className='mt-12 rounded-3xl bg-gradient-to-r from-zinc-900 via-zinc-900/95 to-zinc-900/80 border border-zinc-800 p-8 sm:p-10 text-right relative overflow-hidden'>
-          <div className='absolute -left-10 -bottom-10 w-60 h-60 bg-orange-500/10 rounded-full blur-3xl pointer-events-none' />
-
-          <div className='grid grid-cols-1 lg:grid-cols-12 gap-6 items-center'>
+        {/* Enterprise Commitment Box */}
+        <div className='mt-12 rounded-2xl bg-white border border-slate-200 p-8 sm:p-10 text-right shadow-xs'>
+          <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 items-center'>
             <div className='lg:col-span-8'>
-              <h4 className='text-xl sm:text-2xl font-bold text-white mb-3'>
-                منظومة متكاملة تخدم المندوب والإدارة
-              </h4>
-              <p className='text-sm sm:text-base text-zinc-300 leading-relaxed mb-4'>
-                سواء كنت مندوباً تبحث عن تجربة استخدام سلسة تحفظ كامل حقوقك وطلباتك المعتمدة وتوفر لك
-                الحوافز، أو كنت مشرفاً تدير مئات المركبات والورديات لحظياً — تقدم AAMS كل الأدوات التي
-                تحتاجها في شاشة واحدة متناسقة.
+              <h3 className='text-xl sm:text-2xl font-bold text-slate-900 mb-3'>
+                منظومة موحدة تجمع المندوب والمشرف وإدارة الأسطول
+              </h3>
+              <p className='text-sm sm:text-base text-slate-600 leading-relaxed mb-5'>
+                سواء كنت مندوباً في الميدان يحتاج إلى تسجيل ورديته ومتابعة إنجازه اليومي، أو مشرفاً
+                يتابع مئات الورديات والمركبات وتوزيع الطلبات — توفر منصة AAMS كافة البيانات بدقة
+                متناهية.
               </p>
-              <div className='flex flex-wrap gap-4 text-xs sm:text-sm text-zinc-300 font-medium'>
-                <span className='inline-flex items-center gap-1.5'>
-                  <CheckCircle className='w-4 h-4 text-emerald-400' />
-                  دعم متعدد اللغات (العربية، الإنجليزية، الأردية، البنغالية)
-                </span>
-                <span className='inline-flex items-center gap-1.5'>
-                  <CheckCircle className='w-4 h-4 text-emerald-400' />
-                  تسجيل بالبصمة الحيوية
-                </span>
-                <span className='inline-flex items-center gap-1.5'>
-                  <CheckCircle className='w-4 h-4 text-emerald-400' />
-                  تقارير وأرشفة سحابية فورية
-                </span>
+              <div className='grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm text-slate-700 font-medium'>
+                <div className='flex items-center gap-2'>
+                  <CheckCircle2 className='w-4 h-4 text-emerald-600 shrink-0' />
+                  <span>دعم لغات متعددة للمناديب</span>
+                </div>
+                <div className='flex items-center gap-2'>
+                  <CheckCircle2 className='w-4 h-4 text-emerald-600 shrink-0' />
+                  <span>تسجيل سريع بالبصمة الحيوية</span>
+                </div>
+                <div className='flex items-center gap-2'>
+                  <CheckCircle2 className='w-4 h-4 text-emerald-600 shrink-0' />
+                  <span>تقارير مالية وتشغيلية معتمدة</span>
+                </div>
               </div>
             </div>
 
-            <div className='lg:col-span-4 flex justify-start lg:justify-end'>
-              <div className='rounded-2xl bg-zinc-950/80 border border-zinc-800 p-5 w-full max-w-xs text-center'>
-                <Users className='w-8 h-8 text-orange-400 mx-auto mb-2' />
-                <div className='text-2xl font-black text-white'>+500</div>
-                <div className='text-xs text-zinc-400'>مندوب نشط في الميدان يومياً</div>
+            <div className='lg:col-span-4 flex justify-center lg:justify-end'>
+              <div className='w-full max-w-xs rounded-xl bg-slate-50 border border-slate-200 p-6 text-center'>
+                <div className='text-3xl font-black text-slate-900'>+500</div>
+                <div className='text-xs font-semibold text-orange-600 mt-1 mb-2'>
+                  مندوب نشط يومياً
+                </div>
+                <p className='text-xs text-slate-500 leading-relaxed'>
+                  تغطية واسعة لمدن ومناطق التوصيل بالمملكة العربية السعودية
+                </p>
               </div>
             </div>
           </div>

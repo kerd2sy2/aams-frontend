@@ -2,143 +2,122 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, ShieldCheck, CheckCircle2, Bike, Gauge, Cpu, ArrowDown } from 'lucide-react';
-import { QrCard, PLAY_STORE_URL } from './qr-card';
+import { ShieldCheck, CheckCircle2, Bike, Gauge, CalendarCheck, ArrowDown } from 'lucide-react';
+import { QrCard } from './qr-card';
 
-export function LandingHero() {
+interface LandingHeroProps {
+  appUrl?: string;
+  logoUrl?: string;
+}
+
+export function LandingHero({ appUrl, logoUrl }: LandingHeroProps) {
   return (
-    <section className='relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden'>
-      {/* Dynamic Background Atmosphere */}
-      <div className='absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none'>
-        <div className='absolute top-10 left-1/4 w-[500px] h-[500px] bg-orange-600/15 rounded-full blur-[140px]' />
-        <div className='absolute top-32 right-1/4 w-[400px] h-[400px] bg-sky-600/10 rounded-full blur-[120px]' />
-        <div className='absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-25 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)]' />
-      </div>
-
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10'>
-        <div className='grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center'>
-          {/* Right Column (Text / Company Overview) in RTL */}
+    <section className='relative pt-12 pb-20 md:pt-16 md:pb-24 bg-white border-b border-slate-100'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center'>
+          {/* Right Column: Company Presentation in RTL */}
           <div className='lg:col-span-7 flex flex-col text-right'>
-            {/* Pill Announcement */}
-            <div className='inline-flex items-center gap-2 self-start px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/25 text-orange-400 text-xs sm:text-sm font-semibold mb-6 shadow-sm'>
-              <Sparkles className='w-4 h-4 text-orange-400 animate-pulse' />
-              <span>الإصدار الجديد متاح الآن على متجر Google Play</span>
+            {/* Pill */}
+            <div className='inline-flex items-center gap-2 self-start px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs sm:text-sm font-semibold mb-6'>
+              <span className='w-2 h-2 rounded-full bg-orange-600' />
+              <span>المنظومة التشغيلية لأسطول التوصيل الميداني</span>
             </div>
 
             {/* Main Headline */}
-            <h1 className='text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.2] mb-6'>
-              منظومة{' '}
-              <span className='bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 bg-clip-text text-transparent'>
-                AAMS Logistics
-              </span>
+            <h1 className='text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-[1.25] mb-5'>
+              شركة <span className='text-orange-600'>AAMS</span> للخدمات اللوجستية
               <br />
-              لإدارة الأساطيل والتوصيل السريع
+              إدارة الأساطيل والتوصيل السريع بالمملكة
             </h1>
 
-            {/* Comprehensive Company Overview Paragraph */}
-            <p className='text-base sm:text-lg text-zinc-300 leading-relaxed max-w-2xl mb-8'>
-              شركة <strong className='text-white font-bold'>AAMS</strong> رائدة في تشغيل وإدارة
-              أساطيل التوصيل والميل الأخير (Last-Mile Delivery) بالمملكة العربية السعودية. نوفر
-              منظومة تقنية فائقة التطور تربط المناديب الميدانيين مع كبرى منصات التوصيل، معتمدة على{' '}
-              <span className='text-orange-400 font-medium'>
-                الذكاء الاصطناعي لقراءة العدادات واللوحات
-              </span>
-              ، أتمتة الورديات، الرقابة على الصيانة، وحساب الحوافز بدقة وشفافية مطلقة.
+            {/* Realistic corporate description */}
+            <p className='text-base sm:text-lg text-slate-600 leading-relaxed mb-8 max-w-2xl font-normal'>
+              نقدم حلولاً تشغيلية وتقنية متكاملة لإدارة مناديب التوصيل والميل الأخير (Last-Mile
+              Delivery) بالتعاون مع كبرى المنصات في المملكة العربية السعودية. نوفر للمندوب والمشرف
+              بيئة عمل دقيقة لمتابعة الورديات، توثيق قراءات العدادات، صيانة المركبات، وضمان احتساب
+              الطلبات والمستحقات بموثوقية تامة.
             </p>
 
-            {/* CTAs */}
-            <div className='flex flex-wrap items-center gap-4 mb-10'>
+            {/* CTA Buttons */}
+            <div className='flex flex-wrap items-center gap-3.5 mb-10'>
               <a
-                href={PLAY_STORE_URL}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='inline-flex items-center justify-center gap-3 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-orange-500 via-orange-600 to-amber-600 text-white font-bold text-sm sm:text-base shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200'
+                href='#download'
+                className='inline-flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm sm:text-base shadow-md shadow-orange-600/20 transition-all duration-150'
               >
-                <span>تحميل التطبيق الميداني</span>
-                <ArrowDown className='w-4 h-4 animate-bounce' />
+                <span>تحميل تطبيق المناديب</span>
+                <ArrowDown className='w-4 h-4' />
               </a>
 
               <Link
                 href='/login'
-                className='inline-flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-2xl bg-zinc-900/90 hover:bg-zinc-850 text-zinc-200 hover:text-white border border-zinc-700/80 hover:border-orange-500/50 font-semibold text-sm sm:text-base shadow-md transition-all duration-200'
+                className='inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-800 border border-slate-200 font-semibold text-sm sm:text-base transition-all duration-150'
               >
-                <ShieldCheck className='w-5 h-5 text-orange-400' />
+                <ShieldCheck className='w-4 h-4 text-orange-600' />
                 <span>دخول بوابة المشرفين</span>
               </Link>
             </div>
 
-            {/* Key Value Highlights */}
-            <div className='grid grid-cols-3 gap-3 sm:gap-6 pt-6 border-t border-zinc-800/80'>
+            {/* Operational Metrics */}
+            <div className='grid grid-cols-3 gap-4 pt-6 border-t border-slate-200'>
               <div className='flex flex-col'>
-                <div className='flex items-center gap-1.5 text-orange-400 font-black text-xl sm:text-2xl'>
-                  <span>99.9%</span>
-                </div>
-                <span className='text-[12px] sm:text-xs text-zinc-400 font-medium mt-0.5'>
-                  دقة القراءة بالذكاء الاصطناعي
+                <span className='text-2xl sm:text-3xl font-black text-slate-900'>+15,000</span>
+                <span className='text-xs text-slate-500 font-medium mt-0.5'>وردية عمل منجزة</span>
+              </div>
+
+              <div className='flex flex-col'>
+                <span className='text-2xl sm:text-3xl font-black text-orange-600'>100%</span>
+                <span className='text-xs text-slate-500 font-medium mt-0.5'>
+                  توثيق واعتماد للطلبات
                 </span>
               </div>
 
               <div className='flex flex-col'>
-                <div className='flex items-center gap-1.5 text-white font-black text-xl sm:text-2xl'>
-                  <span>+15,000</span>
-                </div>
-                <span className='text-[12px] sm:text-xs text-zinc-400 font-medium mt-0.5'>
-                  وردية ميدانية منجزة
-                </span>
-              </div>
-
-              <div className='flex flex-col'>
-                <div className='flex items-center gap-1.5 text-sky-400 font-black text-xl sm:text-2xl'>
-                  <span>24/7</span>
-                </div>
-                <span className='text-[12px] sm:text-xs text-zinc-400 font-medium mt-0.5'>
-                  متابعة وتشغيل مستمر
-                </span>
+                <span className='text-2xl sm:text-3xl font-black text-slate-900'>24/7</span>
+                <span className='text-xs text-slate-500 font-medium mt-0.5'>دعم وتشغيل ميداني</span>
               </div>
             </div>
           </div>
 
-          {/* Left Column (QR Card & Mobile App Visual Showcase) in RTL */}
+          {/* Left Column: QR Card & Operational Widget */}
           <div className='lg:col-span-5 flex flex-col items-center lg:items-end'>
-            {/* The Dedicated QR Download Card */}
             <div className='w-full max-w-md'>
-              <QrCard size={210} />
+              <QrCard appUrl={appUrl} logoUrl={logoUrl} size={200} />
 
-              {/* Floating Live App Status Preview */}
-              <div className='mt-5 rounded-2xl bg-zinc-900/90 border border-zinc-800 p-4 shadow-xl backdrop-blur-xl'>
-                <div className='flex items-center justify-between pb-3 mb-3 border-b border-zinc-800'>
+              {/* Realistic Operational Preview Card */}
+              <div className='mt-4 rounded-xl bg-slate-50 border border-slate-200 p-4 shadow-sm'>
+                <div className='flex items-center justify-between pb-3 mb-3 border-b border-slate-200'>
                   <div className='flex items-center gap-2.5'>
-                    <div className='w-8 h-8 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-400'>
+                    <div className='w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center'>
                       <Bike className='w-4 h-4' />
                     </div>
                     <div className='text-right'>
-                      <div className='text-xs font-bold text-white'>معاينة التطبيق الميداني</div>
-                      <div className='text-[11px] text-zinc-400'>تجربة مندوب سلسة وموثوقة</div>
+                      <div className='text-xs font-bold text-slate-800'>تطبيق المندوب الميداني</div>
+                      <div className='text-[11px] text-slate-500'>شفت عمل نشط على الدباب #412</div>
                     </div>
                   </div>
-                  <span className='inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full'>
-                    <CheckCircle2 className='w-3 h-3' />
-                    شفت نشط
+                  <span className='inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full'>
+                    <CheckCircle2 className='w-3 h-3 text-emerald-600' />
+                    مباشر
                   </span>
                 </div>
 
-                <div className='grid grid-cols-2 gap-2 text-right'>
-                  <div className='bg-zinc-950/60 rounded-xl p-2.5 border border-zinc-800/60'>
-                    <div className='flex items-center gap-1 text-[11px] text-zinc-400 mb-1'>
-                      <Gauge className='w-3 h-3 text-orange-400' />
-                      <span>قراءة العداد بالـ AI</span>
+                <div className='grid grid-cols-2 gap-2 text-right text-xs'>
+                  <div className='bg-white rounded-lg p-2.5 border border-slate-200'>
+                    <div className='flex items-center gap-1 text-[11px] text-slate-500 mb-0.5'>
+                      <Gauge className='w-3 h-3 text-orange-600' />
+                      <span>قراءة العداد</span>
                     </div>
-                    <div className='text-xs font-mono font-bold text-white'>
-                      14,250 كم <span className='text-emerald-400'>✓</span>
+                    <div className='font-mono font-bold text-slate-900'>
+                      14,250 كم <span className='text-emerald-600'>✓</span>
                     </div>
                   </div>
 
-                  <div className='bg-zinc-950/60 rounded-xl p-2.5 border border-zinc-800/60'>
-                    <div className='flex items-center gap-1 text-[11px] text-zinc-400 mb-1'>
-                      <Cpu className='w-3 h-3 text-sky-400' />
-                      <span>الهدف الشهري</span>
+                  <div className='bg-white rounded-lg p-2.5 border border-slate-200'>
+                    <div className='flex items-center gap-1 text-[11px] text-slate-500 mb-0.5'>
+                      <CalendarCheck className='w-3 h-3 text-slate-600' />
+                      <span>الطلبات المنجزة</span>
                     </div>
-                    <div className='text-xs font-mono font-bold text-white'>96% محقق 🎉</div>
+                    <div className='font-mono font-bold text-slate-900'>28 طلب معتمد</div>
                   </div>
                 </div>
               </div>

@@ -59,6 +59,7 @@ export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
   const [siteName, setSiteName] = useState(DEFAULT_SETTINGS.site_name);
   const [logoUrl, setLogoUrl] = useState(DEFAULT_SETTINGS.logo_url);
+  const [appDownloadUrl, setAppDownloadUrl] = useState('');
 
   const [addBranchOpen, setAddBranchOpen] = useState(false);
   const [editBranchOpen, setEditBranchOpen] = useState(false);
@@ -84,6 +85,9 @@ export default function SettingsPage() {
     if (!settings) return;
     setSiteName(settings.site_name || DEFAULT_SETTINGS.site_name);
     setLogoUrl(settings.logo_url || '');
+    setAppDownloadUrl(
+      settings.app_download_url || 'https://play.google.com/store/apps/details?id=com.aams.app'
+    );
   }, [settings]);
 
   const { data: branches = [], isLoading: branchesLoading } = useQuery({
@@ -140,7 +144,11 @@ export default function SettingsPage() {
       toast.error('اسم الموقع مطلوب');
       return;
     }
-    saveSettingsMutation.mutate({ site_name: siteName.trim(), logo_url: logoUrl });
+    saveSettingsMutation.mutate({
+      site_name: siteName.trim(),
+      logo_url: logoUrl,
+      app_download_url: appDownloadUrl.trim()
+    });
   };
 
   const handleCreateBranch = () => {
@@ -168,8 +176,14 @@ export default function SettingsPage() {
   const isDirty = useMemo(() => {
     const savedName = settings?.site_name || DEFAULT_SETTINGS.site_name;
     const savedLogo = settings?.logo_url || '';
-    return siteName.trim() !== savedName.trim() || logoUrl !== savedLogo;
-  }, [siteName, logoUrl, settings]);
+    const savedAppUrl =
+      settings?.app_download_url || 'https://play.google.com/store/apps/details?id=com.aams.app';
+    return (
+      siteName.trim() !== savedName.trim() ||
+      logoUrl !== savedLogo ||
+      appDownloadUrl.trim() !== savedAppUrl.trim()
+    );
+  }, [siteName, logoUrl, appDownloadUrl, settings]);
 
   return (
     <PageContainer
@@ -234,7 +248,9 @@ export default function SettingsPage() {
                   description='الصيغ المسموح بها: PNG, JPG, WEBP. يُنصح بارتفاع 64-128 بكسل مع خلفية شفافة.'
                 />
                 <div className='bg-muted/30 flex h-full min-h-[140px] flex-col items-center justify-center gap-3 rounded-xl border p-4'>
-                  <span className='text-muted-foreground text-xs font-medium'>معاينة في الهيدر</span>
+                  <span className='text-muted-foreground text-xs font-medium'>
+                    معاينة في الهيدر
+                  </span>
                   {logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -267,7 +283,27 @@ export default function SettingsPage() {
                 disabled={!canManageSettings}
               />
               <p className='text-muted-foreground text-xs leading-relaxed'>
-                سيظهر هذا الاسم في شريط المتصفح، صفحة تسجيل الدخول، ورأس كل الصفحات والطباعة والتقارير.
+                سيظهر هذا الاسم في شريط المتصفح، صفحة تسجيل الدخول، ورأس كل الصفحات والطباعة
+                والتقارير.
+              </p>
+            </div>
+
+            <div className='space-y-2'>
+              <Label className='text-base font-medium'>
+                <Icons.media className='text-muted-foreground size-4' />
+                رابط تحميل تطبيق المندوب (Google Play / الرابط المباشر)
+              </Label>
+              <Input
+                value={appDownloadUrl}
+                onChange={(e) => setAppDownloadUrl(e.target.value)}
+                placeholder='https://play.google.com/store/apps/details?id=com.aams.app'
+                dir='ltr'
+                className='h-12 font-mono text-sm text-left'
+                disabled={!canManageSettings}
+              />
+              <p className='text-muted-foreground text-xs leading-relaxed'>
+                الرابط الذي يتم تحويله تلقائياً إلى باركود QR وزر تحميل في صفحة الهبوط الرسمية
+                للموقع.
               </p>
             </div>
           </CardContent>
@@ -289,6 +325,10 @@ export default function SettingsPage() {
                 onClick={() => {
                   setSiteName(settings?.site_name || DEFAULT_SETTINGS.site_name);
                   setLogoUrl(settings?.logo_url || '');
+                  setAppDownloadUrl(
+                    settings?.app_download_url ||
+                      'https://play.google.com/store/apps/details?id=com.aams.app'
+                  );
                 }}
               >
                 تراجع التغييرات
