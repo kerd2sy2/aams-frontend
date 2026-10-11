@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShieldCheck, QrCode, Menu, X, User, CreditCard } from 'lucide-react';
+import { ShieldCheck, QrCode, Menu, X } from 'lucide-react';
 
 interface LandingNavbarProps {
   logoUrl?: string;
@@ -72,37 +72,31 @@ export function LandingNavbar({
       >
         <div className='max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8'>
           <div className='flex items-center justify-between h-full'>
-            {/* Right Side (RTL): Exact Replica of Mobile App Driver Header (HomeHeader) */}
+            {/* Right Side (RTL): Clean Logo and Brand Lockup */}
             <Link
               href='/'
               className='flex items-center gap-3 group cursor-pointer select-none transition-transform active:scale-95'
             >
-              {/* Avatar circle matching HomeHeader styles */}
-              <div className='w-11 h-11 rounded-full border-2 border-orange-500 bg-orange-50 p-1 flex items-center justify-center shrink-0 shadow-2xs group-hover:border-orange-600 transition-colors'>
+              {/* Clean logo directly on navbar without background or border */}
+              <div className='relative w-11 h-11 flex items-center justify-center shrink-0'>
                 <Image
                   src={logoUrl || '/logo.png'}
                   alt={siteName}
-                  width={34}
-                  height={34}
+                  width={44}
+                  height={44}
                   className='object-contain w-full h-full'
                   priority
                 />
               </div>
 
-              {/* User text block matching HomeHeader styles */}
+              {/* Clean brand text */}
               <div className='flex flex-col text-right justify-center'>
-                <div className='flex items-center gap-1.5'>
-                  <User className='w-3.5 h-3.5 text-orange-600' />
-                  <span className='font-extrabold text-[15px] text-slate-900 tracking-tight leading-tight group-hover:text-orange-600 transition-colors'>
-                    AAMS LOGISTICS
-                  </span>
-                </div>
-                <div className='flex items-center gap-1.5 mt-0.5'>
-                  <CreditCard className='w-3 h-3 text-slate-400' />
-                  <span className='text-xs font-semibold text-slate-500 leading-tight'>
-                    منظومة العمليات والتشغيل الميداني
-                  </span>
-                </div>
+                <span className='font-extrabold text-[16px] text-slate-900 tracking-tight leading-tight group-hover:text-orange-600 transition-colors'>
+                  AAMS Logistics
+                </span>
+                <span className='text-xs font-semibold text-slate-500 leading-tight mt-0.5'>
+                  منظومة العمليات والتشغيل الميداني
+                </span>
               </div>
             </Link>
 
