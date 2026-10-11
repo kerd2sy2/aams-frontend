@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShieldCheck, QrCode, Menu, X, Download } from 'lucide-react';
+import { ShieldCheck, QrCode, Menu, X, User, CreditCard } from 'lucide-react';
 
 interface LandingNavbarProps {
   logoUrl?: string;
@@ -15,146 +15,205 @@ export function LandingNavbar({
   siteName = 'AAMS Logistics'
 }: LandingNavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const lastScrollY = useRef(0);
+  const scrollDelta = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      const diff = currentY - lastScrollY.current;
+      lastScrollY.current = currentY;
+
+      // Update background shadow state
+      setIsScrolled(currentY > 15);
+
+      // At the top of the page: always show
+      if (currentY <= 20) {
+        scrollDelta.current = 0;
+        setVisible(true);
+        return;
+      }
+
+      // Scrolling DOWN
+      if (diff > 0) {
+        if (scrollDelta.current < 0) scrollDelta.current = 0;
+        scrollDelta.current += diff;
+        // Hide after 8px of accumulated downward scroll
+        if (scrollDelta.current >= 8 && currentY > 72) {
+          setVisible(false);
+        }
+      }
+      // Scrolling UP
+      else if (diff < 0) {
+        if (scrollDelta.current > 0) scrollDelta.current = 0;
+        scrollDelta.current += diff;
+        // Show immediately after 6px of accumulated upward scroll
+        if (scrollDelta.current <= -6) {
+          setVisible(true);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <header className='sticky top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs'>
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <div className='flex items-center justify-between h-20'>
-          {/* Brand Lockup: Exactly matching the mobile driver app header */}
-          <Link href='/' className='flex items-center gap-3.5 group cursor-pointer select-none'>
-            <div className='relative w-12 h-12 flex items-center justify-center shrink-0'>
-              <Image
-                src={logoUrl || '/logo.png'}
-                alt={siteName}
-                width={48}
-                height={48}
-                className='object-contain w-full h-full'
-                priority
-              />
-            </div>
-            <div className='flex flex-col text-right'>
-              <span className='font-black text-2xl text-slate-900 tracking-wider leading-none'>
-                AAMS
-              </span>
-              <span className='text-[10px] sm:text-[11px] font-bold text-orange-600 tracking-[3px] uppercase mt-1'>
-                LOGISTICS
-              </span>
-            </div>
-          </Link>
+    <>
+      {/* Spacer to prevent content jump when navbar is fixed */}
+      <div className='h-[72px] w-full' />
 
-          {/* Desktop Navigation Links */}
-          <nav className='hidden md:flex items-center gap-7'>
-            <a
-              href='#about'
-              className='text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors'
-            >
-              عن الشركة
-            </a>
-            <a
-              href='#features'
-              className='text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors'
-            >
-              مزايا المنظومة
-            </a>
-            <a
-              href='#partners'
-              className='text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors'
-            >
-              شركاء النجاح
-            </a>
-            <a
-              href='#download'
-              className='text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors'
-            >
-              تحميل التطبيق
-            </a>
-          </nav>
-
-          {/* Action CTAs */}
-          <div className='hidden sm:flex items-center gap-3'>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 h-[72px] bg-white/95 backdrop-blur-md border-b transition-all duration-300 ease-in-out ${
+          isScrolled ? 'border-slate-200 shadow-sm' : 'border-slate-100'
+        } ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
+      >
+        <div className='max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8'>
+          <div className='flex items-center justify-between h-full'>
+            {/* Right Side (RTL): Exact Replica of Mobile App Driver Header (HomeHeader) */}
             <Link
-              href='/login'
-              className='inline-flex items-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all duration-150'
+              href='/'
+              className='flex items-center gap-3 group cursor-pointer select-none transition-transform active:scale-95'
             >
-              <ShieldCheck className='w-4 h-4 text-orange-600' />
-              <span>بوابة المشرفين</span>
+              {/* Avatar circle matching HomeHeader styles */}
+              <div className='w-11 h-11 rounded-full border-2 border-orange-500 bg-orange-50 p-1 flex items-center justify-center shrink-0 shadow-2xs group-hover:border-orange-600 transition-colors'>
+                <Image
+                  src={logoUrl || '/logo.png'}
+                  alt={siteName}
+                  width={34}
+                  height={34}
+                  className='object-contain w-full h-full'
+                  priority
+                />
+              </div>
+
+              {/* User text block matching HomeHeader styles */}
+              <div className='flex flex-col text-right justify-center'>
+                <div className='flex items-center gap-1.5'>
+                  <User className='w-3.5 h-3.5 text-orange-600' />
+                  <span className='font-extrabold text-[15px] text-slate-900 tracking-tight leading-tight group-hover:text-orange-600 transition-colors'>
+                    AAMS LOGISTICS
+                  </span>
+                </div>
+                <div className='flex items-center gap-1.5 mt-0.5'>
+                  <CreditCard className='w-3 h-3 text-slate-400' />
+                  <span className='text-xs font-semibold text-slate-500 leading-tight'>
+                    منظومة العمليات والتشغيل الميداني
+                  </span>
+                </div>
+              </div>
             </Link>
 
-            {/* Mobile App Style QR Code Trigger button */}
-            <a
-              href='#download'
-              className='inline-flex items-center gap-2 py-2.5 px-4.5 rounded-xl text-sm font-bold text-white bg-orange-600 hover:bg-orange-700 shadow-sm transition-all duration-150'
-            >
-              <QrCode className='w-4 h-4' />
-              <span>تحميل التطبيق</span>
-            </a>
-          </div>
+            {/* Middle: Clean Navigation Links */}
+            <nav className='hidden lg:flex items-center gap-7'>
+              <a
+                href='#about'
+                className='text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors'
+              >
+                عن الشركة
+              </a>
+              <a
+                href='#features'
+                className='text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors'
+              >
+                مزايا المنظومة
+              </a>
+              <a
+                href='#partners'
+                className='text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors'
+              >
+                شركاء النجاح
+              </a>
+              <a
+                href='#download'
+                className='text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors'
+              >
+                تحميل التطبيق
+              </a>
+            </nav>
 
-          {/* Mobile menu toggle */}
-          <button
-            type='button'
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className='md:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200'
-            aria-label='القائمة'
-          >
-            {mobileMenuOpen ? <X className='w-5 h-5' /> : <Menu className='w-5 h-5' />}
-          </button>
-        </div>
-      </div>
+            {/* Left Side (RTL): Actions matching HomeHeader Action buttons */}
+            <div className='flex items-center gap-2 sm:gap-3'>
+              {/* QR Button: Exactly matching headerQrBtn in HomeHeader */}
+              <a
+                href='#download'
+                title='مسح رمز QR وتحميل التطبيق'
+                className='flex items-center justify-center p-2.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200/80 transition-colors active:scale-95'
+                aria-label='تحميل التطبيق'
+              >
+                <QrCode className='w-5 h-5 sm:w-6 sm:h-6' />
+              </a>
 
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div className='md:hidden bg-white border-b border-slate-200 px-6 py-5 shadow-lg'>
-          <nav className='flex flex-col gap-3 text-right mb-5'>
-            <a
-              href='#about'
-              onClick={() => setMobileMenuOpen(false)}
-              className='text-base font-semibold text-slate-800 hover:text-orange-600 py-1.5'
-            >
-              عن الشركة
-            </a>
-            <a
-              href='#features'
-              onClick={() => setMobileMenuOpen(false)}
-              className='text-base font-semibold text-slate-800 hover:text-orange-600 py-1.5'
-            >
-              مزايا المنظومة
-            </a>
-            <a
-              href='#partners'
-              onClick={() => setMobileMenuOpen(false)}
-              className='text-base font-semibold text-slate-800 hover:text-orange-600 py-1.5'
-            >
-              شركاء النجاح
-            </a>
-            <a
-              href='#download'
-              onClick={() => setMobileMenuOpen(false)}
-              className='text-base font-semibold text-slate-800 hover:text-orange-600 py-1.5'
-            >
-              تحميل التطبيق
-            </a>
-          </nav>
-          <div className='flex flex-col gap-2.5 pt-4 border-t border-slate-100'>
-            <Link
-              href='/login'
-              onClick={() => setMobileMenuOpen(false)}
-              className='flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-slate-800 bg-slate-100 border border-slate-200'
-            >
-              <ShieldCheck className='w-4 h-4 text-orange-600' />
-              <span>دخول بوابة المشرفين</span>
-            </Link>
-            <a
-              href='#download'
-              onClick={() => setMobileMenuOpen(false)}
-              className='flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white bg-orange-600 hover:bg-orange-700'
-            >
-              <Download className='w-4 h-4' />
-              <span>تحميل تطبيق المناديب</span>
-            </a>
+              {/* Supervisor Portal Login */}
+              <Link
+                href='/login'
+                className='hidden sm:inline-flex items-center gap-2 py-2 px-3.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all active:scale-95'
+              >
+                <ShieldCheck className='w-4 h-4 text-orange-600' />
+                <span>بوابة المشرفين</span>
+              </Link>
+
+              {/* Mobile menu toggle */}
+              <button
+                type='button'
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className='lg:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200'
+                aria-label='القائمة'
+              >
+                {mobileMenuOpen ? <X className='w-5 h-5' /> : <Menu className='w-5 h-5' />}
+              </button>
+            </div>
           </div>
         </div>
-      )}
-    </header>
+
+        {/* Mobile Dropdown Drawer */}
+        {mobileMenuOpen && (
+          <div className='lg:hidden bg-white/98 backdrop-blur-md border-b border-slate-200 px-6 py-5 shadow-lg'>
+            <nav className='flex flex-col gap-3 text-right mb-4'>
+              <a
+                href='#about'
+                onClick={() => setMobileMenuOpen(false)}
+                className='text-sm font-semibold text-slate-800 hover:text-orange-600 py-1.5'
+              >
+                عن الشركة
+              </a>
+              <a
+                href='#features'
+                onClick={() => setMobileMenuOpen(false)}
+                className='text-sm font-semibold text-slate-800 hover:text-orange-600 py-1.5'
+              >
+                مزايا المنظومة
+              </a>
+              <a
+                href='#partners'
+                onClick={() => setMobileMenuOpen(false)}
+                className='text-sm font-semibold text-slate-800 hover:text-orange-600 py-1.5'
+              >
+                شركاء النجاح
+              </a>
+              <a
+                href='#download'
+                onClick={() => setMobileMenuOpen(false)}
+                className='text-sm font-semibold text-slate-800 hover:text-orange-600 py-1.5'
+              >
+                تحميل التطبيق
+              </a>
+            </nav>
+            <div className='flex flex-col gap-2 pt-3 border-t border-slate-100'>
+              <Link
+                href='/login'
+                onClick={() => setMobileMenuOpen(false)}
+                className='flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-slate-800 bg-slate-100 border border-slate-200'
+              >
+                <ShieldCheck className='w-4 h-4 text-orange-600' />
+                <span>دخول بوابة المشرفين</span>
+              </Link>
+            </div>
+          </div>
+        )}
+      </header>
+    </>
   );
 }

@@ -20,24 +20,24 @@ export function LandingDownloadSection({ appUrl, logoUrl }: LandingDownloadSecti
     {
       num: '2',
       title: 'سجّل الدخول برقم الهوية',
-      desc: 'أدخل رقم الهوية الوطنية وكلمة المرور الخاصة بك لمباشرة دوامك بسهولة.'
+      desc: 'أدخل رقم الهوية الوطنية وكلمة المرور الخاصة بك أو استخدم البصمة الحيوية للوصول السريع.'
     },
     {
       num: '3',
-      title: 'وثّق قراءة العداد ومباشرة العمل',
-      desc: 'التقط صورة لعداد الكيلومتر واللوحة لتوثيق بدء العمل ومباشرة مهامك الميدانية.'
+      title: 'مباشرة المهام واستلام الطلبات',
+      desc: 'ابدأ بتنفيذ مهام التوصيل الميدانية ومتابعة مؤشرات إنجازك اليومي بكل سهولة وموثوقية.'
     }
   ];
 
   return (
-    <section id='download' className='py-20 bg-white overflow-hidden'>
+    <section id='download' className='py-16 sm:py-20 bg-white overflow-hidden'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <motion.div
-          initial={{ opacity: 0, y: 25 }}
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className='rounded-3xl bg-slate-50 border border-slate-200 p-8 sm:p-12 lg:p-14 shadow-sm'
+          transition={{ duration: 0.5 }}
+          className='rounded-3xl bg-slate-50 border border-slate-200 p-7 sm:p-12 lg:p-14 shadow-sm'
         >
           <div className='grid grid-cols-1 lg:grid-cols-12 gap-10 items-center'>
             {/* Right Side: Text & Steps */}
@@ -47,23 +47,19 @@ export function LandingDownloadSection({ appUrl, logoUrl }: LandingDownloadSecti
               </span>
 
               <h2 className='text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-4'>
-                جاهز للبدء مع أسطول <span className='text-orange-600'>AAMS</span>؟
+                جاهز للبدء مع تطبيق <span className='text-orange-600'>AAMS</span>؟
               </h2>
 
               <p className='text-base text-slate-600 leading-relaxed mb-8'>
-                حمّل تطبيق المناديب الآن على هاتفك الأندرويد، وباشر مهامك بكل سهولة مع ضمان توثيق كافة
-                بياناتك ومستحقاتك.
+                حمّل تطبيق المندوب الميداني الآن على هاتفك الأندرويد، وباشر مهامك بكل سلاسة مع ضمان
+                توثيق كامل لحقوقك وإنجازك التشغيلي.
               </p>
 
-              {/* 3 Step onboarding guide with motion */}
+              {/* 3 Step onboarding guide */}
               <div className='space-y-3.5 mb-8'>
                 {steps.map((st, i) => (
-                  <motion.div
+                  <div
                     key={i}
-                    initial={{ opacity: 0, x: 20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: i * 0.1 }}
                     className='flex items-start gap-4 p-3.5 rounded-xl bg-white border border-slate-200'
                   >
                     <div className='w-8 h-8 rounded-lg bg-orange-100 text-orange-700 font-bold text-sm flex items-center justify-center shrink-0'>
@@ -73,7 +69,7 @@ export function LandingDownloadSection({ appUrl, logoUrl }: LandingDownloadSecti
                       <h4 className='text-sm font-bold text-slate-900 mb-0.5'>{st.title}</h4>
                       <p className='text-xs text-slate-600 leading-relaxed'>{st.desc}</p>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
 
