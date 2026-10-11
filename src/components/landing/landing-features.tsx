@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'motion/react';
 import { Camera, Clock, Wrench, Award, Fingerprint, FileSpreadsheet, Check } from 'lucide-react';
 
 export function LandingFeatures() {
@@ -10,39 +11,31 @@ export function LandingFeatures() {
       title: 'توثيق العدادات واللوحات بالكاميرا',
       category: 'التوثيق الميداني',
       description:
-        'التقاط وتوثيق صور عداد الكيلومترات ولوحة المركبة مباشرة عند بدء ونهاية الوردية لضمان دقة القراءات ومنع التلاعب.',
-      highlights: ['توثيق بصري مباشر', 'قراءة آلية دقيقة للأرقام', 'حفظ سجل مصور لكل وردية']
+        'التقاط وتوثيق صور عداد الكيلومترات ولوحة المركبة مباشرة عند مباشرة وتسليم العمل لضمان دقة القراءات ومنع التلاعب.',
+      highlights: ['توثيق بصري مباشر', 'قراءة رقمية دقيقة', 'حفظ سجل مصور ومعتمد']
     },
     {
       icon: Clock,
-      title: 'إدارة الورديات وتتبع ساعات العمل',
-      category: 'تشغيل الشفتات',
+      title: 'إدارة وتتبع ساعات العمل الميداني',
+      category: 'التشغيل والمتابعة',
       description:
-        'بدء وإنهاء الدوام بنقرة واحدة، ومطابقة الدباب المخصص للمندوب مع الدباب الفعلي واحتساب ساعات العمل والمسافات.',
-      highlights: [
-        'بدء وإنهاء فوري للدوام',
-        'حساب تلقائي للمسافات المقطوعة',
-        'اعتماد لحظي من المشرف'
-      ]
+        'تسجيل بدء وإنهاء العمل بنقرة واحدة، ومطابقة المركبة المخصصة للمندوب مع المركبة الفعلية واحتساب المسافات.',
+      highlights: ['تسجيل فوري للدوام', 'حساب تلقائي للمسافات المقطوعة', 'اعتماد لحظي من المشرف']
     },
     {
       icon: Wrench,
       title: 'جدولة الصيانة وتغيير زيت المحرك',
-      category: 'سلامة المركبات',
+      category: 'سلامة الأسطول',
       description:
-        'متابعة مستمرة لعداد المسافة لكل مركبة، مع إرسال تنبيهات تلقائية عند اقتراب موعد تغيير الزيت والصيانة الدورية.',
-      highlights: [
-        'تنبيهات استباقية بالكيلومترات',
-        'سجل صيانة شامل لكل دباب',
-        'حماية محركات الأسطول'
-      ]
+        'متابعة مستمرة لمسافات كل مركبة، مع إرسال تنبيهات تلقائية عند اقتراب موعد تغيير الزيت والفحص الدوري.',
+      highlights: ['تنبيهات استباقية بالمسافات', 'سجل صيانة شامل لكل مركبة', 'حماية محركات الأسطول']
     },
     {
       icon: Award,
       title: 'لوحة الأهداف والحوافز الشهرية',
       category: 'المكافآت والإنتاجية',
       description:
-        'شاشة تحفيزية تعرض للمندوب إجمالي الطلبات المعتمدة، المتبقي لتحقيق التارجت، والراتب والحوافز المتوقعة بكل وضوح.',
+        'شاشة تحفيزية تعرض للمندوب مؤشرات أدائه اليومية، المتبقي لتحقيق الهدف، والراتب والحوافز المتوقعة بكل وضوح.',
       highlights: [
         'متابعة يومية للأداء والإنتاجية',
         'مؤشر تقدم نحو الهدف الشهري',
@@ -66,7 +59,7 @@ export function LandingFeatures() {
       title: 'سجل المخالفات والعهد المالية',
       category: 'الرقابة الإدارية',
       description:
-        'بيان شفاف للمخالفات المرورية والجزومات المسجلة على المندوب مع توضيح المبالغ المخصومة والمتبقية وإمكانية المراجعة.',
+        'بيان شفاف للمخالفات المرورية والجزاءات المسجلة مع توضيح المبالغ المخصومة والمتبقية وإمكانية المراجعة.',
       highlights: [
         'شفافية في الخصومات والمتبقي',
         'توثيق رسمي للمخالفات',
@@ -76,10 +69,16 @@ export function LandingFeatures() {
   ];
 
   return (
-    <section id='features' className='py-20 bg-white border-b border-slate-200'>
+    <section id='features' className='py-20 bg-white border-b border-slate-200 overflow-hidden'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         {/* Section Header */}
-        <div className='text-center max-w-3xl mx-auto mb-14'>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className='text-center max-w-3xl mx-auto mb-14'
+        >
           <span className='inline-block px-3 py-1 rounded-md bg-orange-100 text-orange-800 text-xs font-bold mb-3'>
             مزايا المنظومة
           </span>
@@ -90,15 +89,20 @@ export function LandingFeatures() {
             تم بناء كل شاشة وخاصية داخل المنظومة بناءً على المتطلبات اليومية الفعلية لأساطيل التوصيل
             في الميدان لرفع الإنتاجية وتقليل الأخطاء.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Features Grid */}
+        {/* Features Grid with motion */}
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8'>
           {features.map((feat, idx) => {
             const Icon = feat.icon;
             return (
-              <div
+              <motion.div
                 key={idx}
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.08 }}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
                 className='bg-slate-50/70 hover:bg-white rounded-2xl border border-slate-200 p-7 text-right transition-all duration-200 hover:shadow-lg hover:border-orange-200 flex flex-col justify-between'
               >
                 <div>
@@ -123,7 +127,7 @@ export function LandingFeatures() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </motion.div>
             );
           })}
         </div>

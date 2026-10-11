@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'motion/react';
 import { CheckCircle2, ShieldCheck } from 'lucide-react';
 import { QrCard } from './qr-card';
 
@@ -23,15 +24,21 @@ export function LandingDownloadSection({ appUrl, logoUrl }: LandingDownloadSecti
     },
     {
       num: '3',
-      title: 'وثّق قراءة العداد وابدأ الوردية',
-      desc: 'التقط صورة لعداد الكيلومتر واللوحة لتوثيق بدء الوردية وانطلق للتوصيل.'
+      title: 'وثّق قراءة العداد ومباشرة العمل',
+      desc: 'التقط صورة لعداد الكيلومتر واللوحة لتوثيق بدء العمل ومباشرة مهامك الميدانية.'
     }
   ];
 
   return (
-    <section id='download' className='py-20 bg-white'>
+    <section id='download' className='py-20 bg-white overflow-hidden'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <div className='rounded-3xl bg-slate-50 border border-slate-200 p-8 sm:p-12 lg:p-14 shadow-sm'>
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className='rounded-3xl bg-slate-50 border border-slate-200 p-8 sm:p-12 lg:p-14 shadow-sm'
+        >
           <div className='grid grid-cols-1 lg:grid-cols-12 gap-10 items-center'>
             {/* Right Side: Text & Steps */}
             <div className='lg:col-span-7 text-right'>
@@ -44,15 +51,19 @@ export function LandingDownloadSection({ appUrl, logoUrl }: LandingDownloadSecti
               </h2>
 
               <p className='text-base text-slate-600 leading-relaxed mb-8'>
-                حمّل تطبيق المناديب الآن على هاتفك الأندرويد، وسجّل وردياتك بكل سهولة مع ضمان توثيق كافة
-                طلباتك ومستحقاتك.
+                حمّل تطبيق المناديب الآن على هاتفك الأندرويد، وباشر مهامك بكل سهولة مع ضمان توثيق كافة
+                بياناتك ومستحقاتك.
               </p>
 
-              {/* 3 Step onboarding guide */}
+              {/* 3 Step onboarding guide with motion */}
               <div className='space-y-3.5 mb-8'>
                 {steps.map((st, i) => (
-                  <div
+                  <motion.div
                     key={i}
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: i * 0.1 }}
                     className='flex items-start gap-4 p-3.5 rounded-xl bg-white border border-slate-200'
                   >
                     <div className='w-8 h-8 rounded-lg bg-orange-100 text-orange-700 font-bold text-sm flex items-center justify-center shrink-0'>
@@ -62,7 +73,7 @@ export function LandingDownloadSection({ appUrl, logoUrl }: LandingDownloadSecti
                       <h4 className='text-sm font-bold text-slate-900 mb-0.5'>{st.title}</h4>
                       <p className='text-xs text-slate-600 leading-relaxed'>{st.desc}</p>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 
@@ -86,7 +97,7 @@ export function LandingDownloadSection({ appUrl, logoUrl }: LandingDownloadSecti
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

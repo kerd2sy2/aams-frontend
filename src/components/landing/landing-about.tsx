@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'motion/react';
 import { Target, Shield, TrendingUp, Zap, CheckCircle2 } from 'lucide-react';
 
 export function LandingAbout() {
@@ -9,33 +10,39 @@ export function LandingAbout() {
       icon: Target,
       title: 'دقة تشغيلية وتوثيق متكامل',
       description:
-        'أتمتة كاملة لتسجيل حضور وانصراف المناديب، ومطابقة قراءات عدادات الكيلومتر واللوحات لحماية أصول الأسطول ومنع الأخطاء.'
+        'أتمتة شاملة لتسجيل وتوثيق قراءات العدادات وبيانات المركبات لحماية أصول الأسطول ومنع الأخطاء البشرية.'
     },
     {
       icon: Shield,
       title: 'جدولة الصيانة الدورية',
       description:
-        'متابعة المسافات الفعلية المقطوعة لكل دباب وتنبيهات مسبقة لتغيير الزيت والفحص الدوري لضمان سلامة المركبة واستمرارية العمل.'
+        'متابعة مستمرة للمسافات المقطوعة وتنبيهات مسبقة لتغيير الزيت والفحص الدوري لضمان سلامة الأسطول واستمرارية العمل.'
     },
     {
       icon: TrendingUp,
-      title: 'شفافية الحوافز والأهداف',
+      title: 'شفافية الحوافز ومؤشرات الأداء',
       description:
-        'لوحة أداء واضحة للمندوب تعرض الطلبات المعتمدة، شريط تحقيق الهدف الشهري، والراتب المتوقع بدقة ودون تعقيد.'
+        'لوحة أداء واضحة للمندوب تعرض إنجازه اليومي والشهري واستحقاقات الحوافز بكل وضوح وموثوقية.'
     },
     {
       icon: Zap,
       title: 'تشغيل ميداني على مدار الساعة',
       description:
-        'توزيع تشغيلي مرن يلبي متطلبات كبرى منصات التوصيل في المملكة، مع دعم ميداني متواصل لحل العقبات فوراً.'
+        'توزيع تشغيلي مرن يلبي متطلبات كبرى منصات التوصيل في المملكة، مع دعم ميداني متواصل لضمان انسيابية العمل.'
     }
   ];
 
   return (
-    <section id='about' className='py-20 bg-slate-50 border-b border-slate-200'>
+    <section id='about' className='py-20 bg-slate-50 border-b border-slate-200 overflow-hidden'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         {/* Section Header */}
-        <div className='text-center max-w-3xl mx-auto mb-14'>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className='text-center max-w-3xl mx-auto mb-14'
+        >
           <span className='inline-block px-3 py-1 rounded-md bg-orange-100 text-orange-800 text-xs font-bold mb-3'>
             عن شركة AAMS
           </span>
@@ -44,41 +51,52 @@ export function LandingAbout() {
           </h2>
           <p className='text-base sm:text-lg text-slate-600 leading-relaxed'>
             نعمل في <strong className='text-slate-900 font-bold'>AAMS Logistics</strong> على تطوير
-            منظومة عمل ميدانية متقدمة تخدم كلاً من المندوب وإدارة الأسطول، تجمع بين سهولة الاستخدام، دقة
+            منظومة عمل متقدمة تخدم كلاً من المندوب وإدارة الأسطول، تجمع بين سهولة الاستخدام، دقة
             التوثيق، وحفظ حقوق جميع الأطراف.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Pillars Cards */}
+        {/* Pillars Cards with stagger animation */}
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
           {pillars.map((pillar, idx) => {
             const Icon = pillar.icon;
             return (
-              <div
+              <motion.div
                 key={idx}
-                className='bg-white rounded-2xl border border-slate-200 p-6 text-right shadow-xs hover:shadow-md transition-shadow duration-200'
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                className='bg-white rounded-2xl border border-slate-200 p-6 text-right shadow-2xs hover:shadow-md transition-shadow'
               >
                 <div className='w-11 h-11 rounded-xl bg-orange-50 border border-orange-100 text-orange-600 flex items-center justify-center mb-5'>
                   <Icon className='w-5 h-5' />
                 </div>
                 <h3 className='text-lg font-bold text-slate-900 mb-2'>{pillar.title}</h3>
                 <p className='text-sm text-slate-600 leading-relaxed'>{pillar.description}</p>
-              </div>
+              </motion.div>
             );
           })}
         </div>
 
         {/* Enterprise Commitment Box */}
-        <div className='mt-12 rounded-2xl bg-white border border-slate-200 p-8 sm:p-10 text-right shadow-xs'>
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className='mt-12 rounded-2xl bg-white border border-slate-200 p-8 sm:p-10 text-right shadow-2xs'
+        >
           <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 items-center'>
             <div className='lg:col-span-8'>
               <h3 className='text-xl sm:text-2xl font-bold text-slate-900 mb-3'>
                 منظومة موحدة تجمع المندوب والمشرف وإدارة الأسطول
               </h3>
               <p className='text-sm sm:text-base text-slate-600 leading-relaxed mb-5'>
-                سواء كنت مندوباً في الميدان يحتاج إلى تسجيل ورديته ومتابعة إنجازه اليومي، أو مشرفاً
-                يتابع مئات الورديات والمركبات وتوزيع الطلبات — توفر منصة AAMS كافة البيانات بدقة
-                متناهية.
+                سواء كنت مندوباً في الميدان يحتاج إلى تطبيق مرن يسهل عمله اليومي ويحفظ كامل بياناته،
+                أو مشرفاً يدير حركة وتوزيع أسطول المركبات والتنسيق مع المنصات — توفر منصة AAMS كافة
+                الأدوات بدقة متناهية.
               </p>
               <div className='grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm text-slate-700 font-medium'>
                 <div className='flex items-center gap-2'>
@@ -108,7 +126,7 @@ export function LandingAbout() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
