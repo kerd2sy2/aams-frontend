@@ -20,20 +20,24 @@ const ADMIN_ONLY = new Set(['/dashboard/investigation/approvals']);
 
 function isVisible(item: NavItem): boolean {
   const admin = getAdminUser();
-  const isGeneralMgr = !admin?.branch_id;
   const roleUpper = (admin?.role || '').toUpperCase();
   const roleObjUpper = (admin?.role_obj?.name || '').toUpperCase();
-  const canAccessApprovals =
+  const isSuperOrAdmin =
     roleUpper === 'ADMIN' ||
     roleUpper === 'SUPER_ADMIN' ||
     roleUpper === 'GENERAL_MANAGER' ||
     roleObjUpper === 'ADMIN' ||
     roleObjUpper === 'SUPER_ADMIN' ||
     roleObjUpper === 'GENERAL_MANAGER' ||
-    (admin?.permissions || []).includes('*') ||
-    hasPermission('investigations.approve', admin);
+    (admin?.permissions || []).includes('*');
 
-  if (GENERAL_MANAGER_ONLY.has(item.url) && !isGeneralMgr) return false;
+  const isGeneralMgr = !admin?.branch_id || isSuperOrAdmin;
+  const canAccessUsers = isGeneralMgr || hasPermission('users.manage', admin);
+  const canAccessApprovals = isSuperOrAdmin || hasPermission('investigations.approve', admin);
+
+  if (item.url === '/dashboard/users' && !canAccessUsers) return false;
+  if (GENERAL_MANAGER_ONLY.has(item.url) && item.url !== '/dashboard/users' && !isGeneralMgr)
+    return false;
   if (ADMIN_ONLY.has(item.url) && !canAccessApprovals) return false;
   return true;
 }

@@ -113,8 +113,8 @@ export function parseDocEmployees(
   // Single employee fallback
   return [
     {
-      name: inv.employee_name || '—',
-      national_id: inv.national_id || '—'
+      name: inv.employee_name || (inv as any).employee?.name || '—',
+      national_id: inv.national_id || (inv as any).employee?.national_id || '—'
     }
   ];
 }
@@ -483,7 +483,7 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                         <User className='size-4' />
                       </div>
                       <span className='font-black text-slate-950 text-base'>
-                        {t.employee_name || '—'}
+                        {t.employee_name || (t as any).employee?.name || '—'}
                       </span>
                     </div>
 
@@ -492,7 +492,7 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                         <CreditCard className='size-4' />
                       </div>
                       <span className='font-bold font-mono text-slate-900 text-base tracking-wider'>
-                        {t.national_id || '—'}
+                        {t.national_id || (t as any).employee?.national_id || '—'}
                       </span>
                     </div>
 
@@ -556,14 +556,16 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                       <span className='text-xs text-slate-500 font-medium min-w-[75px]'>
                         اسم الموظف:
                       </span>
-                      <span className='font-bold text-slate-950'>{t.employee_name || '—'}</span>
+                      <span className='font-bold text-slate-950'>
+                        {t.employee_name || (t as any).employee?.name || '—'}
+                      </span>
                     </div>
                     <div className='flex items-center gap-2'>
                       <span className='text-xs text-slate-500 font-medium min-w-[75px]'>
                         رقم الهوية:
                       </span>
                       <span className='font-mono font-bold text-slate-950 tracking-wider'>
-                        {t.national_id || '—'}
+                        {t.national_id || (t as any).employee?.national_id || '—'}
                       </span>
                     </div>
                     <div className='flex items-center gap-2'>
@@ -774,7 +776,10 @@ export function PublicDocView({ docId, initialType }: { docId: string; initialTy
                     <div className='flex items-center gap-2'>
                       <span className='text-base font-black text-slate-950'>المشرف :</span>
                       <span className='text-base font-bold text-slate-900'>
-                        {t.supervisor_name || '—'}
+                        {t.supervisor_name ||
+                          (t as any).supervisor?.name ||
+                          (t as any).admin_name ||
+                          '—'}
                       </span>
                     </div>
                     <div className='space-y-1'>

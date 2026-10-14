@@ -56,6 +56,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Icons } from '@/components/icons';
 import { getAdminUser } from '@/lib/aams/auth';
+import { hasPermission } from '@/lib/aams/permissions';
 import { adminApi, roleApi, branchApi } from '@/lib/aams/services';
 import type { Admin, Role, Branch } from '@/types/aams';
 import {
@@ -139,7 +140,19 @@ export default function UsersPage() {
   }, []);
 
   const currentAdmin = getAdminUser();
-  const isGeneralMgr = !currentAdmin?.branch_id;
+  const roleUpper = (currentAdmin?.role || '').toUpperCase();
+  const roleObjUpper = (currentAdmin?.role_obj?.name || '').toUpperCase();
+  const isSuperOrAdmin =
+    roleUpper === 'ADMIN' ||
+    roleUpper === 'SUPER_ADMIN' ||
+    roleUpper === 'GENERAL_MANAGER' ||
+    roleObjUpper === 'ADMIN' ||
+    roleObjUpper === 'SUPER_ADMIN' ||
+    roleObjUpper === 'GENERAL_MANAGER' ||
+    (currentAdmin?.permissions || []).includes('*');
+
+  const canAccessUsers =
+    isSuperOrAdmin || !currentAdmin?.branch_id || hasPermission('users.manage', currentAdmin);
 
   const {
     data: admins = [],
@@ -148,7 +161,7 @@ export default function UsersPage() {
   } = useQuery({
     queryKey: ['users'],
     queryFn: () => adminApi.getAll(),
-    enabled: mounted && isGeneralMgr
+    enabled: mounted && canAccessUsers
   });
 
   const { data: roles = [] } = useQuery({
@@ -164,10 +177,10 @@ export default function UsersPage() {
   });
 
   useEffect(() => {
-    if (mounted && !isGeneralMgr) {
+    if (mounted && !canAccessUsers) {
       router.replace('/dashboard');
     }
-  }, [mounted, isGeneralMgr, router]);
+  }, [mounted, canAccessUsers, router]);
 
   const resetForm = () => {
     const defaultRole = roles.find((r) => r.name === 'SUPERVISOR') || roles[0];
@@ -381,7 +394,7 @@ export default function UsersPage() {
 
   const isFormPending = createMutation.isPending || updateMutation.isPending;
 
-  if (!mounted || !isGeneralMgr) return null;
+  if (!mounted || !canAccessUsers) return null;
 
   return (
     <PageContainer>

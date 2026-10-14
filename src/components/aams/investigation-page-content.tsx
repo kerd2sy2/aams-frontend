@@ -137,8 +137,8 @@ export function parseDocEmployees(
   // Single employee fallback
   return [
     {
-      name: inv.employee_name || '—',
-      national_id: inv.national_id || '—'
+      name: inv.employee_name || (inv as any).employee?.name || '—',
+      national_id: inv.national_id || (inv as any).employee?.national_id || '—'
     }
   ];
 }
@@ -389,7 +389,9 @@ export function InvestigationPageContent({
           national_id:
             nationalId ||
             selectedEmployee?.national_id ||
-            (viewTarget ? viewTarget.national_id : undefined)
+            (viewTarget ? viewTarget.national_id : undefined),
+          supervisor_name:
+            currentAdmin?.name || (viewTarget ? viewTarget.supervisor_name : undefined)
         });
       }
 
@@ -404,6 +406,7 @@ export function InvestigationPageContent({
           ...baseData,
           employee_id: selectedEmployees[0].id,
           employee_name: allNames,
+          supervisor_name: currentAdmin?.name || undefined,
           items: selectedType === 'custody' ? baseData.items : serializedEmployees,
           notes: notes ? notes : `تقرير مجمع يشمل (${selectedEmployees.length}) موظفين: ${allNames}`
         });
@@ -414,7 +417,8 @@ export function InvestigationPageContent({
         ...baseData,
         employee_id: selectedEmployee?.id,
         employee_name: employeeName || selectedEmployee?.name,
-        national_id: nationalId || selectedEmployee?.national_id
+        national_id: nationalId || selectedEmployee?.national_id,
+        supervisor_name: currentAdmin?.name || undefined
       });
     },
     onSuccess: () => {
@@ -1975,7 +1979,7 @@ export function InvestigationPageContent({
                         <User className='size-4' />
                       </div>
                       <span className='font-black text-slate-950 text-base'>
-                        {t.employee_name || '—'}
+                        {t.employee_name || (t as any).employee?.name || '—'}
                       </span>
                     </div>
 
@@ -1984,7 +1988,7 @@ export function InvestigationPageContent({
                         <CreditCard className='size-4' />
                       </div>
                       <span className='font-bold font-mono text-slate-900 text-base tracking-wider'>
-                        {t.national_id || '—'}
+                        {t.national_id || (t as any).employee?.national_id || '—'}
                       </span>
                     </div>
 
@@ -2200,7 +2204,13 @@ export function InvestigationPageContent({
         )}
         <DocPhotoAttachments images={t.images} docId={t.id} docType={t.type} />
         {t.type !== 'advance' && (
-          <DocSignatures empName={t.employee_name} supName={t.supervisor_name} type={t.type} />
+          <DocSignatures
+            empName={t.employee_name || (t as any).employee?.name || ''}
+            supName={
+              t.supervisor_name || (t as any).supervisor?.name || (t as any).admin_name || ''
+            }
+            type={t.type}
+          />
         )}
         <DocFooter />
       </div>
@@ -2360,14 +2370,21 @@ export function InvestigationPageContent({
                             </>
                           ) : (
                             <>
-                              <p className='text-sm font-bold'>{inv.employee_name || '—'}</p>
+                              <p className='text-sm font-bold'>
+                                {inv.employee_name || (inv as any).employee?.name || '—'}
+                              </p>
                               <p className='text-muted-foreground text-xs'>
-                                رقم الهوية: {inv.national_id || '—'}
+                                رقم الهوية:{' '}
+                                {inv.national_id || (inv as any).employee?.national_id || '—'}
                               </p>
                             </>
                           )}
                           <p className='text-muted-foreground text-xs'>
-                            المشرف: {inv.supervisor_name || '—'}
+                            المشرف:{' '}
+                            {inv.supervisor_name ||
+                              (inv as any).supervisor?.name ||
+                              (inv as any).admin_name ||
+                              '—'}
                           </p>
                         </div>
                       </div>

@@ -31,6 +31,7 @@ import { ar } from 'date-fns/locale';
 import { Icons, type Icon } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { getAdminUser } from '@/lib/aams/auth';
+import { hasPermission } from '@/lib/aams/permissions';
 import { formatRiyadh } from '@/lib/aams/riyadh-time';
 import { auditApi } from '@/lib/aams/services';
 import type { AuditLog } from '@/types/aams';
@@ -99,8 +100,20 @@ export default function AuditLogsPage() {
   const [isClearAllOpen, setIsClearAllOpen] = useState(false);
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
 
-  // General manager only (no branch_id)
-  const isGeneralMgr = !getAdminUser()?.branch_id;
+  const admin = getAdminUser();
+  const roleUpper = (admin?.role || '').toUpperCase();
+  const roleObjUpper = (admin?.role_obj?.name || '').toUpperCase();
+  const isSuperOrAdmin =
+    roleUpper === 'ADMIN' ||
+    roleUpper === 'SUPER_ADMIN' ||
+    roleUpper === 'GENERAL_MANAGER' ||
+    roleObjUpper === 'ADMIN' ||
+    roleObjUpper === 'SUPER_ADMIN' ||
+    roleObjUpper === 'GENERAL_MANAGER' ||
+    (admin?.permissions || []).includes('*');
+
+  const isGeneralMgr =
+    !admin?.branch_id || isSuperOrAdmin || hasPermission('audit_logs.view', admin);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['audit-logs', page],
@@ -146,8 +159,8 @@ export default function AuditLogsPage() {
   };
 
   const handleToggleSelect = (id: string) => {
-    setSelectedIds(prev =>
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
@@ -161,7 +174,7 @@ export default function AuditLogsPage() {
       await auditApi.deleteLog(singleDeleteId);
       toast.success('تم حذف سجل العملية نهائياً من قاعدة البيانات');
       setSingleDeleteId(null);
-      setSelectedIds(prev => prev.filter(id => id !== singleDeleteId));
+      setSelectedIds((prev) => prev.filter((id) => id !== singleDeleteId));
       queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
     } catch (err: any) {
       toast.error(err?.response?.data?.error || 'تعذر حذف سجل العملية');
@@ -243,7 +256,7 @@ export default function AuditLogsPage() {
         </div>
       }
     >
-      <div className='flex flex-col gap-4' dir="rtl">
+      <div className='flex flex-col gap-4' dir='rtl'>
         {/* Search & Bulk Bar */}
         <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card p-3 rounded-2xl border shadow-xs'>
           <div className='relative flex-1 min-w-[240px]'>
@@ -288,7 +301,13 @@ export default function AuditLogsPage() {
                 const { icon: ActionIcon, iconFg, gradient } = getActionColor(log.action);
                 const isSelected = selectedIds.includes(log.id);
                 return (
-                  <Card key={log.id} className={cn('overflow-hidden border', isSelected && 'border-rose-400 bg-rose-50/20')}>
+                  <Card
+                    key={log.id}
+                    className={cn(
+                      'overflow-hidden border',
+                      isSelected && 'border-rose-400 bg-rose-50/20'
+                    )}
+                  >
                     <CardContent className='space-y-3 p-4 pt-4'>
                       {/* Top row: Checkbox + admin + action + delete */}
                       <div className='flex items-start justify-between gap-2'>
@@ -296,7 +315,7 @@ export default function AuditLogsPage() {
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={() => handleToggleSelect(log.id)}
-                            aria-label="Select log"
+                            aria-label='Select log'
                           />
                           <div
                             className={cn(
@@ -316,7 +335,10 @@ export default function AuditLogsPage() {
                         </div>
 
                         <div className='flex items-center gap-1'>
-                          <Badge variant='outline' className='shrink-0 whitespace-nowrap text-[10px] font-bold'>
+                          <Badge
+                            variant='outline'
+                            className='shrink-0 whitespace-nowrap text-[10px] font-bold'
+                          >
                             {log.action}
                           </Badge>
                           <Button
@@ -367,7 +389,7 @@ export default function AuditLogsPage() {
                       <Checkbox
                         checked={isAllSelected}
                         onCheckedChange={handleSelectAll}
-                        aria-label="Select all"
+                        aria-label='Select all'
                       />
                     </TableHead>
                     <TableHead className='text-right'>اسم المسؤول</TableHead>
@@ -383,12 +405,18 @@ export default function AuditLogsPage() {
                     const { icon: ActionIcon, gradient } = getActionColor(log.action);
                     const isSelected = selectedIds.includes(log.id);
                     return (
-                      <TableRow key={log.id} className={cn('hover:bg-muted/30 transition-colors', isSelected && 'bg-rose-50/20')}>
+                      <TableRow
+                        key={log.id}
+                        className={cn(
+                          'hover:bg-muted/30 transition-colors',
+                          isSelected && 'bg-rose-50/20'
+                        )}
+                      >
                         <TableCell className='text-center'>
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={() => handleToggleSelect(log.id)}
-                            aria-label="Select row"
+                            aria-label='Select row'
                           />
                         </TableCell>
 
@@ -414,7 +442,9 @@ export default function AuditLogsPage() {
 
                         <TableCell className='text-foreground/80 max-w-md'>
                           {log.details ? (
-                            <p className='line-clamp-2 text-xs leading-relaxed font-sans'>{log.details}</p>
+                            <p className='line-clamp-2 text-xs leading-relaxed font-sans'>
+                              {log.details}
+                            </p>
                           ) : (
                             <span className='text-muted-foreground/50 text-xs italic'>—</span>
                           )}
@@ -480,26 +510,30 @@ export default function AuditLogsPage() {
       </div>
 
       {/* 1. Single Delete Modal */}
-      <AlertDialog open={!!singleDeleteId} onOpenChange={(open) => !open && setSingleDeleteId(null)}>
-        <AlertDialogContent dir="rtl" className="max-w-md">
-          <AlertDialogHeader className="text-right space-y-2">
-            <div className="size-10 rounded-xl bg-rose-100 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center">
-              <AlertTriangle className="size-5" />
+      <AlertDialog
+        open={!!singleDeleteId}
+        onOpenChange={(open) => !open && setSingleDeleteId(null)}
+      >
+        <AlertDialogContent dir='rtl' className='max-w-md'>
+          <AlertDialogHeader className='text-right space-y-2'>
+            <div className='size-10 rounded-xl bg-rose-100 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center'>
+              <AlertTriangle className='size-5' />
             </div>
-            <AlertDialogTitle className="text-base font-bold text-foreground">
+            <AlertDialogTitle className='text-base font-bold text-foreground'>
               تأكيد حذف سجل العملية نهائياً
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground">
-              هل أنت متأكد من رغبتك في حذف هذا السجل نهائياً من قاعدة البيانات؟ لا يمكن التراجع عن هذه الخطوة.
+            <AlertDialogDescription className='text-xs text-muted-foreground'>
+              هل أنت متأكد من رغبتك في حذف هذا السجل نهائياً من قاعدة البيانات؟ لا يمكن التراجع عن هذه
+              الخطوة.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row-reverse justify-start gap-2 pt-2">
+          <AlertDialogFooter className='flex-row-reverse justify-start gap-2 pt-2'>
             <AlertDialogAction
               onClick={handleDeleteSingle}
               disabled={isDeleting}
-              className="bg-rose-600 hover:bg-rose-700 text-white font-bold gap-1.5"
+              className='bg-rose-600 hover:bg-rose-700 text-white font-bold gap-1.5'
             >
-              <Trash2 className="size-3.5" />
+              <Trash2 className='size-3.5' />
               حذف نهائي
             </AlertDialogAction>
             <AlertDialogCancel disabled={isDeleting}>إلغاء</AlertDialogCancel>
@@ -509,25 +543,25 @@ export default function AuditLogsPage() {
 
       {/* 2. Bulk Delete Modal */}
       <AlertDialog open={isBulkDeleteOpen} onOpenChange={setIsBulkDeleteOpen}>
-        <AlertDialogContent dir="rtl" className="max-w-md">
-          <AlertDialogHeader className="text-right space-y-2">
-            <div className="size-10 rounded-xl bg-rose-100 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center">
-              <AlertTriangle className="size-5" />
+        <AlertDialogContent dir='rtl' className='max-w-md'>
+          <AlertDialogHeader className='text-right space-y-2'>
+            <div className='size-10 rounded-xl bg-rose-100 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center'>
+              <AlertTriangle className='size-5' />
             </div>
-            <AlertDialogTitle className="text-base font-bold text-foreground">
+            <AlertDialogTitle className='text-base font-bold text-foreground'>
               تأكيد حذف {selectedIds.length} سجل محدد
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground">
+            <AlertDialogDescription className='text-xs text-muted-foreground'>
               سيتم حذف كافة السجلات المحددة نهائياً وبلا رجعة من قاعدة البيانات.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row-reverse justify-start gap-2 pt-2">
+          <AlertDialogFooter className='flex-row-reverse justify-start gap-2 pt-2'>
             <AlertDialogAction
               onClick={handleBulkDelete}
               disabled={isDeleting}
-              className="bg-rose-600 hover:bg-rose-700 text-white font-bold gap-1.5"
+              className='bg-rose-600 hover:bg-rose-700 text-white font-bold gap-1.5'
             >
-              <Trash2 className="size-3.5" />
+              <Trash2 className='size-3.5' />
               حذف المحدد نهائياً
             </AlertDialogAction>
             <AlertDialogCancel disabled={isDeleting}>إلغاء</AlertDialogCancel>
@@ -537,29 +571,33 @@ export default function AuditLogsPage() {
 
       {/* 3. Clear All Logs Modal */}
       <AlertDialog open={isClearAllOpen} onOpenChange={setIsClearAllOpen}>
-        <AlertDialogContent dir="rtl" className="max-w-md">
-          <AlertDialogHeader className="text-right space-y-3">
-            <div className="size-12 rounded-2xl bg-rose-100 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center">
-              <ShieldAlert className="size-6" />
+        <AlertDialogContent dir='rtl' className='max-w-md'>
+          <AlertDialogHeader className='text-right space-y-3'>
+            <div className='size-12 rounded-2xl bg-rose-100 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center'>
+              <ShieldAlert className='size-6' />
             </div>
-            <AlertDialogTitle className="text-lg font-bold text-foreground">
+            <AlertDialogTitle className='text-lg font-bold text-foreground'>
               تفريغ ومسح سجل العمليات بالكامل
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed">
-              أنت على وشك <strong className="text-rose-600">حذف كافة سجلات العمليات والنشاطات ({total} سجل)</strong> نهائياً من قاعدة البيانات.
+            <AlertDialogDescription className='text-xs text-muted-foreground leading-relaxed'>
+              أنت على وشك{' '}
+              <strong className='text-rose-600'>
+                حذف كافة سجلات العمليات والنشاطات ({total} سجل)
+              </strong>{' '}
+              نهائياً من قاعدة البيانات.
               <br />
-              <span className="font-bold text-rose-600 block mt-2">
+              <span className='font-bold text-rose-600 block mt-2'>
                 ⚠️ تحذير: هذه العملية لا يمكن التراجع عنها وستقوم بتصفير سجل النشاط بالكامل.
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row-reverse justify-start gap-2 pt-2">
+          <AlertDialogFooter className='flex-row-reverse justify-start gap-2 pt-2'>
             <AlertDialogAction
               onClick={handleClearAll}
               disabled={isDeleting}
-              className="bg-rose-600 hover:bg-rose-700 text-white font-bold gap-1.5"
+              className='bg-rose-600 hover:bg-rose-700 text-white font-bold gap-1.5'
             >
-              <Trash2 className="size-4" />
+              <Trash2 className='size-4' />
               تأكيد مسح كافة السجلات نهائياً
             </AlertDialogAction>
             <AlertDialogCancel disabled={isDeleting}>إلغاء</AlertDialogCancel>
@@ -586,13 +624,19 @@ function Pagination({
   if (!total || total <= 20) return null;
 
   return (
-    <Card className="rounded-2xl border shadow-xs">
+    <Card className='rounded-2xl border shadow-xs'>
       <CardFooter className='justify-between py-3 px-4'>
         <span className='text-muted-foreground text-xs font-medium tabular-nums'>
           إجمالي العمليات: {total} · صفحة {page} من {totalPages}
         </span>
         <div className='flex items-center gap-2'>
-          <Button variant='outline' size='sm' disabled={page <= 1} onClick={onPrev} className='gap-1.5 h-8 text-xs font-semibold'>
+          <Button
+            variant='outline'
+            size='sm'
+            disabled={page <= 1}
+            onClick={onPrev}
+            className='gap-1.5 h-8 text-xs font-semibold'
+          >
             <Icons.chevronRight className='size-3.5' />
             <span className='hidden sm:inline'>السابقة</span>
           </Button>

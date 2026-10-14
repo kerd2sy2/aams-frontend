@@ -35,6 +35,7 @@ import {
 import { Icons } from '@/components/icons';
 import { ImageUploader } from '@/components/aams/image-uploader';
 import { getAdminUser } from '@/lib/aams/auth';
+import { hasPermission } from '@/lib/aams/permissions';
 import { branchApi, settingsApi } from '@/lib/aams/services';
 import type { AppSettings, Branch } from '@/types/aams';
 
@@ -72,7 +73,20 @@ export default function SettingsPage() {
     setMounted(true);
   }, []);
 
-  const isGeneralMgr = !getAdminUser()?.branch_id;
+  const admin = getAdminUser();
+  const roleUpper = (admin?.role || '').toUpperCase();
+  const roleObjUpper = (admin?.role_obj?.name || '').toUpperCase();
+  const isSuperOrAdmin =
+    roleUpper === 'ADMIN' ||
+    roleUpper === 'SUPER_ADMIN' ||
+    roleUpper === 'GENERAL_MANAGER' ||
+    roleObjUpper === 'ADMIN' ||
+    roleObjUpper === 'SUPER_ADMIN' ||
+    roleObjUpper === 'GENERAL_MANAGER' ||
+    (admin?.permissions || []).includes('*');
+
+  const isGeneralMgr =
+    !admin?.branch_id || isSuperOrAdmin || hasPermission('settings.manage', admin);
   const canManageSettings = mounted && isGeneralMgr;
 
   const { data: settings } = useQuery({
