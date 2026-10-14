@@ -133,11 +133,12 @@ export default function EmployeesPage() {
       roleId: string;
     }) => {
       const selectedRole = rolesList.find((r) => r.id === roleId);
+      const perms = selectedRole?.permissions;
       return employeeApi.update(empId, {
         job_role: jobRole,
         role_id: roleId || undefined,
         role_name: selectedRole?.name || undefined,
-        permissions: selectedRole?.permissions || undefined
+        permissions: Array.isArray(perms) ? JSON.stringify(perms) : (perms as any) || undefined
       });
     },
     onSuccess: () => {

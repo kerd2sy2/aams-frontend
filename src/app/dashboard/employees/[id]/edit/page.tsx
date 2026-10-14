@@ -160,7 +160,9 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
         role_id: selectedRoleId || undefined,
         role_name: rolesList.find((r) => r.id === selectedRoleId)?.name || undefined,
         permissions: selectedRoleId
-          ? rolesList.find((r) => r.id === selectedRoleId)?.permissions || undefined
+          ? (Array.isArray(rolesList.find((r) => r.id === selectedRoleId)?.permissions)
+              ? JSON.stringify(rolesList.find((r) => r.id === selectedRoleId)?.permissions)
+              : (rolesList.find((r) => r.id === selectedRoleId)?.permissions as any)) || undefined
           : undefined
       });
 

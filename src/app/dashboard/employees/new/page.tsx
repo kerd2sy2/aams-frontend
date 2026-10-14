@@ -148,7 +148,11 @@ export default function NewEmployeePage() {
           ? {
               role_id: selectedRoleId,
               role_name: rolesList.find((r) => r.id === selectedRoleId)?.name || undefined,
-              permissions: rolesList.find((r) => r.id === selectedRoleId)?.permissions || undefined
+              permissions: Array.isArray(
+                rolesList.find((r) => r.id === selectedRoleId)?.permissions
+              )
+                ? JSON.stringify(rolesList.find((r) => r.id === selectedRoleId)?.permissions)
+                : (rolesList.find((r) => r.id === selectedRoleId)?.permissions as any) || undefined
             }
           : {})
       });
