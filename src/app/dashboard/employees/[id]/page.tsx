@@ -170,12 +170,14 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
 
   const roleLabel =
     employee.job_role === 'SUPERVISOR'
-      ? 'مشرف وردية'
-      : employee.job_role === 'MANAGEMENT'
-        ? 'إدارة'
-        : employee.job_role === 'WORKER'
-          ? 'عامل'
-          : 'مندوب توصيل';
+      ? '🛡️ مشرف وردية'
+      : employee.job_role === 'ACCOUNTANT'
+        ? '💼 إدارة مالية وحسابات'
+        : employee.job_role === 'OWNER' || employee.job_role === 'MANAGEMENT'
+          ? '👑 مالك المؤسسة'
+          : employee.job_role === 'CLEANER' || employee.job_role === 'WORKER'
+            ? '🧹 عامل نظافة'
+            : '🏍️ مندوب توصيل';
 
   const formatAppName = (appType?: string) => {
     if (!appType) return 'نينجا (Ninja)';

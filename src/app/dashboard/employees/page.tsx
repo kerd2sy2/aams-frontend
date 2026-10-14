@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/c
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Accordion,
   AccordionContent,
@@ -35,17 +36,29 @@ import {
 import { Icons } from '@/components/icons';
 import { cn, getWhatsAppURL } from '@/lib/utils';
 import { getAdminUser } from '@/lib/aams/auth';
-import { employeeApi } from '@/lib/aams/services';
+import { employeeApi, roleApi } from '@/lib/aams/services';
 import { useOfflineQuery } from '@/hooks/use-offline-query';
 import { useLocale } from '@/components/layout/locale-provider';
-import type { Employee, PaginatedResponse } from '@/types/aams';
-import { Building2, Users, MapPin } from 'lucide-react';
+import type { Employee, PaginatedResponse, Role } from '@/types/aams';
+import {
+  Building2,
+  Users,
+  MapPin,
+  ShieldCheck,
+  Briefcase,
+  Crown,
+  Bike,
+  Trash2,
+  Key
+} from 'lucide-react';
 
 interface BranchGroup {
   id: string;
   name: string;
   employees: Employee[];
 }
+
+type DepartmentFilter = 'ALL' | 'DRIVER' | 'SUPERVISOR' | 'CLEANER' | 'ACCOUNTANT' | 'OWNER';
 
 const formatAppName = (appType?: string, appId?: string) => {
   let name = '';
@@ -71,17 +84,31 @@ export default function EmployeesPage() {
   const router = useRouter();
   const { t, dir } = useLocale();
   const [search, setSearch] = useState('');
+  const [selectedDept, setSelectedDept] = useState<DepartmentFilter>('ALL');
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
+
+  // Modal for quick role & permission assignment
+  const [permissionTarget, setPermissionTarget] = useState<Employee | null>(null);
+  const [modalJobRole, setModalJobRole] = useState('DRIVER');
+  const [modalRoleId, setModalRoleId] = useState('');
 
   const canDelete = !getAdminUser()?.branch_id;
 
   const { data, isLoading } = useOfflineQuery<PaginatedResponse<Employee>>({
     queryKey: ['employees', search, page],
     queryFn: () =>
-      employeeApi.getAll({ search, page, limit: 100, sort_by: 'key_number', order: 'asc' }),
+      employeeApi.getAll({ search, page, limit: 150, sort_by: 'key_number', order: 'asc' }),
     cacheKey: `employees_page_${page}_${search}`
   });
+
+  // Fetch available system roles
+  const { data: rolesData } = useOfflineQuery({
+    queryKey: ['roles-list'],
+    queryFn: () => roleApi.getAll(),
+    cacheKey: 'roles_all'
+  });
+  const rolesList: Role[] = rolesData || [];
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => employeeApi.delete(id),
@@ -95,15 +122,80 @@ export default function EmployeesPage() {
     }
   });
 
-  const employees = data?.data ?? [];
-  const total = data?.total ?? 0;
-  const totalPages = data?.total_pages ?? 0;
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({
+      empId,
+      jobRole,
+      roleId
+    }: {
+      empId: string;
+      jobRole: string;
+      roleId: string;
+    }) => {
+      const selectedRole = rolesList.find((r) => r.id === roleId);
+      return employeeApi.update(empId, {
+        job_role: jobRole,
+        role_id: roleId || undefined,
+        role_name: selectedRole?.name || undefined,
+        permissions: selectedRole?.permissions || undefined
+      });
+    },
+    onSuccess: () => {
+      toast.success('تم تحديث القسم والصلاحيات بنجاح!');
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      setPermissionTarget(null);
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.error || 'حدث خطأ أثناء تحديث الصلاحيات');
+    }
+  });
 
-  // Group employees by branch
+  const allEmployees = data?.data ?? [];
+
+  // Department counts
+  const deptCounts = useMemo(() => {
+    const counts = {
+      ALL: allEmployees.length,
+      DRIVER: 0,
+      SUPERVISOR: 0,
+      CLEANER: 0,
+      ACCOUNTANT: 0,
+      OWNER: 0
+    };
+    allEmployees.forEach((emp) => {
+      const r = (emp.job_role || 'DRIVER').toUpperCase();
+      if (r === 'SUPERVISOR') counts.SUPERVISOR++;
+      else if (r === 'CLEANER' || r === 'WORKER') counts.CLEANER++;
+      else if (r === 'ACCOUNTANT') counts.ACCOUNTANT++;
+      else if (r === 'OWNER' || r === 'MANAGEMENT') counts.OWNER++;
+      else counts.DRIVER++;
+    });
+    return counts;
+  }, [allEmployees]);
+
+  // Filter employees by selected department
+  const filteredEmployees = useMemo(() => {
+    if (selectedDept === 'ALL') return allEmployees;
+    return allEmployees.filter((emp) => {
+      const r = (emp.job_role || 'DRIVER').toUpperCase();
+      if (selectedDept === 'SUPERVISOR') return r === 'SUPERVISOR';
+      if (selectedDept === 'CLEANER') return r === 'CLEANER' || r === 'WORKER';
+      if (selectedDept === 'ACCOUNTANT') return r === 'ACCOUNTANT';
+      if (selectedDept === 'OWNER') return r === 'OWNER' || r === 'MANAGEMENT';
+      if (selectedDept === 'DRIVER')
+        return (
+          r === 'DRIVER' ||
+          !['SUPERVISOR', 'CLEANER', 'WORKER', 'ACCOUNTANT', 'OWNER', 'MANAGEMENT'].includes(r)
+        );
+      return true;
+    });
+  }, [allEmployees, selectedDept]);
+
+  // Group filtered employees by branch
   const branchGroups = useMemo<BranchGroup[]>(() => {
     const map = new Map<string, BranchGroup>();
 
-    employees.forEach((emp) => {
+    filteredEmployees.forEach((emp) => {
       const branchId = emp.branch?.id || emp.branch_id || 'unassigned';
       const branchName =
         emp.branch?.name ||
@@ -124,7 +216,7 @@ export default function EmployeesPage() {
       if (b.id === 'unassigned') return -1;
       return a.name.localeCompare(b.name, 'ar');
     });
-  }, [employees]);
+  }, [filteredEmployees]);
 
   const [openBranchIds, setOpenBranchIds] = useState<string[]>([]);
   const [hasInitializedBranches, setHasInitializedBranches] = useState(false);
@@ -136,10 +228,96 @@ export default function EmployeesPage() {
     }
   }, [branchGroups, hasInitializedBranches]);
 
+  const openPermissionModal = (emp: Employee) => {
+    setPermissionTarget(emp);
+    setModalJobRole(emp.job_role || 'DRIVER');
+    setModalRoleId(emp.role_id || '');
+  };
+
   return (
-    <PageContainer pageTitle={t('Employees')} pageDescription={t('All Employees')}>
-      <div className='flex flex-col gap-4' dir={dir}>
-        {/* شريط البحث والإحصائيات */}
+    <PageContainer
+      pageTitle={t('Employees')}
+      pageDescription='إدارة كافة موظفي الشركة، تصنيف الأقسام وتوزيع الصلاحيات'
+    >
+      <div className='flex flex-col gap-5' dir={dir}>
+        {/* شريط تبويبات الأقسام للعمل */}
+        <div className='flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none'>
+          {[
+            {
+              id: 'ALL',
+              label: 'كافة الموظفين',
+              icon: Users,
+              count: deptCounts.ALL,
+              color: 'text-foreground'
+            },
+            {
+              id: 'DRIVER',
+              label: 'المناديب',
+              icon: Bike,
+              count: deptCounts.DRIVER,
+              color: 'text-sky-500'
+            },
+            {
+              id: 'SUPERVISOR',
+              label: 'المشرفين',
+              icon: ShieldCheck,
+              count: deptCounts.SUPERVISOR,
+              color: 'text-blue-500'
+            },
+            {
+              id: 'ACCOUNTANT',
+              label: 'الحسابات والمالية',
+              icon: Briefcase,
+              count: deptCounts.ACCOUNTANT,
+              color: 'text-emerald-500'
+            },
+            {
+              id: 'OWNER',
+              label: 'المالك والإدارة',
+              icon: Crown,
+              count: deptCounts.OWNER,
+              color: 'text-amber-500'
+            },
+            {
+              id: 'CLEANER',
+              label: 'عمال النظافة',
+              icon: Users,
+              count: deptCounts.CLEANER,
+              color: 'text-slate-500'
+            }
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = selectedDept === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedDept(tab.id as DepartmentFilter)}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-all shrink-0 cursor-pointer shadow-2xs',
+                  isActive
+                    ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                    : 'bg-card text-muted-foreground hover:bg-muted/80 hover:text-foreground border-border/70'
+                )}
+              >
+                <Icon className={cn('size-4', isActive ? 'text-primary-foreground' : tab.color)} />
+                <span>{tab.label}</span>
+                <Badge
+                  variant='secondary'
+                  className={cn(
+                    'font-mono tabular-nums px-1.5 py-0.2 text-[11px] rounded-md font-extrabold',
+                    isActive
+                      ? 'bg-primary-foreground/20 text-primary-foreground'
+                      : 'bg-muted text-muted-foreground'
+                  )}
+                >
+                  {tab.count}
+                </Badge>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* شريط البحث والإحصائيات والإجراءات */}
         <Card className='shadow-xs'>
           <CardContent className='flex flex-col items-stretch justify-between gap-3 p-4 sm:flex-row sm:items-center'>
             <div className='relative w-full sm:max-w-md'>
@@ -150,7 +328,7 @@ export default function EmployeesPage() {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
-                placeholder='ابحث بالاسم، رقم الجوال، الهوية أو رقم الدراجة...'
+                placeholder='ابحث بالاسم، رقم الجوال، الهوية الوطنية...'
                 className='ps-9 text-right'
               />
             </div>
@@ -158,12 +336,12 @@ export default function EmployeesPage() {
               <div className='flex items-center gap-2 text-xs sm:text-sm font-semibold text-muted-foreground'>
                 <span className='flex items-center gap-1.5'>
                   <Users className='size-4 text-primary' />
-                  الإجمالي:
+                  النتائج:
                 </span>
                 <Badge variant='secondary' className='font-bold font-mono tabular-nums'>
-                  {total}
+                  {filteredEmployees.length}
                 </Badge>
-                <span>مندوب</span>
+                <span>موظف</span>
 
                 <span className='mx-1 text-border'>|</span>
 
@@ -185,7 +363,7 @@ export default function EmployeesPage() {
                   )}
                 >
                   <MapPin className='size-4' />
-                  خريطة المناديب (الطائف)
+                  خريطة المناديب
                 </Link>
                 <Link
                   href='/dashboard/employees/cards'
@@ -195,14 +373,14 @@ export default function EmployeesPage() {
                   )}
                 >
                   <Icons.printer className='size-4' />
-                  {t('Print ID Cards (CR80)')}
+                  طباعة البطاقات
                 </Link>
                 <Link
                   href='/dashboard/employees/new'
                   className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5 font-bold shadow-xs')}
                 >
                   <Icons.add className='size-4' />
-                  {t('Add Employee')}
+                  إضافة موظف
                 </Link>
               </div>
             </div>
@@ -212,18 +390,18 @@ export default function EmployeesPage() {
         {isLoading ? (
           <Card className='text-muted-foreground p-12 text-center text-sm shadow-xs'>
             <Icons.spinner className='text-primary mx-auto mb-3 size-7 animate-spin' />
-            جاري تحميل المناديب وتصنيفهم حسب الفروع...
+            جاري تحميل موظفي الشركة وتصنيفهم حسب الأقسام...
           </Card>
-        ) : employees.length === 0 ? (
+        ) : filteredEmployees.length === 0 ? (
           <Card className='p-12 text-center shadow-xs'>
             <div className='bg-muted text-muted-foreground mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl'>
               <Icons.userCheck className='size-7' />
             </div>
-            <CardTitle className='text-lg font-bold'>لا يوجد مناديب</CardTitle>
+            <CardTitle className='text-lg font-bold'>لا يوجد موظفين في هذا القسم</CardTitle>
             <CardDescription className='mx-auto mt-1.5 max-w-xs text-xs'>
               {search
                 ? 'لا توجد نتائج مطابقة لبحثك، جرّب كلمات بحث أخرى.'
-                : 'لا يوجد مناديب مسجلون بعد في النظام.'}
+                : 'لا يوجد موظفون مسجلون حالياً في هذا القسم المحدد.'}
             </CardDescription>
           </Card>
         ) : (
@@ -261,8 +439,8 @@ export default function EmployeesPage() {
                           </h3>
                           <p className='text-xs text-muted-foreground mt-0.5'>
                             {isUnassigned
-                              ? 'المناديب غير المسندين لفرع محدد'
-                              : `قائمة مناديب وموظفي ${group.name}`}
+                              ? 'الموظفون غير المسندين لفرع محدد'
+                              : `قائمة موظفي ${group.name}`}
                           </p>
                         </div>
                       </div>
@@ -273,10 +451,7 @@ export default function EmployeesPage() {
                           className='font-mono font-bold text-xs gap-1.5 px-3 py-1 bg-muted/80'
                         >
                           <Users className='size-3.5 text-primary' />
-                          <span>
-                            {group.employees.length}{' '}
-                            {group.employees.length === 1 ? 'مندوب' : 'مناديب'}
-                          </span>
+                          <span>{group.employees.length} موظف</span>
                         </Badge>
                       </div>
                     </div>
@@ -292,11 +467,10 @@ export default function EmployeesPage() {
                             <TableHead className='text-right text-xs min-w-[200px]'>
                               الموظف
                             </TableHead>
-                            <TableHead className='text-center text-xs'>الوظيفة</TableHead>
+                            <TableHead className='text-center text-xs'>القسم والوظيفة</TableHead>
                             <TableHead className='text-center text-xs'>الهوية الوطنية</TableHead>
-                            <TableHead className='text-center text-xs'>رقم الدراجة</TableHead>
-                            <TableHead className='text-center text-xs'>رقم المفتاح</TableHead>
-                            <TableHead className='text-center text-xs'>التطبيق</TableHead>
+                            <TableHead className='text-center text-xs'>الصلاحيات</TableHead>
+                            <TableHead className='text-center text-xs'>المركبة / المفتاح</TableHead>
                             <TableHead className='text-center text-xs'>الوردية</TableHead>
                             <TableHead className='text-center text-xs'>الإجراءات</TableHead>
                           </TableRow>
@@ -334,37 +508,27 @@ export default function EmployeesPage() {
                                   </div>
                                 </TableCell>
 
-                                <TableCell className='text-center font-semibold text-xs'>
-                                  {emp.job_role === 'SUPERVISOR'
-                                    ? 'مشرف'
-                                    : emp.job_role === 'MANAGEMENT'
-                                      ? 'إدارة'
-                                      : emp.job_role === 'WORKER'
-                                        ? 'عامل'
-                                        : 'مندوب'}
+                                <TableCell className='text-center'>
+                                  <DepartmentBadge role={emp.job_role} />
                                 </TableCell>
 
-                                <TableCell className='text-center font-mono tabular-nums text-xs font-medium'>
+                                <TableCell className='text-center font-mono tabular-nums text-xs font-semibold'>
                                   {emp.national_id || '—'}
                                 </TableCell>
 
-                                <TableCell className='text-center font-mono tabular-nums text-xs font-bold'>
-                                  {emp.motorcycle_number || (
-                                    <span className='text-muted-foreground font-normal'>—</span>
-                                  )}
-                                </TableCell>
-
-                                <TableCell className='text-center text-muted-foreground font-mono tabular-nums text-xs'>
-                                  {emp.key_number || '—'}
-                                </TableCell>
-
                                 <TableCell className='text-center'>
-                                  <Badge
-                                    variant='outline'
-                                    className='font-mono text-[11px] font-bold bg-primary/5 border-primary/20 text-primary'
-                                  >
-                                    {formatAppName(emp.application_type, emp.application_id)}
-                                  </Badge>
+                                  <RoleBadge emp={emp} rolesList={rolesList} />
+                                </TableCell>
+
+                                <TableCell className='text-center font-mono tabular-nums text-xs font-medium'>
+                                  {emp.motorcycle_number ? (
+                                    <span className='font-bold text-foreground'>
+                                      🏍️ {emp.motorcycle_number}
+                                      {emp.key_number && ` (مفتاح ${emp.key_number})`}
+                                    </span>
+                                  ) : (
+                                    <span className='text-muted-foreground'>—</span>
+                                  )}
                                 </TableCell>
 
                                 <TableCell className='text-center'>
@@ -385,7 +549,19 @@ export default function EmployeesPage() {
                                   className='text-center'
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  <div className='flex items-center justify-center gap-0.5'>
+                                  <div className='flex items-center justify-center gap-1'>
+                                    {/* زر إدارة الصلاحيات والقسم */}
+                                    <Button
+                                      variant='outline'
+                                      size='sm'
+                                      onClick={() => openPermissionModal(emp)}
+                                      className='gap-1 text-xs h-7 px-2 border-primary/30 text-primary hover:bg-primary/10'
+                                      title='تعديل القسم والصلاحيات'
+                                    >
+                                      <ShieldCheck className='size-3.5' />
+                                      الصلاحية
+                                    </Button>
+
                                     {waUrl && (
                                       <IconLink
                                         href={waUrl}
@@ -436,7 +612,9 @@ export default function EmployeesPage() {
                           emp={emp}
                           rowNum={idx + 1}
                           canDelete={canDelete}
+                          rolesList={rolesList}
                           onDelete={() => setDeleteTarget(emp)}
+                          onAssignPermissions={() => openPermissionModal(emp)}
                         />
                       ))}
                     </div>
@@ -447,52 +625,212 @@ export default function EmployeesPage() {
           </Accordion>
         )}
 
-        {/* الترقيم عند تعدد الصفحات */}
-        <Pagination
-          page={data?.page ?? 1}
-          totalPages={totalPages}
-          onPrev={() => setPage((p) => Math.max(1, p - 1))}
-          onNext={() => setPage((p) => p + 1)}
-        />
-      </div>
+        {/* Modal ربط الموظف بصلاحيات وأقسام العمل */}
+        <Dialog
+          open={!!permissionTarget}
+          onOpenChange={(open) => !open && setPermissionTarget(null)}
+        >
+          <DialogContent className='sm:max-w-md' dir='rtl'>
+            <DialogHeader>
+              <DialogTitle className='flex items-center gap-2 text-base font-bold'>
+                <ShieldCheck className='size-5 text-primary' />
+                ربط الموظف بالقسم والصلاحيات
+              </DialogTitle>
+              <DialogDescription className='text-xs'>
+                تحديد قسم العمل وتعيين الصلاحيات الإدارية للموظف: <b>{permissionTarget?.name}</b>
+              </DialogDescription>
+            </DialogHeader>
 
-      {/* نافذة تأكيد الحذف */}
-      <Dialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent dir='rtl'>
-          <DialogHeader className='text-right'>
-            <DialogTitle>تأكيد الحذف</DialogTitle>
-            <DialogDescription>
-              {deleteTarget
-                ? `هل أنت متأكد من حذف «${deleteTarget.name}»؟ لا يمكن التراجع عن هذا الإجراء.`
-                : 'هل أنت متأكد من حذف هذا الموظف؟'}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className='gap-2 sm:justify-start'>
-            <Button variant='outline' onClick={() => setDeleteTarget(null)}>
-              إلغاء
-            </Button>
-            <Button
-              variant='destructive'
-              disabled={deleteMutation.isPending}
-              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
-              className='font-bold'
-            >
-              {deleteMutation.isPending ? 'جاري الحذف...' : 'حذف'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <div className='space-y-4 py-2'>
+              <div className='space-y-2'>
+                <Label htmlFor='modal_role' className='text-xs font-bold'>
+                  قسم العمل / المسمى الوظيفي
+                </Label>
+                <select
+                  id='modal_role'
+                  value={modalJobRole}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setModalJobRole(val);
+                    if (val === 'SUPERVISOR') {
+                      const matched = rolesList.find((r) => r.name === 'SUPERVISOR');
+                      if (matched) setModalRoleId(matched.id);
+                    } else if (val === 'ACCOUNTANT') {
+                      const matched = rolesList.find((r) => r.name === 'ACCOUNTANT');
+                      if (matched) setModalRoleId(matched.id);
+                    } else if (val === 'OWNER') {
+                      const matched = rolesList.find(
+                        (r) => r.name === 'OWNER' || r.name === 'SUPER_ADMIN'
+                      );
+                      if (matched) setModalRoleId(matched.id);
+                    } else {
+                      setModalRoleId('');
+                    }
+                  }}
+                  className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20'
+                >
+                  <option value='DRIVER'>🏍️ مندوب توصيل</option>
+                  <option value='SUPERVISOR'>🛡️ مشرف وردية / ميداني</option>
+                  <option value='ACCOUNTANT'>💼 حسابات / إدارة مالية</option>
+                  <option value='OWNER'>👑 مالك المؤسسة</option>
+                  <option value='CLEANER'>🧹 عامل نظافة</option>
+                </select>
+              </div>
+
+              {modalJobRole !== 'DRIVER' && modalJobRole !== 'CLEANER' ? (
+                <div className='space-y-2 p-3.5 rounded-xl border border-primary/20 bg-primary/5'>
+                  <Label
+                    htmlFor='modal_system_role'
+                    className='text-xs font-bold flex items-center gap-1.5'
+                  >
+                    <Key className='size-3.5 text-primary' />
+                    صلاحيات دور النظام (Role)
+                  </Label>
+                  <select
+                    id='modal_system_role'
+                    value={modalRoleId}
+                    onChange={(e) => setModalRoleId(e.target.value)}
+                    className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20'
+                  >
+                    <option value=''>-- بدون دور إداري خاص --</option>
+                    {rolesList.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.display_name} ({r.name})
+                      </option>
+                    ))}
+                  </select>
+                  {modalRoleId && (
+                    <p className='text-[11px] text-muted-foreground mt-1'>
+                      سيتم منح الموظف صلاحيات:{' '}
+                      {rolesList.find((r) => r.id === modalRoleId)?.display_name}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className='text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-lg'>
+                  وظيفة المندوب وعامل النظافة لا تتطلب صلاحيات وصول إدارية للوحة التحكم.
+                </p>
+              )}
+            </div>
+
+            <DialogFooter className='gap-2 sm:gap-0'>
+              <Button variant='outline' size='sm' onClick={() => setPermissionTarget(null)}>
+                إلغاء
+              </Button>
+              <Button
+                size='sm'
+                disabled={updateRoleMutation.isPending}
+                onClick={() => {
+                  if (permissionTarget) {
+                    updateRoleMutation.mutate({
+                      empId: permissionTarget.id,
+                      jobRole: modalJobRole,
+                      roleId: modalRoleId
+                    });
+                  }
+                }}
+                className='font-bold gap-1.5'
+              >
+                {updateRoleMutation.isPending && (
+                  <Icons.spinner className='size-3.5 animate-spin' />
+                )}
+                حفظ التعديلات
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* حوار تأكيد الحذف */}
+        <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+          <DialogContent className='sm:max-w-md' dir='rtl'>
+            <DialogHeader>
+              <DialogTitle className='text-base font-bold text-destructive'>
+                تأكيد حذف الموظف
+              </DialogTitle>
+              <DialogDescription className='text-xs'>
+                هل أنت متأكد من حذف الموظف <b>{deleteTarget?.name}</b>؟ هذا الإجراء لا يمكن التراجع
+                عنه.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className='gap-2 sm:gap-0'>
+              <Button variant='outline' size='sm' onClick={() => setDeleteTarget(null)}>
+                إلغاء
+              </Button>
+              <Button
+                variant='destructive'
+                size='sm'
+                disabled={deleteMutation.isPending}
+                onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+                className='font-bold gap-1.5'
+              >
+                {deleteMutation.isPending && <Icons.spinner className='size-3.5 animate-spin' />}
+                حذف الموظف
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </PageContainer>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Sub-components                                                     */
-/* ------------------------------------------------------------------ */
+function DepartmentBadge({ role }: { role?: string }) {
+  const r = (role || 'DRIVER').toUpperCase();
+  if (r === 'OWNER' || r === 'MANAGEMENT') {
+    return (
+      <Badge className='font-bold text-[11px] bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800 gap-1'>
+        👑 مالك المؤسسة
+      </Badge>
+    );
+  }
+  if (r === 'SUPERVISOR') {
+    return (
+      <Badge className='font-bold text-[11px] bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-800 gap-1'>
+        🛡️ مشرف وردية
+      </Badge>
+    );
+  }
+  if (r === 'ACCOUNTANT') {
+    return (
+      <Badge className='font-bold text-[11px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 gap-1'>
+        💼 حسابات
+      </Badge>
+    );
+  }
+  if (r === 'CLEANER' || r === 'WORKER') {
+    return (
+      <Badge className='font-bold text-[11px] bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-300 dark:border-slate-800 gap-1'>
+        🧹 عامل نظافة
+      </Badge>
+    );
+  }
+  return (
+    <Badge className='font-bold text-[11px] bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-300 dark:border-sky-800 gap-1'>
+      🏍️ مندوب
+    </Badge>
+  );
+}
+
+function RoleBadge({ emp, rolesList }: { emp: Employee; rolesList: Role[] }) {
+  if (emp.role_id || emp.role_name) {
+    const matched = rolesList.find((r) => r.id === emp.role_id);
+    const title = matched?.display_name || emp.role_name || 'صلاحيات إدارية';
+    return (
+      <Badge
+        variant='outline'
+        className='font-bold text-[10px] bg-primary/10 border-primary/30 text-primary gap-1'
+      >
+        <ShieldCheck className='size-3 text-primary' />
+        {title}
+      </Badge>
+    );
+  }
+  return <span className='text-muted-foreground text-xs font-mono'>—</span>;
+}
 
 function EmployeeAvatar({ emp }: { emp: Employee }) {
   return (
-    <div className='bg-muted flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border'>
+    <div className='bg-muted relative size-9 shrink-0 overflow-hidden rounded-xl border border-border shadow-2xs flex items-center justify-center'>
       {emp.personal_image ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -539,12 +877,16 @@ function EmployeeMobileCard({
   emp,
   rowNum,
   onDelete,
-  canDelete
+  onAssignPermissions,
+  canDelete,
+  rolesList
 }: {
   emp: Employee;
   rowNum: number;
   onDelete: () => void;
+  onAssignPermissions: () => void;
   canDelete: boolean;
+  rolesList: Role[];
 }) {
   const router = useRouter();
   const phoneNum = emp.phone || emp.employee_number || '';
@@ -564,40 +906,16 @@ function EmployeeMobileCard({
           <div className='flex items-start justify-between gap-2'>
             <div className='min-w-0'>
               <p className='truncate text-sm font-bold leading-tight'>{emp.name}</p>
-              <div className='flex gap-1 mt-0.5'>
-                <Badge variant='secondary' className='text-[10px]'>
-                  {emp.job_role === 'SUPERVISOR'
-                    ? 'مشرف'
-                    : emp.job_role === 'MANAGEMENT'
-                      ? 'إدارة'
-                      : emp.job_role === 'WORKER'
-                        ? 'عامل'
-                        : 'مندوب'}
-                </Badge>
+              <div className='flex items-center gap-1.5 mt-1 flex-wrap'>
+                <DepartmentBadge role={emp.job_role} />
+                <RoleBadge emp={emp} rolesList={rolesList} />
               </div>
             </div>
-            <div className='flex flex-col items-end gap-1 shrink-0'>
-              <Badge
-                variant='outline'
-                className='text-[10px] font-bold bg-primary/5 border-primary/20 text-primary'
-              >
-                {formatAppName(emp.application_type, emp.application_id)}
-              </Badge>
-              <Badge
-                variant='secondary'
-                className={cn(
-                  'text-[10px] font-bold',
-                  emp.shift === 'evening'
-                    ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300'
-                    : 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-                )}
-              >
-                {emp.shift === 'evening' ? '🌙 مساء' : '☀️ صباح'}
-              </Badge>
-            </div>
           </div>
-          <div className='mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground'>
-            <span className='font-mono tabular-nums'>{emp.national_id}</span>
+          <div className='mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground'>
+            <span className='font-mono tabular-nums font-bold text-foreground'>
+              {emp.national_id}
+            </span>
             {phoneNum && (
               <span className='font-mono tabular-nums text-foreground/90' dir='ltr'>
                 📱 {phoneNum}
@@ -613,6 +931,15 @@ function EmployeeMobileCard({
       </div>
 
       <div className='mt-3 flex flex-wrap gap-2 pt-2 border-t' onClick={(e) => e.stopPropagation()}>
+        <Button
+          variant='outline'
+          size='sm'
+          onClick={onAssignPermissions}
+          className='gap-1 text-xs h-7 border-primary/30 text-primary hover:bg-primary/10'
+        >
+          <ShieldCheck className='size-3.5' />
+          الصلاحيات والقسم
+        </Button>
         {waUrl && (
           <a
             href={waUrl}
@@ -645,43 +972,11 @@ function EmployeeMobileCard({
             onClick={() => onDelete()}
             className='gap-1.5 text-xs text-destructive hover:bg-destructive/10 h-7'
           >
-            <Icons.trash className='size-3.5' />
+            <Trash2 className='size-3.5' />
             حذف
           </Button>
         )}
       </div>
     </Card>
-  );
-}
-
-function Pagination({
-  page,
-  totalPages,
-  onPrev,
-  onNext
-}: {
-  page: number;
-  totalPages: number;
-  onPrev: () => void;
-  onNext: () => void;
-}) {
-  if (!totalPages || totalPages <= 1) return null;
-
-  return (
-    <div className='flex items-center justify-between gap-3 border rounded-xl bg-card p-4 shadow-2xs'>
-      <span className='text-muted-foreground text-xs font-medium tabular-nums'>
-        الصفحة {page} من {totalPages}
-      </span>
-      <div className='flex items-center gap-2'>
-        <Button variant='outline' size='sm' disabled={page <= 1} onClick={onPrev}>
-          <Icons.chevronRight className='size-4' />
-          <span className='hidden sm:inline'>السابقة</span>
-        </Button>
-        <Button variant='outline' size='sm' disabled={page >= totalPages} onClick={onNext}>
-          <span className='hidden sm:inline'>التالية</span>
-          <Icons.chevronLeft className='size-4' />
-        </Button>
-      </div>
-    </div>
   );
 }

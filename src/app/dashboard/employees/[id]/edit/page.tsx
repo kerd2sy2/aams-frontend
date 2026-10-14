@@ -7,7 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOfflineQuery } from '@/hooks/use-offline-query';
-import { employeeApi, vehicleApi } from '@/lib/aams/services';
+import { employeeApi, vehicleApi, roleApi } from '@/lib/aams/services';
+import type { Role } from '@/types/aams';
 import { targetWebApi } from '@/lib/aams/target-api';
 import { ApplicationIdentifierSelect } from '@/components/aams/application-identifier-select';
 import type { IdentifierPerformance } from '@/types/target';
@@ -67,7 +68,17 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
   const [selectedIdentifier, setSelectedIdentifier] = useState<IdentifierPerformance | null>(null);
   const [applicationIdVal, setApplicationIdVal] = useState('');
 
+  const [selectedRoleId, setSelectedRoleId] = useState('');
+
   const isDriver = jobRole === 'DRIVER';
+
+  // Fetch roles for permissions assignment
+  const { data: rolesData } = useOfflineQuery({
+    queryKey: ['roles-list'],
+    queryFn: () => roleApi.getAll(),
+    cacheKey: 'roles_all'
+  });
+  const rolesList: Role[] = rolesData || [];
 
   // Fetch registered fleet vehicles from /dashboard/vehicles
   const { data: vehiclesData } = useOfflineQuery({
@@ -121,6 +132,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
       setShift(employee.shift || 'morning');
       setSelectedVehiclePlate(employee.motorcycle_number || '');
       setApplicationIdVal(employee.application_id || '');
+      setSelectedRoleId(employee.role_id || '');
     }
   }, [employee, reset]);
 
@@ -144,7 +156,12 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
         key_number: isDriver ? values.key_number || '' : '',
         application_type: isDriver ? applicationType : '',
         application_id: isDriver ? resolvedAppId : '',
-        shift: isDriver ? shift : 'morning'
+        shift: isDriver ? shift : 'morning',
+        role_id: selectedRoleId || undefined,
+        role_name: rolesList.find((r) => r.id === selectedRoleId)?.name || undefined,
+        permissions: selectedRoleId
+          ? rolesList.find((r) => r.id === selectedRoleId)?.permissions || undefined
+          : undefined
       });
 
       // Link identifier if chosen
@@ -235,16 +252,89 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
                   <select
                     id='job_role'
                     value={jobRole}
-                    onChange={(e) => setJobRole(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setJobRole(val);
+                      if (val === 'SUPERVISOR') {
+                        const matched = rolesList.find((r) => r.name === 'SUPERVISOR');
+                        if (matched) setSelectedRoleId(matched.id);
+                      } else if (val === 'ACCOUNTANT') {
+                        const matched = rolesList.find((r) => r.name === 'ACCOUNTANT');
+                        if (matched) setSelectedRoleId(matched.id);
+                      } else if (val === 'OWNER') {
+                        const matched = rolesList.find(
+                          (r) => r.name === 'OWNER' || r.name === 'SUPER_ADMIN'
+                        );
+                        if (matched) setSelectedRoleId(matched.id);
+                      } else {
+                        setSelectedRoleId('');
+                      }
+                    }}
                     className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20'
                   >
-                    <option value='DRIVER'>مندوب توصيل (سائق)</option>
-                    <option value='SUPERVISOR'>مشرف وردية</option>
-                    <option value='MANAGEMENT'>إدارة</option>
-                    <option value='WORKER'>عامل</option>
+                    <option value='DRIVER'>🏍️ مندوب توصيل (سائق)</option>
+                    <option value='SUPERVISOR'>🛡️ مشرف وردية / ميداني</option>
+                    <option value='CLEANER'>🧹 عامل نظافة</option>
+                    <option value='ACCOUNTANT'>💼 حسابات / إدارة مالية</option>
+                    <option value='OWNER'>👑 مالك المؤسسة</option>
                   </select>
                 </div>
               </div>
+
+              {/* ربط الصلاحيات الإدارية للأقسام */}
+              {jobRole !== 'DRIVER' && jobRole !== 'CLEANER' && (
+                <div className='p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3'>
+                  <div className='flex items-center gap-2'>
+                    <ShieldCheck className='size-5 text-primary' />
+                    <div>
+                      <h4 className='text-sm font-bold text-foreground'>
+                        ربط الموظف بصلاحيات النظام
+                      </h4>
+                      <p className='text-xs text-muted-foreground'>
+                        بما أن وظيفة الموظف هي (
+                        {jobRole === 'SUPERVISOR'
+                          ? 'مشرف'
+                          : jobRole === 'ACCOUNTANT'
+                            ? 'حسابات'
+                            : 'مالك'}
+                        )، يمكنك تحديد الدور والصلاحيات الممنوحة له.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-3 pt-1'>
+                    <div className='space-y-1.5'>
+                      <Label htmlFor='role_select' className='text-xs font-semibold'>
+                        الدور الإداري المخصص
+                      </Label>
+                      <select
+                        id='role_select'
+                        value={selectedRoleId}
+                        onChange={(e) => setSelectedRoleId(e.target.value)}
+                        className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20'
+                      >
+                        <option value=''>-- بدون دور إداري خاص --</option>
+                        {rolesList.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.display_name} ({r.name})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {selectedRoleId && (
+                      <div className='p-2.5 rounded-lg bg-background border border-border/60 text-xs flex flex-col justify-center'>
+                        <span className='font-bold text-foreground'>الصلاحيات الممنوحة:</span>
+                        <span className='text-muted-foreground mt-0.5 line-clamp-2'>
+                          {rolesList
+                            .find((r) => r.id === selectedRoleId)
+                            ?.permissions?.join('، ') || 'كامل الصلاحيات'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {isDriver ? (
                 <>

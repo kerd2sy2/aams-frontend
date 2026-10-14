@@ -68,9 +68,15 @@ export interface Employee {
   branch?: { id: string; name: string } | null;
   barcode: string;
   qr_code: string;
+  role_id?: string | null;
+  role_name?: string;
+  role_obj?: Role | null;
+  permissions?: string[] | string;
   created_at: string;
   updated_at: string;
 }
+
+export type JobDepartment = 'DRIVER' | 'SUPERVISOR' | 'CLEANER' | 'ACCOUNTANT' | 'OWNER';
 
 export interface EmployeeLocation {
   id: string;
