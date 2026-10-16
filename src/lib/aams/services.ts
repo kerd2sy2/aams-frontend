@@ -377,6 +377,17 @@ export const adminApi = {
   delete: async (id: string) => {
     const res = await apiClient.delete(`/users/${id}`);
     return res.data;
+  },
+  promote: async (data: {
+    employee_id: string;
+    role: string;
+    role_id?: string;
+    branch_id?: string;
+    phone?: string;
+    permissions?: string[];
+  }) => {
+    const res = await apiClient.post<Admin>('/users/promote', data);
+    return res.data;
   }
 };
 

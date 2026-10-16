@@ -41,6 +41,10 @@ export interface Admin {
   permissions_list?: string[];
   branch_id?: string | null;
   branch?: { id: string; name: string } | null;
+  employee_id?: string | null;
+  employee?: Employee | null;
+  must_change_password?: boolean;
+  permissions_configured?: boolean;
 }
 
 export interface Employee {

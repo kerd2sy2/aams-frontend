@@ -54,11 +54,13 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Icons } from '@/components/icons';
 import { getAdminUser } from '@/lib/aams/auth';
 import { hasPermission } from '@/lib/aams/permissions';
-import { adminApi, roleApi, branchApi } from '@/lib/aams/services';
-import type { Admin, Role, Branch } from '@/types/aams';
+import { adminApi, roleApi, branchApi, employeeApi } from '@/lib/aams/services';
+import type { Admin, Role, Branch, Employee } from '@/types/aams';
 import {
   Users,
   UserCheck,
@@ -76,7 +78,14 @@ import {
   Mail,
   User as UserIcon,
   RefreshCw,
-  X
+  X,
+  Shield,
+  UserPlus,
+  Link2,
+  CheckSquare,
+  Square,
+  Sparkles,
+  Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -107,6 +116,137 @@ function getAvatarColor(name: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
+const SYSTEM_PERMISSION_GROUPS = [
+  {
+    category: 'المشرف العام والتحكم الكامل',
+    permissions: [
+      {
+        key: '*',
+        label: 'مشرف عام (كامل الصلاحيات)',
+        description: 'الوصول لجميع موديولات وشاشات وعمليات النظام'
+      }
+    ]
+  },
+  {
+    category: 'الموظفون والمناديب',
+    permissions: [
+      { key: 'employees.view', label: 'عرض الموظفين', description: 'استعراض قائمة وسجلات الموظفين' },
+      { key: 'employees.create', label: 'إضافة موظف', description: 'إنشاء ملف موظف جديد' },
+      { key: 'employees.edit', label: 'تعديل موظف', description: 'تعديل وتحديث بيانات الموظفين' },
+      {
+        key: 'employees.cards',
+        label: 'بطاقات العمل',
+        description: 'عرض وطباعة بطاقات العمل الرقمية'
+      }
+    ]
+  },
+  {
+    category: 'التشغيل وحركات العمل',
+    permissions: [
+      { key: 'work.view', label: 'عرض حركات العمل', description: 'متابعة الشفتات والورديات' },
+      { key: 'work.start', label: 'بدء وردية', description: 'تسجيل بدء عمل للمندوبين' },
+      { key: 'work.end', label: 'إنهاء وردية', description: 'تسجيل إغلاق وردية للمندوبين' }
+    ]
+  },
+  {
+    category: 'المركبات والأسطول',
+    permissions: [
+      {
+        key: 'vehicles.view',
+        label: 'عرض المركبات',
+        description: 'استعراض أسطول الدراجات والسيارات'
+      },
+      {
+        key: 'vehicles.manage',
+        label: 'إدارة المركبات',
+        description: 'إضافة وتعديل وحذف المركبات'
+      },
+      { key: 'vehicles.oil', label: 'متابعة الزيوت', description: 'تسجيل وتتبع غيارات الزيت' },
+      { key: 'fuel.view', label: 'عرض الوقود', description: 'استعراض حركات تعبئة الوقود' },
+      { key: 'fuel.manage', label: 'إدارة الوقود', description: 'تسجيل واستهلاك وقود المركبات' }
+    ]
+  },
+  {
+    category: 'الصيانة والورشة',
+    permissions: [
+      { key: 'maintenance.view', label: 'عرض الصيانة', description: 'استعراض سجلات وأوامر الصيانة' },
+      {
+        key: 'maintenance.manage',
+        label: 'إدارة الصيانة',
+        description: 'فتح وإغلاق وتعديل أوامر الصيانة'
+      }
+    ]
+  },
+  {
+    category: 'العهد والأصول',
+    permissions: [
+      { key: 'custody', label: 'الوصول العام للعهد', description: 'صلاحية الدخول لموديول العهد' },
+      { key: 'custody.view', label: 'عرض العهد', description: 'استعراض العهد المسلمة والمسترجعة' },
+      { key: 'custody.add', label: 'تسليم عهدة', description: 'تسجيل تسليم عهدة جديدة لموظف' },
+      { key: 'custody.manage', label: 'إدارة العهد', description: 'تعديل واسترجاع العهد' },
+      { key: 'custody.delete', label: 'حذف عهدة', description: 'إلغاء وحذف سجل عهدة' }
+    ]
+  },
+  {
+    category: 'المستودع والمخزون',
+    permissions: [
+      { key: 'inventory.view', label: 'عرض المستودع', description: 'استعراض الأصناف والكميات' },
+      { key: 'inventory.dispense', label: 'صرف قطع غيار', description: 'صرف الأصناف وتحديث الأرصدة' }
+    ]
+  },
+  {
+    category: 'الموارد البشرية والشؤون القانونية',
+    permissions: [
+      { key: 'attendance.view', label: 'عرض الحضور', description: 'متابعة سجلات الحضور والانصراف' },
+      {
+        key: 'investigations.view',
+        label: 'عرض التحقيقات',
+        description: 'استعراض التحقيقات الإدارية'
+      },
+      { key: 'investigations.create', label: 'فتح تحقيق', description: 'إنشاء جلسة تحقيق لموظف' },
+      { key: 'leaves.view', label: 'عرض الإجازات', description: 'استعراض طلبات الإجازات' },
+      { key: 'leaves.manage', label: 'إدارة الإجازات', description: 'الموافقة على الإجازات أو رفضها' }
+    ]
+  },
+  {
+    category: 'البلاغات والشكاوى',
+    permissions: [
+      { key: 'tickets.view', label: 'عرض البلاغات', description: 'استعراض التذاكر المفتوحة' },
+      { key: 'tickets.manage', label: 'معالجة البلاغات', description: 'تحديث حالة وإغلاق التذاكر' }
+    ]
+  },
+  {
+    category: 'المالية والحسابات',
+    permissions: [
+      { key: 'bank_accounts.view', label: 'عرض الحسابات', description: 'استعراض الحسابات البنكية' },
+      {
+        key: 'bank_accounts.manage',
+        label: 'إدارة الحسابات',
+        description: 'تعديل وإضافة الحسابات البنكية'
+      },
+      { key: 'violations.view', label: 'عرض المخالفات', description: 'استعراض المخالفات المرورية' },
+      { key: 'violations.manage', label: 'إدارة المخالفات', description: 'تسجيل وتسوية المخالفات' }
+    ]
+  },
+  {
+    category: 'التقارير والمستندات',
+    permissions: [
+      {
+        key: 'reports.view',
+        label: 'عرض التقارير',
+        description: 'استعراض التقارير الإحصائية والمالية'
+      },
+      {
+        key: 'reports.export',
+        label: 'تصدير التقارير',
+        description: 'تصدير التقارير إلى Excel/PDF'
+      },
+      { key: 'documents.view', label: 'عرض المستندات', description: 'استعراض الوثائق الرسمية' },
+      { key: 'documents.manage', label: 'إدارة المستندات', description: 'رفع وتحديث المستندات' }
+    ]
+  }
+];
+
 export default function UsersPage() {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -134,6 +274,19 @@ export default function UsersPage() {
     roleId: '',
     branchId: ''
   });
+
+  // Promote Employee Dialog States
+  const [promoteOpen, setPromoteOpen] = useState(false);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+  const [promoteRole, setPromoteRole] = useState('SUPERVISOR');
+  const [promoteRoleId, setPromoteRoleId] = useState('');
+  const [promoteBranchId, setPromoteBranchId] = useState('');
+  const [promotePhone, setPromotePhone] = useState('');
+  const [empSearch, setEmpSearch] = useState('');
+
+  // Permissions Management Dialog States
+  const [permModalUser, setPermModalUser] = useState<Admin | null>(null);
+  const [selectedPerms, setSelectedPerms] = useState<string[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -237,7 +390,7 @@ export default function UsersPage() {
       role_id?: string;
       branch_id?: string;
       permissions?: string[];
-    }) => adminApi.create({ ...data, permissions: [] }),
+    }) => adminApi.create(data),
     onSuccess: () => {
       toast.success('تم إضافة المستخدم بنجاح');
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -266,7 +419,7 @@ export default function UsersPage() {
         role: data.role,
         role_id: data.role_id,
         branch_id: data.branch_id || undefined,
-        permissions: [],
+        permissions: data.permissions,
         password: data.password || undefined
       }),
     onSuccess: () => {
@@ -277,6 +430,109 @@ export default function UsersPage() {
     },
     onError: (err) => toast.error(getErrorMessage(err))
   });
+
+  // Promote Employee Query & Mutation
+  const { data: employeesData, isLoading: isEmployeesLoading } = useQuery({
+    queryKey: ['employees-for-promote'],
+    queryFn: () => employeeApi.getAll({ limit: 200 }),
+    enabled: promoteOpen
+  });
+
+  const employeeList: Employee[] = useMemo(() => {
+    if (!employeesData) return [];
+    if (Array.isArray(employeesData)) return employeesData;
+    if (Array.isArray((employeesData as any).data)) return (employeesData as any).data;
+    return [];
+  }, [employeesData]);
+
+  const filteredEmployees = useMemo(() => {
+    if (!empSearch.trim()) return employeeList;
+    const q = empSearch.toLowerCase();
+    return employeeList.filter(
+      (e) =>
+        e.name?.toLowerCase().includes(q) ||
+        e.phone?.includes(q) ||
+        e.employee_number?.toLowerCase().includes(q) ||
+        e.job_role?.toLowerCase().includes(q)
+    );
+  }, [employeeList, empSearch]);
+
+  const promoteMutation = useMutation({
+    mutationFn: (data: {
+      employee_id: string;
+      role: string;
+      role_id?: string;
+      branch_id?: string;
+      phone?: string;
+      permissions?: string[];
+    }) => adminApi.promote(data),
+    onSuccess: () => {
+      toast.success(
+        'تم ترقية الموظف وربط حسابه بنجاح. كلمة المرور الأولية هي آخر 4 أرقام من الجوال.'
+      );
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setPromoteOpen(false);
+      setSelectedEmployeeId('');
+      setPromotePhone('');
+      setEmpSearch('');
+    },
+    onError: (err) => toast.error(getErrorMessage(err))
+  });
+
+  // Permission Management Mutation & Helpers
+  const savePermsMutation = useMutation({
+    mutationFn: (data: { id: string; permissions: string[] }) =>
+      adminApi.update(data.id, { permissions: data.permissions }),
+    onSuccess: () => {
+      toast.success('تم حفظ الصلاحيات المخصصة للمستخدم بنجاح');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setPermModalUser(null);
+    },
+    onError: (err) => toast.error(getErrorMessage(err))
+  });
+
+  const openPermModal = (user: Admin) => {
+    setPermModalUser(user);
+    let perms: string[] = [];
+    if (Array.isArray(user.permissions)) {
+      perms = [...user.permissions];
+    } else if (typeof user.permissions === 'string') {
+      try {
+        perms = JSON.parse(user.permissions);
+      } catch {
+        perms = [];
+      }
+    }
+    // If not configured, load role permissions as initial suggestion
+    if (!user.permissions_configured && user.role_obj?.permissions) {
+      perms = [...user.role_obj.permissions];
+    }
+    setSelectedPerms(perms);
+  };
+
+  const togglePerm = (key: string) => {
+    setSelectedPerms((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+
+  const toggleCategory = (catKeys: string[]) => {
+    const allSelected = catKeys.every((k) => selectedPerms.includes(k));
+    if (allSelected) {
+      setSelectedPerms((prev) => prev.filter((k) => !catKeys.includes(k)));
+    } else {
+      setSelectedPerms((prev) => Array.from(new Set([...prev, ...catKeys])));
+    }
+  };
+
+  const selectAllSystemPerms = () => {
+    const allKeys = SYSTEM_PERMISSION_GROUPS.flatMap((g) => g.permissions.map((p) => p.key));
+    setSelectedPerms(Array.from(new Set(allKeys)));
+  };
+
+  const clearAllPerms = () => {
+    setSelectedPerms([]);
+  };
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => adminApi.delete(id),
@@ -409,9 +665,25 @@ export default function UsersPage() {
             <Link href='/dashboard/roles'>
               <Button variant='outline' className='gap-2 shadow-xs'>
                 <Key className='size-4 text-primary' />
-                <span>إدارة الأدوار والصلاحيات</span>
+                <span>إدارة الأدوار</span>
               </Button>
             </Link>
+            <Button
+              onClick={() => {
+                setSelectedEmployeeId('');
+                setPromotePhone('');
+                setPromoteRole('SUPERVISOR');
+                setPromoteRoleId('');
+                setPromoteBranchId('');
+                setEmpSearch('');
+                setPromoteOpen(true);
+              }}
+              variant='outline'
+              className='gap-2 shadow-xs border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 font-semibold'
+            >
+              <UserPlus className='size-4 text-emerald-600' />
+              <span>ترقية موظف</span>
+            </Button>
             <Button onClick={openCreateSheet} className='gap-2 shadow-sm font-semibold'>
               <Plus className='size-4' />
               <span>إضافة مستخدم جديد</span>
@@ -584,6 +856,7 @@ export default function UsersPage() {
                 <TableHead className='text-right font-bold'>اسم المستخدم</TableHead>
                 <TableHead className='text-right font-bold'>رقم الهاتف</TableHead>
                 <TableHead className='text-right font-bold'>الدور الوظيفي</TableHead>
+                <TableHead className='text-right font-bold'>الصلاحيات</TableHead>
                 <TableHead className='text-right font-bold'>الفرع التابع</TableHead>
                 <TableHead className='text-center w-[100px] font-bold'>الإجراءات</TableHead>
               </TableRow>
@@ -591,7 +864,7 @@ export default function UsersPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className='h-48 text-center'>
+                  <TableCell colSpan={7} className='h-48 text-center'>
                     <div className='flex flex-col items-center justify-center gap-2'>
                       <Icons.spinner className='size-6 animate-spin text-primary' />
                       <p className='text-sm text-muted-foreground'>
@@ -602,7 +875,7 @@ export default function UsersPage() {
                 </TableRow>
               ) : paginatedAdmins.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className='h-48 text-center'>
+                  <TableCell colSpan={7} className='h-48 text-center'>
                     <div className='flex flex-col items-center justify-center gap-2'>
                       <div className='size-12 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground'>
                         <Users className='size-6' />
@@ -635,7 +908,7 @@ export default function UsersPage() {
                             </AvatarFallback>
                           </Avatar>
                           <div className='flex flex-col min-w-0'>
-                            <div className='flex items-center gap-1.5'>
+                            <div className='flex items-center gap-1.5 flex-wrap'>
                               <span className='font-bold text-sm text-slate-900 dark:text-slate-100 truncate'>
                                 {admin.name}
                               </span>
@@ -645,6 +918,15 @@ export default function UsersPage() {
                                   className='text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold'
                                 >
                                   أنت
+                                </Badge>
+                              )}
+                              {admin.employee_id && (
+                                <Badge
+                                  variant='outline'
+                                  className='text-[10px] px-1.5 py-0 h-4 bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 font-medium flex items-center gap-1'
+                                >
+                                  <Link2 className='size-2.5' />
+                                  مرتبط بموظف
                                 </Badge>
                               )}
                             </div>
@@ -702,6 +984,48 @@ export default function UsersPage() {
                         </Badge>
                       </TableCell>
 
+                      {/* Permissions */}
+                      <TableCell>
+                        {admin.role === 'SUPER_ADMIN' ? (
+                          <Badge className='bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-300 text-xs font-semibold'>
+                            مشرف عام (*)
+                          </Badge>
+                        ) : admin.permissions_configured ? (
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={() => openPermModal(admin)}
+                            className='h-7 text-xs font-semibold gap-1.5 border-primary/30 text-primary hover:bg-primary/10'
+                          >
+                            <Shield className='size-3' />
+                            <span>
+                              {(() => {
+                                let count = 0;
+                                if (Array.isArray(admin.permissions))
+                                  count = admin.permissions.length;
+                                else if (typeof admin.permissions === 'string') {
+                                  try {
+                                    count = JSON.parse(admin.permissions).length;
+                                  } catch {}
+                                }
+                                return count === 0 ? 'مخصص (بلا صلاحيات)' : `${count} صلاحية مخصصة`;
+                              })()}
+                            </span>
+                          </Button>
+                        ) : (
+                          <Button
+                            variant='ghost'
+                            size='sm'
+                            onClick={() => openPermModal(admin)}
+                            className='h-7 text-xs text-muted-foreground gap-1.5 hover:text-foreground'
+                            title='انقر لتخصيص صلاحيات فردية'
+                          >
+                            <span>تلقائي ({roleName})</span>
+                            <Edit className='size-3 opacity-60' />
+                          </Button>
+                        )}
+                      </TableCell>
+
                       {/* Branch */}
                       <TableCell>
                         {admin.branch ? (
@@ -743,11 +1067,18 @@ export default function UsersPage() {
                                 <span>تعديل البيانات</span>
                               </DropdownMenuItem>
                               <DropdownMenuItem
+                                onClick={() => openPermModal(admin)}
+                                className='gap-2 cursor-pointer'
+                              >
+                                <Shield className='size-4 text-primary' />
+                                <span>تخصيص الصلاحيات</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
                                 onClick={() => router.push('/dashboard/roles')}
                                 className='gap-2 cursor-pointer'
                               >
                                 <Key className='size-4 text-muted-foreground' />
-                                <span>إدارة الصلاحيات</span>
+                                <span>إدارة الأدوار</span>
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
@@ -1097,6 +1428,370 @@ export default function UsersPage() {
                 {deleteMutation.isPending && <Icons.spinner className='size-4 animate-spin' />}
                 تأكيد الحذف
               </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        {/* Promote Employee Dialog */}
+        <Dialog open={promoteOpen} onOpenChange={setPromoteOpen}>
+          <DialogContent className='sm:max-w-lg' dir='rtl'>
+            <DialogHeader className='text-right'>
+              <DialogTitle className='text-emerald-600 dark:text-emerald-400 flex items-center gap-2'>
+                <UserPlus className='size-5' />
+                ترقية موظف وإنشاء / ربط حسابه
+              </DialogTitle>
+              <DialogDescription className='text-xs'>
+                اختر موظفاً من قائمة الموظفين لترقيته إلى مشرف أو إدارة أو حسابات، وربط حسابه الحالي
+                بملفه الوظيفي.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!selectedEmployeeId) {
+                  toast.error('يرجى اختيار الموظف المراد ترقيته');
+                  return;
+                }
+                const matchedRole = roles.find((r) => r.id === promoteRoleId);
+                promoteMutation.mutate({
+                  employee_id: selectedEmployeeId,
+                  role: matchedRole ? matchedRole.name : promoteRole,
+                  role_id: promoteRoleId || undefined,
+                  branch_id: promoteBranchId || undefined,
+                  phone: promotePhone.trim() || undefined
+                });
+              }}
+              className='space-y-4 py-2'
+            >
+              {/* Employee Selection */}
+              <div className='space-y-1.5'>
+                <Label className='text-xs font-semibold'>
+                  الموظف المراد ترقيته <span className='text-destructive'>*</span>
+                </Label>
+                <div className='relative mb-2'>
+                  <Search className='absolute right-2.5 top-2.5 size-3.5 text-muted-foreground' />
+                  <Input
+                    placeholder='بحث بالاسم، رقم الموظف، أو الجوال...'
+                    value={empSearch}
+                    onChange={(e) => setEmpSearch(e.target.value)}
+                    className='pr-8 h-8 text-xs'
+                  />
+                </div>
+                <Select
+                  value={selectedEmployeeId}
+                  onValueChange={(val) => {
+                    const idStr = val || '';
+                    setSelectedEmployeeId(idStr);
+                    const emp = employeeList.find((e) => e.id === idStr);
+                    if (emp) {
+                      if (emp.phone) setPromotePhone(emp.phone);
+                      if ((emp as any).branch_id) setPromoteBranchId((emp as any).branch_id);
+                    }
+                  }}
+                >
+                  <SelectTrigger className='w-full'>
+                    <SelectValue placeholder='اختر الموظف'>
+                      {selectedEmployeeId
+                        ? (() => {
+                            const emp = employeeList.find((e) => e.id === selectedEmployeeId);
+                            return emp
+                              ? `${emp.name} (${emp.job_role || 'مندوب'} - ${emp.phone || emp.employee_number})`
+                              : 'اختر الموظف';
+                          })()
+                        : null}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className='max-h-56'>
+                    {isEmployeesLoading ? (
+                      <div className='p-3 text-center text-xs text-muted-foreground'>
+                        جارٍ تحميل الموظفين...
+                      </div>
+                    ) : filteredEmployees.length === 0 ? (
+                      <div className='p-3 text-center text-xs text-muted-foreground'>
+                        لا يوجد موظفون يطابقون البحث
+                      </div>
+                    ) : (
+                      filteredEmployees.map((emp) => (
+                        <SelectItem key={emp.id} value={emp.id}>
+                          {emp.name} —{' '}
+                          <span className='text-muted-foreground text-xs'>
+                            ({emp.job_role || 'مندوب'}) {emp.phone || emp.employee_number}
+                          </span>
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Target Role */}
+              <div className='space-y-1.5'>
+                <Label className='text-xs font-semibold'>
+                  الدور الوظيفي الجديد <span className='text-destructive'>*</span>
+                </Label>
+                <Select
+                  value={promoteRoleId || promoteRole}
+                  onValueChange={(val) => {
+                    const roleStr = val || '';
+                    const matched = roles.find((r) => r.id === roleStr || r.name === roleStr);
+                    if (matched) {
+                      setPromoteRoleId(matched.id);
+                      setPromoteRole(matched.name);
+                    } else {
+                      setPromoteRole(roleStr);
+                    }
+                  }}
+                >
+                  <SelectTrigger className='w-full'>
+                    <SelectValue placeholder='اختر الدور'>
+                      {roles.find((r) => r.id === promoteRoleId || r.name === promoteRole)
+                        ?.display_name || promoteRole}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.display_name} ({r.name})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Target Branch */}
+              <div className='space-y-1.5'>
+                <Label className='text-xs font-semibold'>الفرع المعين له</Label>
+                <Select
+                  value={promoteBranchId || 'NONE'}
+                  onValueChange={(val) => setPromoteBranchId(!val || val === 'NONE' ? '' : val)}
+                >
+                  <SelectTrigger className='w-full'>
+                    <SelectValue placeholder='كافة الفروع (إدارة عامة)'>
+                      {!promoteBranchId || promoteBranchId === 'NONE'
+                        ? 'كافة الفروع (إدارة عامة)'
+                        : branches.find((b) => b.id === promoteBranchId)?.name || 'كافة الفروع'}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='NONE'>كافة الفروع (إدارة عامة)</SelectItem>
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Phone for login */}
+              <div className='space-y-1.5'>
+                <Label className='text-xs font-semibold'>رقم الجوال لتسجيل الدخول</Label>
+                <Input
+                  placeholder='05xxxxxxxx'
+                  value={promotePhone}
+                  onChange={(e) => setPromotePhone(e.target.value)}
+                  className='font-mono'
+                  dir='ltr'
+                />
+                <p className='text-[11px] text-muted-foreground'>
+                  إذا كان الحساب جديداً، ستكون كلمة المرور المؤقتة هي آخر 4 أرقام من هذا الرقم،
+                  وسيلزمه النظام بتغييرها عند أول دخول.
+                </p>
+              </div>
+
+              {/* Notice Banner */}
+              <div className='p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 rounded-lg text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2'>
+                <Sparkles className='size-4 text-emerald-600 shrink-0 mt-0.5' />
+                <div className='space-y-1'>
+                  <p className='font-bold'>ربط ذكي بدون تكرار السجلات:</p>
+                  <p className='text-[11px] leading-relaxed'>
+                    إذا كان للموظف حساب سابق في النظام فسيتم تحديث دوره وبياناته فقط دون تكرار
+                    الحساب.
+                  </p>
+                </div>
+              </div>
+
+              <DialogFooter className='gap-2 sm:justify-start pt-2'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  onClick={() => setPromoteOpen(false)}
+                  disabled={promoteMutation.isPending}
+                >
+                  إلغاء
+                </Button>
+                <Button
+                  type='submit'
+                  disabled={promoteMutation.isPending || !selectedEmployeeId}
+                  className='gap-2 font-bold bg-emerald-600 hover:bg-emerald-700 text-white'
+                >
+                  {promoteMutation.isPending && <Icons.spinner className='size-4 animate-spin' />}
+                  تأكيد الترقية والربط
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Manage Individual Permissions Dialog */}
+        <Dialog
+          open={permModalUser !== null}
+          onOpenChange={(open) => !open && setPermModalUser(null)}
+        >
+          <DialogContent className='sm:max-w-2xl max-h-[85vh] flex flex-col p-0' dir='rtl'>
+            <DialogHeader className='p-6 pb-4 border-b text-right'>
+              <div className='flex items-center justify-between'>
+                <DialogTitle className='flex items-center gap-2 text-primary'>
+                  <Shield className='size-5' />
+                  <span>تخصيص الصلاحيات الفردية</span>
+                </DialogTitle>
+                <Badge variant='outline' className='font-mono font-bold text-xs'>
+                  {selectedPerms.length} صلاحية محددة
+                </Badge>
+              </div>
+              <DialogDescription className='text-xs mt-1'>
+                تحديد الصلاحيات الخاصة بالمستخدم «<strong>{permModalUser?.name}</strong>» (
+                {permModalUser?.role}). الصلاحيات المحددة هنا تلغي وتتفوق على الصلاحيات الافتراضية
+                للدور.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className='px-6 py-2.5 bg-muted/40 border-b flex flex-wrap items-center justify-between gap-2 text-xs'>
+              <div className='flex items-center gap-2'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  onClick={selectAllSystemPerms}
+                  className='h-7 text-xs gap-1'
+                >
+                  <CheckSquare className='size-3.5 text-primary' />
+                  <span>تحديد كافة الصلاحيات</span>
+                </Button>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  onClick={clearAllPerms}
+                  className='h-7 text-xs gap-1 text-destructive hover:bg-destructive/10'
+                >
+                  <Square className='size-3.5' />
+                  <span>تفريغ الكل (حجب الموديولات)</span>
+                </Button>
+              </div>
+              {permModalUser?.role_obj?.permissions && (
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='sm'
+                  onClick={() => {
+                    if (permModalUser?.role_obj?.permissions) {
+                      setSelectedPerms([...permModalUser.role_obj.permissions]);
+                    }
+                  }}
+                  className='h-7 text-xs text-muted-foreground hover:text-foreground'
+                >
+                  <span>استعادة صلاحيات الدور ({permModalUser?.role})</span>
+                </Button>
+              )}
+            </div>
+
+            <ScrollArea className='flex-1 p-6 overflow-y-auto min-h-0'>
+              <div className='space-y-5'>
+                {SYSTEM_PERMISSION_GROUPS.map((group) => {
+                  const groupKeys = group.permissions.map((p) => p.key);
+                  const isAllSelected = groupKeys.every((k) => selectedPerms.includes(k));
+
+                  return (
+                    <div
+                      key={group.category}
+                      className='border rounded-xl p-4 bg-card/60 shadow-2xs space-y-3'
+                    >
+                      <div className='flex items-center justify-between pb-2 border-b'>
+                        <span className='font-bold text-sm text-foreground'>{group.category}</span>
+                        <Button
+                          type='button'
+                          variant='ghost'
+                          size='sm'
+                          onClick={() => toggleCategory(groupKeys)}
+                          className='h-6 text-xs text-primary gap-1 hover:bg-primary/10 px-2'
+                        >
+                          {isAllSelected ? 'إلغاء تحديد القسم' : 'تحديد كل القسم'}
+                        </Button>
+                      </div>
+
+                      <div className='grid grid-cols-1 sm:grid-cols-2 gap-2.5'>
+                        {group.permissions.map((perm) => {
+                          const checked = selectedPerms.includes(perm.key);
+
+                          return (
+                            <label
+                              key={perm.key}
+                              className={cn(
+                                'flex items-start gap-2.5 p-2 rounded-lg border cursor-pointer transition-colors text-right',
+                                checked
+                                  ? 'bg-primary/5 border-primary/40 dark:bg-primary/10'
+                                  : 'border-border/60 hover:bg-muted/30'
+                              )}
+                            >
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={() => togglePerm(perm.key)}
+                                className='mt-0.5'
+                              />
+                              <div className='space-y-0.5 leading-tight'>
+                                <p className='text-xs font-semibold text-foreground flex items-center gap-1.5'>
+                                  <span>{perm.label}</span>
+                                  {perm.key === '*' && (
+                                    <Badge className='text-[10px] h-4 bg-purple-500 text-white'>
+                                      شامل
+                                    </Badge>
+                                  )}
+                                </p>
+                                <p className='text-[11px] text-muted-foreground line-clamp-1'>
+                                  {perm.description}
+                                </p>
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+
+            <DialogFooter className='p-4 border-t bg-muted/20 flex items-center justify-between sm:justify-between'>
+              <p className='text-xs text-muted-foreground font-mono'>
+                الصلاحيات المحددة: {selectedPerms.length}
+              </p>
+              <div className='flex items-center gap-2'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  onClick={() => setPermModalUser(null)}
+                  disabled={savePermsMutation.isPending}
+                >
+                  إلغاء
+                </Button>
+                <Button
+                  type='button'
+                  onClick={() => {
+                    if (permModalUser) {
+                      savePermsMutation.mutate({
+                        id: permModalUser.id,
+                        permissions: selectedPerms
+                      });
+                    }
+                  }}
+                  disabled={savePermsMutation.isPending}
+                  className='gap-2 font-bold shadow-sm'
+                >
+                  {savePermsMutation.isPending && <Icons.spinner className='size-4 animate-spin' />}
+                  حفظ الصلاحيات
+                </Button>
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>
