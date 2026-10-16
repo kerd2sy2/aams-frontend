@@ -1,28 +1,16 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useClerk } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
 import { Icons } from '@/components/icons';
-import { GoogleIcon } from '@/components/aams/google-auth';
 import { authApi, settingsApi } from '@/lib/aams/services';
 import { setAdminUser, setTokens } from '@/lib/aams/auth';
-import { AlertTriangle, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function normalizeDigits(str: string): string {
@@ -35,29 +23,12 @@ function normalizeDigits(str: string): string {
 
 export function LoginFormContent({ className, ...props }: React.ComponentProps<'div'>) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const clerk = useClerk();
 
   const [login, setLogin] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [showPassword, setShowPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
-  const [googleLoading, setGoogleLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-
-  const [notLinkedAlert, setNotLinkedAlert] = React.useState<{
-    email: string;
-    open: boolean;
-  }>({ email: '', open: false });
-
-  // Detect if redirected back from Google with not_linked error
-  React.useEffect(() => {
-    const errType = searchParams.get('error');
-    const email = searchParams.get('email');
-    if (errType === 'not_linked' && email) {
-      setNotLinkedAlert({ email, open: true });
-    }
-  }, [searchParams]);
 
   const { data: settings } = useQuery({
     queryKey: ['public-settings'],
@@ -77,7 +48,7 @@ export function LoginFormContent({ className, ...props }: React.ComponentProps<'
     const cleanPassword = normalizeDigits(password);
 
     if (!cleanLogin || !cleanPassword) {
-      setError('يرجى إدخال البريد الإلكتروني أو اسم المستخدم وكلمة المرور');
+      setError('يرجى إدخال رقم الجوال وكلمة المرور');
       return;
     }
     setLoading(true);
@@ -99,94 +70,28 @@ export function LoginFormContent({ className, ...props }: React.ComponentProps<'
     }
   }
 
-  // Trigger real Google OAuth redirect safely
-  async function handleGoogleOAuth() {
-    setGoogleLoading(true);
-    setError(null);
-
-    try {
-      if (clerk.session || clerk.user) {
-        await clerk.signOut();
-      }
-
-      const redirectParams = {
-        strategy: 'oauth_google' as const,
-        redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/auth/google-callback?mode=login'
-      };
-
-      // 1. Try clerk.client.signIn
-      if (clerk.client?.signIn && typeof clerk.client.signIn.authenticateWithRedirect === 'function') {
-        await clerk.client.signIn.authenticateWithRedirect(redirectParams);
-        return;
-      }
-
-      // 2. Try clerk.client.signUp
-      if (clerk.client?.signUp && typeof clerk.client.signUp.authenticateWithRedirect === 'function') {
-        await clerk.client.signUp.authenticateWithRedirect(redirectParams);
-        return;
-      }
-
-      // 3. Try clerk.authenticateWithRedirect
-      if (typeof (clerk as any).authenticateWithRedirect === 'function') {
-        await (clerk as any).authenticateWithRedirect(redirectParams);
-        return;
-      }
-
-      // 4. Fallback: redirectToSignIn
-      if (typeof clerk.redirectToSignIn === 'function') {
-        clerk.redirectToSignIn({
-          signInFallbackRedirectUrl: '/auth/google-callback?mode=login',
-          signUpFallbackRedirectUrl: '/auth/google-callback?mode=login'
-        });
-        return;
-      }
-
-      // 7. Last fallback: openSignIn
-      if (typeof clerk.openSignIn === 'function') {
-        clerk.openSignIn({
-          fallbackRedirectUrl: '/auth/google-callback?mode=login',
-          signUpFallbackRedirectUrl: '/auth/google-callback?mode=login'
-        });
-      }
-    } catch (err: unknown) {
-      console.error('Google OAuth error:', err);
-      const msg = (err as { message?: string })?.message || 'فشل التحويل إلى تسجيل الدخول بواسطة Google';
-      setError(msg);
-      toast.error(msg);
-    } finally {
-      setGoogleLoading(false);
-    }
-  }
-
   return (
-    <div className={cn('flex flex-col gap-6', className)} {...props} dir='rtl'>
-      <Card className='w-full overflow-hidden shadow-xl'>
-        <CardContent className='p-8'>
-          <div className='flex flex-col gap-6'>
-            {/* Brand header */}
-            <div className='flex flex-col items-center gap-3 text-center'>
-              <div className='flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-primary/10 text-primary'>
+    <div className={cn('flex flex-col gap-6', className)} {...props}>
+      <Card className='overflow-hidden shadow-xl border-border/50'>
+        <CardContent className='grid p-0 md:grid-cols-1'>
+          <div className='p-6 md:p-8 space-y-6'>
+            {/* Header: Logo and Title */}
+            <div className='flex flex-col items-center text-center space-y-2'>
+              <div className='flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-xs ring-1 ring-primary/20 mb-1'>
                 {brandLogo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={brandLogo}
                     alt={brandName}
-                    className='h-full w-full object-contain p-1.5'
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display = 'none';
-                    }}
+                    className='size-9 object-contain rounded-xl'
                   />
                 ) : (
-                  <span className='text-xl font-black'>{firstChar}</span>
+                  <span className='text-2xl font-black'>{firstChar}</span>
                 )}
               </div>
-              <div>
-                <h1 className='text-2xl font-bold tracking-tight'>{brandName}</h1>
-                <p className='text-muted-foreground mt-1 text-sm'>
-                  نظام متابعة وإدارة مناديب التوصيل
-                </p>
-              </div>
+              <h1 className='text-2xl font-bold tracking-tight'>{brandName}</h1>
+              <p className='text-muted-foreground text-xs max-w-xs'>
+                منصة إدارة العمليات والتشغيل الميداني
+              </p>
             </div>
 
             {error && (
@@ -197,12 +102,12 @@ export function LoginFormContent({ className, ...props }: React.ComponentProps<'
 
             <form onSubmit={handleSubmit} className='grid gap-5'>
               <div className='grid gap-2'>
-                <Label htmlFor='login'>البريد الإلكتروني أو اسم المستخدم</Label>
+                <Label htmlFor='login'>رقم الجوال أو اسم المستخدم</Label>
                 <Input
                   id='login'
                   type='text'
                   autoComplete='username'
-                  placeholder='user@aams.com'
+                  placeholder='05xxxxxxxx أو user@aams.com'
                   value={login}
                   onChange={(e) => setLogin(e.target.value)}
                   className='h-10 text-right'
@@ -211,13 +116,18 @@ export function LoginFormContent({ className, ...props }: React.ComponentProps<'
               </div>
 
               <div className='grid gap-2'>
-                <Label htmlFor='password'>كلمة المرور</Label>
+                <div className='flex items-center justify-between'>
+                  <Label htmlFor='password'>كلمة المرور</Label>
+                  <span className='text-[11px] text-muted-foreground'>
+                    (الافتراضي: آخر 4 أرقام من الجوال)
+                  </span>
+                </div>
                 <div className='relative'>
                   <Input
                     id='password'
                     type={showPassword ? 'text' : 'password'}
                     autoComplete='current-password'
-                    placeholder='••••••••'
+                    placeholder='آخر 4 أرقام من رقم الجوال'
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className='h-10 pl-10 text-right'
@@ -239,7 +149,11 @@ export function LoginFormContent({ className, ...props }: React.ComponentProps<'
                 </div>
               </div>
 
-              <Button type='submit' className='h-10 w-full font-semibold shadow-xs' disabled={loading}>
+              <Button
+                type='submit'
+                className='h-10 w-full font-semibold shadow-xs'
+                disabled={loading}
+              >
                 {loading ? (
                   <>
                     <Icons.spinner className='ml-2 size-4 animate-spin' />
@@ -254,85 +168,12 @@ export function LoginFormContent({ className, ...props }: React.ComponentProps<'
               </Button>
             </form>
 
-            {/* Divider */}
-            <div className='relative flex items-center justify-center'>
-              <Separator className='w-full' />
-              <span className='absolute bg-card px-3 text-xs text-muted-foreground'>
-                أو الدخول باستخدام
-              </span>
-            </div>
-
-            {/* Official Google OAuth Sign-in Button */}
-            <div>
-              <Button
-                type='button'
-                variant='outline'
-                disabled={googleLoading}
-                onClick={handleGoogleOAuth}
-                className='h-11 w-full font-bold border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 shadow-2xs gap-3 flex items-center justify-center cursor-pointer'
-              >
-                {googleLoading ? (
-                  <Icons.spinner className='size-5 animate-spin' />
-                ) : (
-                  <GoogleIcon className='size-5' />
-                )}
-                <span>
-                  {googleLoading
-                    ? 'جاري التحويل إلى Google...'
-                    : 'تسجيل الدخول بواسطة Google'}
-                </span>
-              </Button>
-            </div>
-
             <p className='text-muted-foreground text-center text-xs'>
               جميع الحقوق محفوظة &copy; {new Date().getFullYear()} {brandName}
             </p>
           </div>
         </CardContent>
       </Card>
-
-      {/* Alert Dialog: Google Account Not Linked */}
-      <Dialog
-        open={notLinkedAlert.open}
-        onOpenChange={(open) => setNotLinkedAlert({ ...notLinkedAlert, open })}
-      >
-        <DialogContent className='sm:max-w-md' dir='rtl'>
-          <DialogHeader className='text-right'>
-            <div className='flex items-center gap-2 text-destructive mb-1'>
-              <ShieldAlert className='size-6' />
-              <DialogTitle className='text-base font-bold'>الحساب غير مرتبط بنظام AAMS</DialogTitle>
-            </div>
-            <DialogDescription className='text-xs leading-relaxed text-foreground pt-2'>
-              حساب Google التابع للبريد <strong className='font-mono text-primary' dir='ltr'>«{notLinkedAlert.email}»</strong> غير مرتبط بأي حساب إداري مصرح به في قاعدة البيانات.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className='space-y-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200 text-xs leading-relaxed'>
-            <p className='font-bold flex items-center gap-1.5'>
-              <AlertTriangle className='size-4 text-amber-600 shrink-0' />
-              كيفية تفعيل الدخول بحساب Google:
-            </p>
-            <ol className='list-decimal list-inside space-y-1 text-[11px] pr-1'>
-              <li>سجّل الدخول أولاً باستخدام <strong>اسم المستخدم وكلمة المرور</strong>.</li>
-              <li>انتقل إلى <strong>صفحة الملف الشخصي</strong> من القائمة العلوية.</li>
-              <li>اضغط على <strong>«ربط حساب Google»</strong> وقم بتأكيد حسابك في Google.</li>
-              <li>بعد ذلك ستتمكن من تسجيل الدخول بضغطة زر واحدة دائماً.</li>
-            </ol>
-          </div>
-
-          <DialogFooter className='sm:justify-start'>
-            <Button
-              onClick={() => {
-                setNotLinkedAlert({ email: '', open: false });
-                router.replace('/login');
-              }}
-              className='w-full font-bold'
-            >
-              فهمت، العودة لتسجيل الدخول
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

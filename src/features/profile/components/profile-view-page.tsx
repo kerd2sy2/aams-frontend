@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useClerk } from '@clerk/nextjs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import PageContainer from '@/components/layout/page-container';
@@ -13,38 +12,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
 import { Icons } from '@/components/icons';
-import { GoogleIcon } from '@/components/aams/google-auth';
 import { authApi } from '@/lib/aams/services';
 import { getAdminUser, setAdminUser } from '@/lib/aams/auth';
-import {
-  Mail,
-  Phone,
-  Shield,
-  Building2,
-  Lock,
-  Eye,
-  EyeOff,
-  Unlink,
-  CheckCircle2,
-  AlertCircle
-} from 'lucide-react';
+import { Mail, Phone, Shield, Building2, Lock, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function ProfileViewPage() {
   const queryClient = useQueryClient();
   const cachedAdmin = getAdminUser();
-  const clerk = useClerk();
-
-  const [googleLoading, setGoogleLoading] = useState(false);
 
   // Fetch real-time user info
   const { data: admin = cachedAdmin } = useQuery({
@@ -65,74 +41,6 @@ export default function ProfileViewPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showOldPass, setShowOldPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
-
-  // Trigger Google OAuth for Linking
-  const handleTriggerGoogleLink = async () => {
-    setGoogleLoading(true);
-    try {
-      if (clerk.session || clerk.user) {
-        await clerk.signOut();
-      }
-
-      const redirectParams = {
-        strategy: 'oauth_google' as const,
-        redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/auth/google-callback?mode=link'
-      };
-
-      if (clerk.client?.signIn && typeof clerk.client.signIn.authenticateWithRedirect === 'function') {
-        await clerk.client.signIn.authenticateWithRedirect(redirectParams);
-        return;
-      }
-
-      if (clerk.client?.signUp && typeof clerk.client.signUp.authenticateWithRedirect === 'function') {
-        await clerk.client.signUp.authenticateWithRedirect(redirectParams);
-        return;
-      }
-
-      if (typeof (clerk as any).authenticateWithRedirect === 'function') {
-        await (clerk as any).authenticateWithRedirect(redirectParams);
-        return;
-      }
-
-      if (typeof clerk.redirectToSignIn === 'function') {
-        clerk.redirectToSignIn({
-          signInFallbackRedirectUrl: '/auth/google-callback?mode=link',
-          signUpFallbackRedirectUrl: '/auth/google-callback?mode=link'
-        });
-        return;
-      }
-
-      if (typeof clerk.openSignIn === 'function') {
-        clerk.openSignIn({
-          fallbackRedirectUrl: '/auth/google-callback?mode=link',
-          signUpFallbackRedirectUrl: '/auth/google-callback?mode=link'
-        });
-      }
-    } catch (err: unknown) {
-      console.error('Google OAuth link error:', err);
-      const msg = (err as { message?: string })?.message || 'فشل التحويل إلى Google';
-      toast.error(msg);
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
-
-  // Unlink Google mutation
-  const unlinkGoogleMutation = useMutation({
-    mutationFn: () => authApi.unlinkGoogle(),
-    onSuccess: (res) => {
-      toast.success(res.message || 'تم إلغاء ربط حساب Google بنجاح');
-      queryClient.invalidateQueries({ queryKey: ['admin-me'] });
-      setUnlinkDialogOpen(false);
-    },
-    onError: (err: unknown) => {
-      const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
-        'فشل في إلغاء ربط حساب Google';
-      toast.error(msg);
-    }
-  });
 
   // Change Password mutation
   const changePasswordMutation = useMutation({
@@ -194,7 +102,9 @@ export default function ProfileViewPage() {
               <CardContent className='pt-0 -mt-12 text-center pb-6'>
                 <div className='flex justify-center mb-3'>
                   <Avatar className='size-24 border-4 border-background shadow-md ring-2 ring-primary/20'>
-                    {admin?.google_avatar && <AvatarImage src={admin.google_avatar} alt={admin?.name} />}
+                    {admin?.google_avatar && (
+                      <AvatarImage src={admin.google_avatar} alt={admin?.name} />
+                    )}
                     <AvatarFallback className='text-2xl font-black bg-primary/10 text-primary'>
                       {initials}
                     </AvatarFallback>
@@ -255,23 +165,6 @@ export default function ProfileViewPage() {
                       {admin?.phone || '—'}
                     </span>
                   </div>
-
-                  <div className='flex items-center justify-between text-muted-foreground'>
-                    <span className='flex items-center gap-1.5'>
-                      <GoogleIcon className='size-3.5' />
-                      حساب Google:
-                    </span>
-                    {isGoogleLinked ? (
-                      <span className='font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1'>
-                        <CheckCircle2 className='size-3' />
-                        مربوط
-                      </span>
-                    ) : (
-                      <span className='text-amber-600 dark:text-amber-400 font-medium'>
-                        غير مربوط
-                      </span>
-                    )}
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -283,9 +176,7 @@ export default function ProfileViewPage() {
                   <Shield className='size-4 text-primary' />
                   الصلاحيات المفعلة
                 </CardTitle>
-                <CardDescription className='text-xs'>
-                  مستوى الوصول المصرح به لحسابك
-                </CardDescription>
+                <CardDescription className='text-xs'>مستوى الوصول المصرح به لحسابك</CardDescription>
               </CardHeader>
               <CardContent className='pt-0'>
                 {admin?.role === 'ADMIN' || admin?.role === 'SUPER_ADMIN' ? (
@@ -306,94 +197,9 @@ export default function ProfileViewPage() {
             </Card>
           </div>
 
-          {/* Right Column: Google Account Link & Change Password */}
+          {/* Right Column: Change Password */}
           <div className='lg:col-span-2 space-y-6'>
-            {/* 1. Google Account Linking Card */}
-            <Card className='border shadow-xs border-primary/20'>
-              <CardHeader className='pb-3'>
-                <div className='flex items-center justify-between'>
-                  <div className='flex items-center gap-2.5'>
-                    <div className='size-9 rounded-xl bg-white shadow-xs border p-1.5 flex items-center justify-center'>
-                      <GoogleIcon className='size-6' />
-                    </div>
-                    <div>
-                      <CardTitle className='text-base font-bold'>
-                        ربط حساب Google (Sign-in with Google)
-                      </CardTitle>
-                      <CardDescription className='text-xs'>
-                        تسجيل الدخول السريع إلى لوحة التحكم بحسابك في Google
-                      </CardDescription>
-                    </div>
-                  </div>
-
-                  {isGoogleLinked ? (
-                    <Badge variant='outline' className='bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 gap-1'>
-                      <CheckCircle2 className='size-3.5' />
-                      مربوط بنجاح
-                    </Badge>
-                  ) : (
-                    <Badge variant='outline' className='bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-800 gap-1'>
-                      <AlertCircle className='size-3.5' />
-                      غير مربوط
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className='space-y-4'>
-                <p className='text-xs text-muted-foreground leading-relaxed'>
-                  {isGoogleLinked
-                    ? `حسابك الإداري مرتبط حالياً بحساب Google التابع للبريد الإلكتروني (${admin?.google_email || admin?.email}). يمكنك استخدامه لتسجيل الدخول بضغطة زر واحدة من صفحة الدخول.`
-                    : 'بالضغط على الزر أدناه، ستفتح لك نافذة Google لاختيار حسابك وربطه بحسابك الإداري الحالي، لتتمكن من تسجيل الدخول بضغطة زر واحدة دائماً.'}
-                </p>
-
-                {isGoogleLinked ? (
-                  <div className='p-3.5 rounded-xl bg-muted/40 border flex flex-col sm:flex-row sm:items-center justify-between gap-3'>
-                    <div className='flex items-center gap-2.5'>
-                      <div className='size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0'>
-                        <GoogleIcon className='size-4' />
-                      </div>
-                      <div>
-                        <p className='text-xs text-muted-foreground font-medium'>حساب Google المرتبط:</p>
-                        <p className='text-sm font-bold font-mono text-foreground' dir='ltr'>
-                          {admin?.google_email || admin?.email}
-                        </p>
-                      </div>
-                    </div>
-
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      onClick={() => setUnlinkDialogOpen(true)}
-                      className='text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30 gap-1.5 h-8 font-semibold'
-                    >
-                      <Unlink className='size-3.5' />
-                      <span>إلغاء ربط الحساب</span>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className='flex items-center gap-3 pt-1'>
-                    <Button
-                      onClick={handleTriggerGoogleLink}
-                      disabled={googleLoading}
-                      className='gap-2 font-bold shadow-xs cursor-pointer'
-                    >
-                      {googleLoading ? (
-                        <Icons.spinner className='size-4 animate-spin' />
-                      ) : (
-                        <GoogleIcon className='size-4' />
-                      )}
-                      <span>
-                        {googleLoading
-                          ? 'جاري التحويل إلى Google...'
-                          : 'ربط حساب Google الآن'}
-                      </span>
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* 2. Change Password Card */}
+            {/* Change Password Card */}
             <Card className='border shadow-xs'>
               <CardHeader className='pb-3'>
                 <div className='flex items-center gap-2.5'>
@@ -403,7 +209,8 @@ export default function ProfileViewPage() {
                   <div>
                     <CardTitle className='text-base font-bold'>تغيير كلمة المرور</CardTitle>
                     <CardDescription className='text-xs'>
-                      تحديث كلمة المرور الخاصة بحسابك في النظام
+                      تحديث كلمة المرور الخاصة بحسابك في النظام (الافتراضي: آخر 4 أرقام من رقم
+                      الجوال)
                     </CardDescription>
                   </div>
                 </div>
@@ -482,43 +289,6 @@ export default function ProfileViewPage() {
             </Card>
           </div>
         </div>
-
-        {/* Dialog: Unlink Google Account */}
-        <Dialog open={unlinkDialogOpen} onOpenChange={setUnlinkDialogOpen}>
-          <DialogContent className='sm:max-w-md' dir='rtl'>
-            <DialogHeader className='text-right'>
-              <DialogTitle className='text-destructive flex items-center gap-2'>
-                <Unlink className='size-5' />
-                تأكيد إلغاء ربط حساب Google
-              </DialogTitle>
-              <DialogDescription className='text-sm mt-2'>
-                هل أنت متأكد من رغبتك في إلغاء ربط حساب Google ({admin?.google_email || admin?.email})؟
-                <br />
-                لن تتمكن بعد ذلك من تسجيل الدخول بواسطة Google حتى تقوم بإعادة ربطه مرة أخرى.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className='gap-2 sm:justify-start'>
-              <Button
-                variant='outline'
-                onClick={() => setUnlinkDialogOpen(false)}
-                disabled={unlinkGoogleMutation.isPending}
-              >
-                تراجع
-              </Button>
-              <Button
-                variant='destructive'
-                disabled={unlinkGoogleMutation.isPending}
-                onClick={() => unlinkGoogleMutation.mutate()}
-                className='gap-2 font-bold'
-              >
-                {unlinkGoogleMutation.isPending && (
-                  <Icons.spinner className='size-4 animate-spin' />
-                )}
-                تأكيد إلغاء الربط
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </PageContainer>
   );

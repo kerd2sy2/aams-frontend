@@ -116,6 +116,70 @@ function getAvatarColor(name: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
+function getUserAppBadges(admin: Admin) {
+  let perms: string[] = [];
+  if (Array.isArray(admin.permissions)) perms = admin.permissions;
+  else if (typeof admin.permissions === 'string') {
+    try {
+      perms = JSON.parse(admin.permissions);
+    } catch {}
+  }
+  const isAll = admin.role === 'SUPER_ADMIN' || perms.includes('*');
+
+  const apps = [
+    {
+      key: 'apps.ohda',
+      label: 'العهدة',
+      allowed:
+        isAll ||
+        perms.includes('apps.ohda') ||
+        perms.includes('custody.view') ||
+        perms.includes('custody') ||
+        perms.includes('custody.add') ||
+        admin.role === 'ACCOUNTANT',
+      color:
+        'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900'
+    },
+    {
+      key: 'apps.eshraf',
+      label: 'الإشراف',
+      allowed:
+        isAll ||
+        perms.includes('apps.eshraf') ||
+        perms.includes('work.view') ||
+        admin.role === 'SUPERVISOR',
+      color: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900'
+    },
+    {
+      key: 'apps.edara',
+      label: 'الإدارة',
+      allowed:
+        isAll || perms.includes('apps.edara') || admin.role === 'ADMIN' || admin.role === 'OWNER',
+      color:
+        'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-900'
+    },
+    {
+      key: 'apps.manadeeb',
+      label: 'المناديب',
+      allowed: isAll || perms.includes('apps.manadeeb') || admin.role === 'DRIVER',
+      color:
+        'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900'
+    },
+    {
+      key: 'apps.dashboard',
+      label: 'الداشبورد',
+      allowed:
+        isAll ||
+        perms.includes('apps.dashboard') ||
+        ['SUPER_ADMIN', 'ADMIN', 'SUPERVISOR', 'ACCOUNTANT', 'HR', 'OWNER'].includes(admin.role),
+      color:
+        'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
+    }
+  ];
+
+  return apps.filter((a) => a.allowed);
+}
+
 const SYSTEM_PERMISSION_GROUPS = [
   {
     category: 'المشرف العام والتحكم الكامل',
@@ -123,7 +187,37 @@ const SYSTEM_PERMISSION_GROUPS = [
       {
         key: '*',
         label: 'مشرف عام (كامل الصلاحيات)',
-        description: 'الوصول لجميع موديولات وشاشات وعمليات النظام'
+        description: 'الوصول لجميع موديولات وشاشات وعمليات وتطبيقات النظام'
+      }
+    ]
+  },
+  {
+    category: 'صلاحيات الدخول للتطبيقات (App Access)',
+    permissions: [
+      {
+        key: 'apps.ohda',
+        label: 'تطبيق العهدة (Ohda)',
+        description: 'السماح بتسجيل الدخول إلى تطبيق العهدة وإدارة المصروفات اليومية'
+      },
+      {
+        key: 'apps.eshraf',
+        label: 'تطبيق الإشراف (Eshraf)',
+        description: 'السماح بتسجيل الدخول إلى تطبيق المشرفين الميدانيين ومتابعة الورديات'
+      },
+      {
+        key: 'apps.edara',
+        label: 'تطبيق الإدارة (Edara)',
+        description: 'السماح بتسجيل الدخول إلى تطبيق الإدارة والعمليات'
+      },
+      {
+        key: 'apps.manadeeb',
+        label: 'تطبيق المناديب (Manadeeb)',
+        description: 'السماح بتسجيل الدخول إلى تطبيق المناديب وتوصيل الطلبات'
+      },
+      {
+        key: 'apps.dashboard',
+        label: 'لوحة التحكم (Dashboard)',
+        description: 'السماح بالدخول إلى لوحة التحكم الرئيسية عبر المتصفح'
       }
     ]
   },
@@ -984,46 +1078,68 @@ export default function UsersPage() {
                         </Badge>
                       </TableCell>
 
-                      {/* Permissions */}
+                      {/* Permissions & Apps */}
                       <TableCell>
-                        {admin.role === 'SUPER_ADMIN' ? (
-                          <Badge className='bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-300 text-xs font-semibold'>
-                            مشرف عام (*)
-                          </Badge>
-                        ) : admin.permissions_configured ? (
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            onClick={() => openPermModal(admin)}
-                            className='h-7 text-xs font-semibold gap-1.5 border-primary/30 text-primary hover:bg-primary/10'
-                          >
-                            <Shield className='size-3' />
-                            <span>
-                              {(() => {
-                                let count = 0;
-                                if (Array.isArray(admin.permissions))
-                                  count = admin.permissions.length;
-                                else if (typeof admin.permissions === 'string') {
-                                  try {
-                                    count = JSON.parse(admin.permissions).length;
-                                  } catch {}
-                                }
-                                return count === 0 ? 'مخصص (بلا صلاحيات)' : `${count} صلاحية مخصصة`;
-                              })()}
-                            </span>
-                          </Button>
-                        ) : (
-                          <Button
-                            variant='ghost'
-                            size='sm'
-                            onClick={() => openPermModal(admin)}
-                            className='h-7 text-xs text-muted-foreground gap-1.5 hover:text-foreground'
-                            title='انقر لتخصيص صلاحيات فردية'
-                          >
-                            <span>تلقائي ({roleName})</span>
-                            <Edit className='size-3 opacity-60' />
-                          </Button>
-                        )}
+                        <div className='flex flex-col gap-1.5'>
+                          <div>
+                            {admin.role === 'SUPER_ADMIN' ? (
+                              <Badge className='bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-300 text-xs font-semibold'>
+                                مشرف عام (*)
+                              </Badge>
+                            ) : admin.permissions_configured ? (
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => openPermModal(admin)}
+                                className='h-7 text-xs font-semibold gap-1.5 border-primary/30 text-primary hover:bg-primary/10'
+                              >
+                                <Shield className='size-3' />
+                                <span>
+                                  {(() => {
+                                    let count = 0;
+                                    if (Array.isArray(admin.permissions))
+                                      count = admin.permissions.length;
+                                    else if (typeof admin.permissions === 'string') {
+                                      try {
+                                        count = JSON.parse(admin.permissions).length;
+                                      } catch {}
+                                    }
+                                    return count === 0
+                                      ? 'مخصص (بلا صلاحيات)'
+                                      : `${count} صلاحية مخصصة`;
+                                  })()}
+                                </span>
+                              </Button>
+                            ) : (
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => openPermModal(admin)}
+                                className='h-7 text-xs text-muted-foreground gap-1.5 hover:text-foreground'
+                                title='انقر لتخصيص صلاحيات فردية'
+                              >
+                                <span>تلقائي ({roleName})</span>
+                                <Edit className='size-3 opacity-60' />
+                              </Button>
+                            )}
+                          </div>
+
+                          {/* Allowed Apps Badges */}
+                          <div className='flex items-center gap-1 flex-wrap'>
+                            {getUserAppBadges(admin).map((app) => (
+                              <span
+                                key={app.key}
+                                className={cn(
+                                  'text-[10px] font-bold px-1.5 py-0.5 rounded border leading-none',
+                                  app.color
+                                )}
+                                title={`مصرح بدخول ${app.label}`}
+                              >
+                                {app.label}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       </TableCell>
 
                       {/* Branch */}
