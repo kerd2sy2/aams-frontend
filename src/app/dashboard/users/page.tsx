@@ -130,38 +130,27 @@ function getUserAppBadges(admin: Admin) {
     {
       key: 'apps.ohda',
       label: 'العهدة',
-      allowed:
-        isAll ||
-        perms.includes('apps.ohda') ||
-        perms.includes('custody.view') ||
-        perms.includes('custody') ||
-        perms.includes('custody.add') ||
-        admin.role === 'ACCOUNTANT',
+      allowed: isAll || perms.includes('apps.ohda') || perms.includes('app.ohda'),
       color:
         'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900'
     },
     {
       key: 'apps.eshraf',
       label: 'الإشراف',
-      allowed:
-        isAll ||
-        perms.includes('apps.eshraf') ||
-        perms.includes('work.view') ||
-        admin.role === 'SUPERVISOR',
+      allowed: isAll || perms.includes('apps.eshraf') || perms.includes('app.eshraf'),
       color: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900'
     },
     {
       key: 'apps.edara',
       label: 'الإدارة',
-      allowed:
-        isAll || perms.includes('apps.edara') || admin.role === 'ADMIN' || admin.role === 'OWNER',
+      allowed: isAll || perms.includes('apps.edara') || perms.includes('app.edara'),
       color:
         'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-900'
     },
     {
       key: 'apps.manadeeb',
       label: 'المناديب',
-      allowed: isAll || perms.includes('apps.manadeeb') || admin.role === 'DRIVER',
+      allowed: isAll || perms.includes('apps.manadeeb') || perms.includes('app.manadeeb'),
       color:
         'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900'
     },
@@ -171,6 +160,7 @@ function getUserAppBadges(admin: Admin) {
       allowed:
         isAll ||
         perms.includes('apps.dashboard') ||
+        perms.includes('app.dashboard') ||
         ['SUPER_ADMIN', 'ADMIN', 'SUPERVISOR', 'ACCOUNTANT', 'HR', 'OWNER'].includes(admin.role),
       color:
         'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
