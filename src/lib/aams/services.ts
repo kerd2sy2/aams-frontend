@@ -369,6 +369,7 @@ export const adminApi = {
       role_id?: string;
       permissions?: string[];
       branch_id?: string;
+      clear_branch?: boolean;
     }
   ) => {
     const res = await apiClient.put<Admin>(`/users/${id}`, data);

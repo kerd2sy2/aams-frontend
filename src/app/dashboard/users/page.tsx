@@ -503,6 +503,7 @@ export default function UsersPage() {
       role?: string;
       role_id?: string;
       branch_id?: string;
+      clear_branch?: boolean;
       password?: string;
       permissions?: string[];
     }) =>
@@ -513,6 +514,7 @@ export default function UsersPage() {
         role: data.role,
         role_id: data.role_id,
         branch_id: data.branch_id || undefined,
+        clear_branch: data.clear_branch,
         permissions: data.permissions,
         password: data.password || undefined
       }),
@@ -666,6 +668,7 @@ export default function UsersPage() {
         role: selectedRole ? selectedRole.name : undefined,
         role_id: formData.roleId || undefined,
         branch_id: formData.branchId || undefined,
+        clear_branch: !formData.branchId || formData.branchId === 'NONE',
         password: formData.password.trim() || undefined
       });
     } else {
