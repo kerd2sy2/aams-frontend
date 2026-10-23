@@ -53,7 +53,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Icons } from '@/components/icons';
@@ -990,6 +990,12 @@ export default function UsersPage() {
                       <TableCell>
                         <div className='flex items-center gap-3'>
                           <Avatar className={cn('size-9 border font-bold', avatarColor)}>
+                            {(admin.avatar || admin.google_avatar) && (
+                              <AvatarImage
+                                src={admin.avatar || admin.google_avatar}
+                                alt={admin.name}
+                              />
+                            )}
                             <AvatarFallback className={cn('font-bold text-xs', avatarColor)}>
                               {(admin.name || 'U').charAt(0).toUpperCase()}
                             </AvatarFallback>

@@ -102,8 +102,8 @@ export default function ProfileViewPage() {
               <CardContent className='pt-0 -mt-12 text-center pb-6'>
                 <div className='flex justify-center mb-3'>
                   <Avatar className='size-24 border-4 border-background shadow-md ring-2 ring-primary/20'>
-                    {admin?.google_avatar && (
-                      <AvatarImage src={admin.google_avatar} alt={admin?.name} />
+                    {(admin?.avatar || admin?.google_avatar) && (
+                      <AvatarImage src={admin.avatar || admin.google_avatar} alt={admin?.name} />
                     )}
                     <AvatarFallback className='text-2xl font-black bg-primary/10 text-primary'>
                       {initials}

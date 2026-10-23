@@ -36,6 +36,7 @@ export interface Admin {
   role_obj?: Role | null;
   google_email?: string;
   google_avatar?: string;
+  avatar?: string;
   is_google_linked?: boolean;
   permissions?: string[];
   permissions_list?: string[];
