@@ -9,35 +9,22 @@
 import { useMemo } from 'react';
 import type { NavItem, NavGroup } from '@/types';
 import { getAdminUser } from '@/lib/aams/auth';
-import { hasPermission } from '@/lib/aams/permissions';
+import { hasPermission, isExecutiveAdmin } from '@/lib/aams/permissions';
 
-const GENERAL_MANAGER_ONLY = new Set([
-  '/dashboard/users',
-  '/dashboard/audit-logs',
-  '/dashboard/settings'
-]);
 const ADMIN_ONLY = new Set(['/dashboard/investigation/approvals']);
 
 function isVisible(item: NavItem): boolean {
   const admin = getAdminUser();
-  const roleUpper = (admin?.role || '').toUpperCase();
-  const roleObjUpper = (admin?.role_obj?.name || '').toUpperCase();
-  const isSuperOrAdmin =
-    roleUpper === 'ADMIN' ||
-    roleUpper === 'SUPER_ADMIN' ||
-    roleUpper === 'GENERAL_MANAGER' ||
-    roleObjUpper === 'ADMIN' ||
-    roleObjUpper === 'SUPER_ADMIN' ||
-    roleObjUpper === 'GENERAL_MANAGER' ||
-    (admin?.permissions || []).includes('*');
+  const isSuperOrAdmin = isExecutiveAdmin(admin);
 
-  const isGeneralMgr = !admin?.branch_id || isSuperOrAdmin;
-  const canAccessUsers = isGeneralMgr || hasPermission('users.manage', admin);
+  const canAccessUsers = isSuperOrAdmin || hasPermission('users.manage', admin);
+  const canAccessAuditLogs = isSuperOrAdmin || hasPermission('audit_logs.view', admin);
+  const canAccessSettings = isSuperOrAdmin || hasPermission('settings.manage', admin);
   const canAccessApprovals = isSuperOrAdmin || hasPermission('investigations.approve', admin);
 
-  if (item.url === '/dashboard/users' && !canAccessUsers) return false;
-  if (GENERAL_MANAGER_ONLY.has(item.url) && item.url !== '/dashboard/users' && !isGeneralMgr)
-    return false;
+  if (item.url === '/dashboard/users') return canAccessUsers;
+  if (item.url === '/dashboard/audit-logs') return canAccessAuditLogs;
+  if (item.url === '/dashboard/settings') return canAccessSettings;
   if (ADMIN_ONLY.has(item.url) && !canAccessApprovals) return false;
   return true;
 }

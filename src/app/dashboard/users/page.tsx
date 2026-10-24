@@ -58,7 +58,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Icons } from '@/components/icons';
 import { getAdminUser } from '@/lib/aams/auth';
-import { hasPermission } from '@/lib/aams/permissions';
+import { hasPermission, isExecutiveAdmin } from '@/lib/aams/permissions';
 import { adminApi, roleApi, branchApi, employeeApi } from '@/lib/aams/services';
 import type { Admin, Role, Branch, Employee } from '@/types/aams';
 import {
@@ -377,19 +377,8 @@ export default function UsersPage() {
   }, []);
 
   const currentAdmin = getAdminUser();
-  const roleUpper = (currentAdmin?.role || '').toUpperCase();
-  const roleObjUpper = (currentAdmin?.role_obj?.name || '').toUpperCase();
-  const isSuperOrAdmin =
-    roleUpper === 'ADMIN' ||
-    roleUpper === 'SUPER_ADMIN' ||
-    roleUpper === 'GENERAL_MANAGER' ||
-    roleObjUpper === 'ADMIN' ||
-    roleObjUpper === 'SUPER_ADMIN' ||
-    roleObjUpper === 'GENERAL_MANAGER' ||
-    (currentAdmin?.permissions || []).includes('*');
-
-  const canAccessUsers =
-    isSuperOrAdmin || !currentAdmin?.branch_id || hasPermission('users.manage', currentAdmin);
+  const isSuperOrAdmin = isExecutiveAdmin(currentAdmin);
+  const canAccessUsers = isSuperOrAdmin || hasPermission('users.manage', currentAdmin);
 
   const {
     data: admins = [],
@@ -404,13 +393,13 @@ export default function UsersPage() {
   const { data: roles = [] } = useQuery({
     queryKey: ['roles'],
     queryFn: () => roleApi.getAll(),
-    enabled: mounted
+    enabled: mounted && canAccessUsers
   });
 
   const { data: branches = [] } = useQuery({
     queryKey: ['branches'],
     queryFn: () => branchApi.getAll(),
-    enabled: mounted
+    enabled: mounted && canAccessUsers
   });
 
   useEffect(() => {

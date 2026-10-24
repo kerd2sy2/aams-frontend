@@ -31,7 +31,7 @@ import { ar } from 'date-fns/locale';
 import { Icons, type Icon } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { getAdminUser } from '@/lib/aams/auth';
-import { hasPermission } from '@/lib/aams/permissions';
+import { hasPermission, isExecutiveAdmin } from '@/lib/aams/permissions';
 import { formatRiyadh } from '@/lib/aams/riyadh-time';
 import { auditApi } from '@/lib/aams/services';
 import type { AuditLog } from '@/types/aams';
@@ -101,24 +101,13 @@ export default function AuditLogsPage() {
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
 
   const admin = getAdminUser();
-  const roleUpper = (admin?.role || '').toUpperCase();
-  const roleObjUpper = (admin?.role_obj?.name || '').toUpperCase();
-  const isSuperOrAdmin =
-    roleUpper === 'ADMIN' ||
-    roleUpper === 'SUPER_ADMIN' ||
-    roleUpper === 'GENERAL_MANAGER' ||
-    roleObjUpper === 'ADMIN' ||
-    roleObjUpper === 'SUPER_ADMIN' ||
-    roleObjUpper === 'GENERAL_MANAGER' ||
-    (admin?.permissions || []).includes('*');
-
-  const isGeneralMgr =
-    !admin?.branch_id || isSuperOrAdmin || hasPermission('audit_logs.view', admin);
+  const isSuperOrAdmin = isExecutiveAdmin(admin);
+  const canAccessAuditLogs = isSuperOrAdmin || hasPermission('audit_logs.view', admin);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['audit-logs', page],
     queryFn: () => auditApi.getLogs(page, 20),
-    enabled: isGeneralMgr
+    enabled: canAccessAuditLogs
   });
 
   const filteredData = useMemo(() => {
@@ -140,12 +129,12 @@ export default function AuditLogsPage() {
 
   // Redirect and block rendering for unauthorized users
   useEffect(() => {
-    if (!isGeneralMgr) {
+    if (!canAccessAuditLogs) {
       router.replace('/dashboard');
     }
-  }, [isGeneralMgr, router]);
+  }, [canAccessAuditLogs, router]);
 
-  if (!isGeneralMgr) {
+  if (!canAccessAuditLogs) {
     return null;
   }
 

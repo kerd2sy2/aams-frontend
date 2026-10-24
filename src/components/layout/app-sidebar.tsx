@@ -36,12 +36,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { hasPermission, hasAnyPermission } from '@/lib/aams/permissions';
+import { hasPermission, hasAnyPermission, isExecutiveAdmin } from '@/lib/aams/permissions';
 
 function isAllowed(item: NavItem, admin: ReturnType<typeof getAdminUser>): boolean {
   if (!admin) return false;
   const roleUpper = (admin.role || '').toUpperCase();
-  const isSuper = roleUpper === 'ADMIN' || roleUpper === 'SUPER_ADMIN' || (admin.permissions || []).includes('*');
+  const isSuper = isExecutiveAdmin(admin);
   if (isSuper) return true;
 
   if (item.generalManagerOnly && admin.branch_id) return false;
@@ -96,10 +96,7 @@ export default function AppSidebar() {
   const brandName = settings?.site_name || 'AAMS';
   const brandLogo = settings?.logo_url || '/logo.png';
   const isGeneralMgr = !admin?.branch_id;
-  const groups = React.useMemo(
-    () => filterNavGroups(admin),
-    [admin]
-  );
+  const groups = React.useMemo(() => filterNavGroups(admin), [admin]);
 
   // Helper to find which parent dropdown contains the active route
   const getActiveParentTitle = React.useCallback(
@@ -138,7 +135,7 @@ export default function AppSidebar() {
   const toggleDropdown = React.useCallback((title: string, open: boolean) => {
     setOpenDropdowns((prev) => ({
       ...prev,
-      [title]: open,
+      [title]: open
     }));
   }, []);
 
@@ -226,20 +223,34 @@ export default function AppSidebar() {
                 </div>
                 <div className='grid flex-1 text-start text-sm leading-tight'>
                   <span className='truncate font-medium'>{admin?.name || brandName}</span>
-                  <span className='text-muted-foreground truncate text-xs'>{admin?.email || ''}</span>
+                  <span className='text-muted-foreground truncate text-xs'>
+                    {admin?.email || ''}
+                  </span>
                 </div>
                 <Icons.chevronsDown className='ms-auto size-4' />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align='end' side='top' sideOffset={4} className='min-w-56' dir='rtl'>
+              <DropdownMenuContent
+                align='end'
+                side='top'
+                sideOffset={4}
+                className='min-w-56'
+                dir='rtl'
+              >
                 <DropdownMenuGroup>
-                  <DropdownMenuItem onClick={() => router.push('/dashboard/profile')} className='cursor-pointer gap-2'>
+                  <DropdownMenuItem
+                    onClick={() => router.push('/dashboard/profile')}
+                    className='cursor-pointer gap-2'
+                  >
                     <Icons.user className='size-4 text-muted-foreground' />
                     <span>{t('Profile')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem onClick={handleLogout} className='cursor-pointer gap-2 text-destructive'>
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className='cursor-pointer gap-2 text-destructive'
+                  >
                     <Icons.logout className='size-4' />
                     <span>{t('Sign out')}</span>
                   </DropdownMenuItem>
@@ -273,17 +284,10 @@ function CollapsibleNavItem({
   Icon: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <Collapsible
-      open={isOpen}
-      onOpenChange={onOpenChange}
-      render={<SidebarMenuItem />}
-    >
+    <Collapsible open={isOpen} onOpenChange={onOpenChange} render={<SidebarMenuItem />}>
       <CollapsibleTrigger
         render={
-          <SidebarMenuButton
-            tooltip={t(item.title)}
-            className='group/collapsible cursor-pointer'
-          />
+          <SidebarMenuButton tooltip={t(item.title)} className='group/collapsible cursor-pointer' />
         }
       >
         <Icon />

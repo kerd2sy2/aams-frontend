@@ -290,6 +290,42 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
 ];
 
 /**
+ * Check if a user is an executive administrator (SUPER_ADMIN, ADMIN, OWNER, GENERAL_MANAGER, or wildcard '*').
+ */
+export function isExecutiveAdmin(user?: Admin | null): boolean {
+  if (!user) return false;
+  const roleUpper = (user.role || '').toUpperCase();
+  const roleObjUpper = (user.role_obj?.name || '').toUpperCase();
+  return (
+    roleUpper === 'ADMIN' ||
+    roleUpper === 'SUPER_ADMIN' ||
+    roleUpper === 'OWNER' ||
+    roleUpper === 'GENERAL_MANAGER' ||
+    roleObjUpper === 'ADMIN' ||
+    roleObjUpper === 'SUPER_ADMIN' ||
+    roleObjUpper === 'OWNER' ||
+    roleObjUpper === 'GENERAL_MANAGER' ||
+    (user.permissions || []).includes('*')
+  );
+}
+
+function extractUserPermissions(user: Admin): string[] {
+  const perms = Array.isArray(user.permissions) ? [...user.permissions] : [];
+  if (user.role_obj?.permissions) {
+    try {
+      const parsed =
+        typeof user.role_obj.permissions === 'string'
+          ? JSON.parse(user.role_obj.permissions)
+          : user.role_obj.permissions;
+      if (Array.isArray(parsed)) {
+        perms.push(...parsed);
+      }
+    } catch (_) {}
+  }
+  return perms;
+}
+
+/**
  * Check if a user has a specific permission
  */
 export function hasPermission(permission?: string, user?: Admin | null): boolean {
@@ -297,12 +333,11 @@ export function hasPermission(permission?: string, user?: Admin | null): boolean
   const current = user ?? getAdminUser();
   if (!current) return false;
 
-  const roleUpper = (current.role || '').toUpperCase();
-  if (roleUpper === 'ADMIN' || roleUpper === 'SUPER_ADMIN') {
+  if (isExecutiveAdmin(current)) {
     return true;
   }
 
-  const perms = current.permissions || [];
+  const perms = extractUserPermissions(current);
   if (perms.includes('*')) {
     return true;
   }
@@ -318,12 +353,11 @@ export function hasAnyPermission(permissions?: string[], user?: Admin | null): b
   const current = user ?? getAdminUser();
   if (!current) return false;
 
-  const roleUpper = (current.role || '').toUpperCase();
-  if (roleUpper === 'ADMIN' || roleUpper === 'SUPER_ADMIN') {
+  if (isExecutiveAdmin(current)) {
     return true;
   }
 
-  const perms = current.permissions || [];
+  const perms = extractUserPermissions(current);
   if (perms.includes('*')) {
     return true;
   }
@@ -339,12 +373,11 @@ export function hasAllPermissions(permissions?: string[], user?: Admin | null): 
   const current = user ?? getAdminUser();
   if (!current) return false;
 
-  const roleUpper = (current.role || '').toUpperCase();
-  if (roleUpper === 'ADMIN' || roleUpper === 'SUPER_ADMIN') {
+  if (isExecutiveAdmin(current)) {
     return true;
   }
 
-  const perms = current.permissions || [];
+  const perms = extractUserPermissions(current);
   if (perms.includes('*')) {
     return true;
   }

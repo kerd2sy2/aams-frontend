@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/dialog';
 import { Icons } from '@/components/icons';
 import { roleApi } from '@/lib/aams/services';
-import { PERMISSION_GROUPS, hasPermission } from '@/lib/aams/permissions';
+import { PERMISSION_GROUPS, hasPermission, isExecutiveAdmin } from '@/lib/aams/permissions';
 import { getAdminUser } from '@/lib/aams/auth';
 import type { Role, PermissionGroup } from '@/types/aams';
 
@@ -44,12 +44,8 @@ function getErrorMessage(err: unknown): string {
 export default function RolesPage() {
   const queryClient = useQueryClient();
   const currentAdmin = getAdminUser();
-  const roleUpper = (currentAdmin?.role || '').toUpperCase();
   const canManageRoles =
-    roleUpper === 'ADMIN' ||
-    roleUpper === 'SUPER_ADMIN' ||
-    (currentAdmin?.permissions || []).includes('*') ||
-    hasPermission('roles.manage', currentAdmin);
+    isExecutiveAdmin(currentAdmin) || hasPermission('roles.manage', currentAdmin);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
