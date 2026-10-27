@@ -294,23 +294,50 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
  */
 export function isExecutiveAdmin(user?: Admin | null): boolean {
   if (!user) return false;
-  const roleUpper = (user.role || '').toUpperCase();
-  const roleObjUpper = (user.role_obj?.name || '').toUpperCase();
+  const roleUpper = (user.role || '').toUpperCase().trim();
+  const roleObjUpper = (user.role_obj?.name || '').toUpperCase().trim();
+  const rawPerms = user.permissions as unknown;
+  let perms: string[] = [];
+  if (Array.isArray(rawPerms)) {
+    perms = rawPerms;
+  } else if (typeof rawPerms === 'string' && rawPerms.trim() !== '') {
+    try {
+      const parsed = JSON.parse(rawPerms);
+      if (Array.isArray(parsed)) perms = parsed;
+    } catch (_) {}
+  }
+
   return (
-    roleUpper === 'ADMIN' ||
     roleUpper === 'SUPER_ADMIN' ||
     roleUpper === 'OWNER' ||
     roleUpper === 'GENERAL_MANAGER' ||
-    roleObjUpper === 'ADMIN' ||
     roleObjUpper === 'SUPER_ADMIN' ||
     roleObjUpper === 'OWNER' ||
     roleObjUpper === 'GENERAL_MANAGER' ||
-    (user.permissions || []).includes('*')
+    perms.includes('*')
   );
 }
 
 function extractUserPermissions(user: Admin): string[] {
-  const perms = Array.isArray(user.permissions) ? [...user.permissions] : [];
+  let perms: string[] = [];
+  const rawPerms = user.permissions as unknown;
+  if (Array.isArray(rawPerms)) {
+    perms = [...rawPerms];
+  } else if (typeof rawPerms === 'string' && rawPerms.trim() !== '') {
+    try {
+      const parsed = JSON.parse(rawPerms);
+      if (Array.isArray(parsed)) {
+        perms = [...parsed];
+      }
+    } catch (_) {}
+  }
+
+  // When permissions are explicitly configured, only the explicit permissions apply
+  if (user.permissions_configured) {
+    return perms;
+  }
+
+  // Legacy unconfigured account: fallback to role permissions
   if (user.role_obj?.permissions) {
     try {
       const parsed =

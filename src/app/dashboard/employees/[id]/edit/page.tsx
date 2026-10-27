@@ -156,15 +156,15 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
         key_number: isDriver ? values.key_number || '' : '',
         application_type: isDriver ? applicationType : '',
         application_id: isDriver ? resolvedAppId : '',
-        shift: isDriver ? shift : 'morning',
         role_id: selectedRoleId || undefined,
-        role_name: rolesList.find((r) => r.id === selectedRoleId)?.name || undefined,
+        role_name: rolesList.find((r) => r.id === selectedRoleId)?.name || '',
+        clear_role: !selectedRoleId,
         permissions: selectedRoleId
           ? (Array.isArray(rolesList.find((r) => r.id === selectedRoleId)?.permissions)
               ? JSON.stringify(rolesList.find((r) => r.id === selectedRoleId)?.permissions)
-              : (rolesList.find((r) => r.id === selectedRoleId)?.permissions as any)) || undefined
-          : undefined
-      });
+              : (rolesList.find((r) => r.id === selectedRoleId)?.permissions as any)) || '[]'
+          : '[]'
+      } as any);
 
       // Link identifier if chosen
       if (selectedIdentifier?.id) {
