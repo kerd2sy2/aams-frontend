@@ -67,7 +67,9 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
   const {
     data: employee,
     isLoading,
-    isError
+    isError,
+    error,
+    refetch
   } = useOfflineQuery({
     queryKey: ['employee', id],
     queryFn: () => employeeApi.getById(id),
@@ -120,13 +122,22 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
   }
 
   if (isError || !employee || !employee.id) {
+    const errorMsg =
+      (error as any)?.response?.data?.error ||
+      (error as any)?.message ||
+      'الموظف غير موجود أو متعذر التحميل';
     return (
       <PageContainer>
         <div className='p-8 text-center text-destructive space-y-4' dir='rtl'>
-          <p className='font-bold text-lg'>الموظف غير موجود أو متعذر التحميل</p>
-          <Button onClick={() => router.push('/dashboard/employees')}>
-            العودة لقائمة الموظفين
-          </Button>
+          <p className='font-bold text-lg'>{errorMsg}</p>
+          <div className='flex items-center justify-center gap-3'>
+            <Button variant='outline' onClick={() => refetch()}>
+              إعادة المحاولة
+            </Button>
+            <Button onClick={() => router.push('/dashboard/employees')}>
+              العودة لقائمة الموظفين
+            </Button>
+          </div>
         </div>
       </PageContainer>
     );
