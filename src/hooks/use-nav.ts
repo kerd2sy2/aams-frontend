@@ -6,21 +6,39 @@
  * administration section; ADMINS additionally see investigation approvals.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import type { NavItem, NavGroup } from '@/types';
+import type { Admin } from '@/types/aams';
 import { getAdminUser } from '@/lib/aams/auth';
 import { hasPermission, isExecutiveAdmin } from '@/lib/aams/permissions';
 
 const ADMIN_ONLY = new Set(['/dashboard/investigation/approvals']);
 
-function isVisible(item: NavItem): boolean {
-  const admin = getAdminUser();
-  const isSuperOrAdmin = isExecutiveAdmin(admin);
+export function useCurrentUser(): Admin | null {
+  const [user, setUser] = useState<Admin | null>(() => getAdminUser());
 
-  const canAccessUsers = isSuperOrAdmin || hasPermission('users.manage', admin);
-  const canAccessAuditLogs = isSuperOrAdmin || hasPermission('audit_logs.view', admin);
-  const canAccessSettings = isSuperOrAdmin || hasPermission('settings.manage', admin);
-  const canAccessApprovals = isSuperOrAdmin || hasPermission('investigations.approve', admin);
+  useEffect(() => {
+    const handleUpdate = () => {
+      setUser(getAdminUser());
+    };
+    window.addEventListener('admin_user_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('admin_user_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
+
+  return user;
+}
+
+function isVisible(item: NavItem, user: Admin | null): boolean {
+  const isSuperOrAdmin = isExecutiveAdmin(user);
+
+  const canAccessUsers = isSuperOrAdmin || hasPermission('users.manage', user);
+  const canAccessAuditLogs = isSuperOrAdmin || hasPermission('audit_logs.view', user);
+  const canAccessSettings = isSuperOrAdmin || hasPermission('settings.manage', user);
+  const canAccessApprovals = isSuperOrAdmin || hasPermission('investigations.approve', user);
 
   if (item.url === '/dashboard/users') return canAccessUsers;
   if (item.url === '/dashboard/audit-logs') return canAccessAuditLogs;
@@ -30,13 +48,15 @@ function isVisible(item: NavItem): boolean {
 }
 
 export function useFilteredNavItems(items: NavItem[]) {
-  return useMemo(() => items.filter(isVisible), [items]);
+  const user = useCurrentUser();
+  return useMemo(() => items.filter((item) => isVisible(item, user)), [items, user]);
 }
 
 export function useFilteredNavGroups(groups: NavGroup[]) {
+  const user = useCurrentUser();
   return useMemo(() => {
     return groups
-      .map((group) => ({ ...group, items: group.items.filter(isVisible) }))
+      .map((group) => ({ ...group, items: group.items.filter((item) => isVisible(item, user)) }))
       .filter((group) => group.items.length > 0);
-  }, [groups]);
+  }, [groups, user]);
 }

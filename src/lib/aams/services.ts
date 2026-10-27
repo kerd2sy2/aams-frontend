@@ -76,7 +76,12 @@ export const authApi = {
     return res.data;
   },
   me: async () => {
-    const res = await apiClient.get<Admin>('/me');
+    const res = await apiClient.get<Admin>(`/me?_t=${Date.now()}`, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache'
+      }
+    });
     return res.data;
   },
   changePassword: async (data: { old_password: string; new_password: string }) => {
