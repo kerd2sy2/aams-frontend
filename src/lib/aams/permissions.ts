@@ -67,13 +67,23 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
       },
       {
         key: 'custody.add',
-        label: 'إضافة رصيد ومصروف',
-        description: 'إضافة مبالغ للعهدة وتسجيل بنود المصروفات'
+        label: 'تسليم وإضافة عهدة (تغذية الرصيد)',
+        description: 'إضافة مبالغ للعهدة وتغذية الرصيد اليومي'
+      },
+      {
+        key: 'custody.expense',
+        label: 'صرف وتسجيل مصروفات (الصرف)',
+        description: 'تسجيل الفواتير وبنود المصروفات اليومية'
+      },
+      {
+        key: 'custody.manage',
+        label: 'إدارة وتعديل العهد والمصروفات',
+        description: 'تعديل بيانات المصروفات وإدارتها بالكامل'
       },
       {
         key: 'custody.delete',
-        label: 'حذف المصروفات',
-        description: 'حذف سجلات وحركات العهدة والمصروفات'
+        label: 'حذف العهد والمصروفات',
+        description: 'حذف سجلات وحركات العهدة وفواتير المصروفات'
       }
     ]
   },

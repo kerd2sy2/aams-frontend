@@ -264,11 +264,36 @@ const SYSTEM_PERMISSION_GROUPS = [
   {
     category: 'العهد والأصول',
     permissions: [
-      { key: 'custody', label: 'الوصول العام للعهد', description: 'صلاحية الدخول لموديول العهد' },
-      { key: 'custody.view', label: 'عرض العهد', description: 'استعراض العهد المسلمة والمسترجعة' },
-      { key: 'custody.add', label: 'تسليم عهدة', description: 'تسجيل تسليم عهدة جديدة لموظف' },
-      { key: 'custody.manage', label: 'إدارة العهد', description: 'تعديل واسترجاع العهد' },
-      { key: 'custody.delete', label: 'حذف عهدة', description: 'إلغاء وحذف سجل عهدة' }
+      {
+        key: 'custody',
+        label: 'الوصول العام للعهد',
+        description: 'صلاحية الدخول لموديول وتطبيق العهدة'
+      },
+      {
+        key: 'custody.view',
+        label: 'عرض العهد والمصروفات',
+        description: 'استعراض سجلات العهدة اليومية وتفاصيل الفواتير'
+      },
+      {
+        key: 'custody.add',
+        label: 'تسليم وإضافة عهدة (تغذية الرصيد)',
+        description: 'السماح بإضافة وتغذية مبلغ العهدة لليوم'
+      },
+      {
+        key: 'custody.expense',
+        label: 'صرف وتسجيل مصروفات (الصرف)',
+        description: 'السماح بتسجيل الفواتير والمصروفات اليومية'
+      },
+      {
+        key: 'custody.manage',
+        label: 'إدارة وتعديل العهد والمصروفات',
+        description: 'تعديل بيانات المصروفات وإدارتها بالكامل'
+      },
+      {
+        key: 'custody.delete',
+        label: 'حذف العهد والمصروفات',
+        description: 'حذف وإلغاء مبالغ العهدة وفواتير المصروفات'
+      }
     ]
   },
   {
@@ -556,8 +581,14 @@ export default function UsersPage() {
 
   // Permission Management Mutation & Helpers
   const savePermsMutation = useMutation({
-    mutationFn: (data: { id: string; permissions: string[] }) =>
-      adminApi.update(data.id, { permissions: data.permissions }),
+    mutationFn: (data: { id: string; permissions: string[] }) => {
+      let perms = data.permissions;
+      // If granular permissions are configured, strip '*' wildcard so it doesn't bypass revocations
+      if (perms.length > 1 && perms.includes('*')) {
+        perms = perms.filter((p) => p !== '*');
+      }
+      return adminApi.update(data.id, { permissions: perms });
+    },
     onSuccess: () => {
       toast.success('تم حفظ الصلاحيات المخصصة للمستخدم بنجاح');
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -582,26 +613,45 @@ export default function UsersPage() {
     if (!user.permissions_configured && user.role_obj?.permissions) {
       perms = [...user.role_obj.permissions];
     }
+    // If user has specific permissions alongside '*', clean out '*' in the modal
+    if (perms.length > 1 && perms.includes('*')) {
+      perms = perms.filter((p) => p !== '*');
+    }
     setSelectedPerms(perms);
   };
 
   const togglePerm = (key: string) => {
-    setSelectedPerms((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-    );
+    setSelectedPerms((prev) => {
+      if (key === '*') {
+        return prev.includes('*') ? [] : ['*'];
+      }
+      if (prev.includes(key)) {
+        // Removing permission: Always remove '*' so wildcard doesn't override the revocation
+        return prev.filter((k) => k !== key && k !== '*');
+      } else {
+        // Adding permission: ensure '*' is removed so selections remain granular
+        return [...prev.filter((k) => k !== '*'), key];
+      }
+    });
   };
 
   const toggleCategory = (catKeys: string[]) => {
-    const allSelected = catKeys.every((k) => selectedPerms.includes(k));
+    const validCatKeys = catKeys.filter((k) => k !== '*');
+    const allSelected = validCatKeys.every((k) => selectedPerms.includes(k));
     if (allSelected) {
-      setSelectedPerms((prev) => prev.filter((k) => !catKeys.includes(k)));
+      setSelectedPerms((prev) => prev.filter((k) => !validCatKeys.includes(k) && k !== '*'));
     } else {
-      setSelectedPerms((prev) => Array.from(new Set([...prev, ...catKeys])));
+      setSelectedPerms((prev) =>
+        Array.from(new Set([...prev.filter((k) => k !== '*'), ...validCatKeys]))
+      );
     }
   };
 
   const selectAllSystemPerms = () => {
-    const allKeys = SYSTEM_PERMISSION_GROUPS.flatMap((g) => g.permissions.map((p) => p.key));
+    // Select all granular permissions except wildcard '*'
+    const allKeys = SYSTEM_PERMISSION_GROUPS.flatMap((g) => g.permissions.map((p) => p.key)).filter(
+      (k) => k !== '*'
+    );
     setSelectedPerms(Array.from(new Set(allKeys)));
   };
 
