@@ -286,6 +286,11 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
         description: 'تعديل اسم النظام والشعار وإعدادات التطبيق'
       },
       {
+        key: 'archive.view',
+        label: 'الأرشيف وسلة المهملات',
+        description: 'استعراض واستعادة العناصر المحذوفة والمؤرشفة'
+      },
+      {
         key: 'audit_logs.view',
         label: 'سجل العمليات والنشاط',
         description: 'الاطلاع على سجلات العمليات والتدقيق في النظام'

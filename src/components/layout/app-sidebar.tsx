@@ -45,7 +45,12 @@ function isAllowed(item: NavItem, admin: ReturnType<typeof getAdminUser>): boole
   if (isSuper) return true;
 
   if (item.generalManagerOnly && admin.branch_id) return false;
-  if (item.adminOnly && roleUpper !== 'ADMIN') return false;
+  if (
+    item.adminOnly &&
+    roleUpper !== 'ADMIN' &&
+    !(item.permission && hasPermission(item.permission, admin))
+  )
+    return false;
 
   if (item.permission) {
     return hasPermission(item.permission, admin);
@@ -84,6 +89,18 @@ export default function AppSidebar() {
   React.useEffect(() => {
     setAdmin(getAdminUser());
   }, [pathname]);
+
+  React.useEffect(() => {
+    const handleUpdate = (e?: any) => {
+      setAdmin(e?.detail || getAdminUser());
+    };
+    window.addEventListener('admin_user_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('admin_user_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   const { data: settings } = useQuery({
     queryKey: ['app-settings'],

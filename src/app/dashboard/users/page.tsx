@@ -218,9 +218,14 @@ const SYSTEM_PERMISSION_GROUPS = [
       { key: 'employees.create', label: 'إضافة موظف', description: 'إنشاء ملف موظف جديد' },
       { key: 'employees.edit', label: 'تعديل موظف', description: 'تعديل وتحديث بيانات الموظفين' },
       {
+        key: 'employees.delete',
+        label: 'حذف موظف',
+        description: 'حذف سجل موظف أو مندوب من النظام'
+      },
+      {
         key: 'employees.cards',
         label: 'بطاقات العمل',
-        description: 'عرض وطباعة بطاقات العمل الرقمية'
+        description: 'عرض وطباعة بطاقات العمل الرقمية والباركود'
       }
     ]
   },
@@ -300,6 +305,11 @@ const SYSTEM_PERMISSION_GROUPS = [
     category: 'المستودع والمخزون',
     permissions: [
       { key: 'inventory.view', label: 'عرض المستودع', description: 'استعراض الأصناف والكميات' },
+      {
+        key: 'inventory.manage',
+        label: 'إدارة المخزون والأصناف',
+        description: 'إضافة وتعديل أصناف وتوريد كميات جديدة'
+      },
       { key: 'inventory.dispense', label: 'صرف قطع غيار', description: 'صرف الأصناف وتحديث الأرصدة' }
     ]
   },
@@ -310,9 +320,18 @@ const SYSTEM_PERMISSION_GROUPS = [
       {
         key: 'investigations.view',
         label: 'عرض التحقيقات',
-        description: 'استعراض التحقيقات الإدارية'
+        description: 'استعراض التحقيقات الإدارية والطلبات'
       },
-      { key: 'investigations.create', label: 'فتح تحقيق', description: 'إنشاء جلسة تحقيق لموظف' },
+      {
+        key: 'investigations.create',
+        label: 'فتح تحقيق',
+        description: 'إنشاء جلسة تحقيق أو طلب لموظف'
+      },
+      {
+        key: 'investigations.approve',
+        label: 'اعتماد الموافقات والتحقيقات',
+        description: 'البت والموافقة على طلبات السلف ومحاضر التحقيق'
+      },
       { key: 'leaves.view', label: 'عرض الإجازات', description: 'استعراض طلبات الإجازات' },
       { key: 'leaves.manage', label: 'إدارة الإجازات', description: 'الموافقة على الإجازات أو رفضها' }
     ]
@@ -352,6 +371,56 @@ const SYSTEM_PERMISSION_GROUPS = [
       },
       { key: 'documents.view', label: 'عرض المستندات', description: 'استعراض الوثائق الرسمية' },
       { key: 'documents.manage', label: 'إدارة المستندات', description: 'رفع وتحديث المستندات' }
+    ]
+  },
+  {
+    category: 'منصات الشركاء والتوصيل',
+    permissions: [
+      {
+        key: 'partners.view',
+        label: 'عرض الشركاء',
+        description: 'الاطلاع على منصات وتطبيقات التوصيل الشريكة'
+      },
+      {
+        key: 'partners.manage',
+        label: 'إدارة الشركاء',
+        description: 'إضافة وتعديل وحذف منصات التوصيل'
+      }
+    ]
+  },
+  {
+    category: 'الإدارة والنظام (لوحة التحكم)',
+    permissions: [
+      {
+        key: 'users.manage',
+        label: 'إدارة المستخدمين',
+        description: 'إضافة وتعديل وحذف وصلاحيات مستخدمي النظام'
+      },
+      {
+        key: 'roles.manage',
+        label: 'إدارة الأدوار والصلاحيات',
+        description: 'إنشاء وتعديل وتوزيع الأدوار والصلاحيات'
+      },
+      {
+        key: 'settings.manage',
+        label: 'إعدادات النظام العامة',
+        description: 'تعديل الإعدادات العامة والشعار وخيارات المنظومة'
+      },
+      {
+        key: 'archive.view',
+        label: 'الأرشيف وسلة المهملات',
+        description: 'استعراض واستعادة العناصر المحذوفة والمؤرشفة'
+      },
+      {
+        key: 'audit_logs.view',
+        label: 'سجل العمليات والنشاط',
+        description: 'متابعة سجل نشاط وعمليات المشرفين والمستخدمين'
+      },
+      {
+        key: 'error_logs.view',
+        label: 'سجل أخطاء النظام',
+        description: 'الاطلاع على الأخطاء الفنية والتقنية للنظام'
+      }
     ]
   }
 ];
