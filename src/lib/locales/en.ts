@@ -41,6 +41,7 @@ const en: Record<string, string> = {
   'Target & Identifiers': 'Target & Identifiers',
   'Target Dashboard': 'Target Dashboard',
   Identifiers: 'Identifiers & Drivers',
+  'Employee Total Orders': 'Employee Total Orders',
   'Shift Report': 'Shift Report',
   'Daily Report': 'Daily Report',
   Attendance: 'Attendance',

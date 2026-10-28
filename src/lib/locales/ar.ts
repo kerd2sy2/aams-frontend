@@ -48,6 +48,7 @@ const ar: Record<string, string> = {
   'Target & Identifiers': 'التارچت والمستهدفات',
   'Target Dashboard': 'لوحة متابعة التارچت',
   Identifiers: 'المعرفات وربط المناديب',
+  'Employee Total Orders': 'إجمالي طلبات الموظفين',
   'Shift Report': 'كشف الشفتات',
   'Daily Report': 'تقرير المشرف اليومي',
   'Ninja Daily Report': 'تقرير نينجا اليومي',

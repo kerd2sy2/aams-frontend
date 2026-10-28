@@ -324,6 +324,15 @@ export function TopEmployeesCard({ className }: { className?: string } = {}) {
           </div>
         )}
       </CardContent>
+      <div className='px-3.5 py-2.5 border-t border-border/40 bg-muted/20 flex items-center justify-between'>
+        <Link
+          href='/dashboard/employee-orders'
+          className='text-xs font-bold text-primary hover:underline flex items-center gap-1 w-full justify-center'
+        >
+          <span>{locale === 'ar' ? 'عرض إجمالي طلبات جميع الموظفين' : 'View All Employee Orders'}</span>
+          <ArrowUpRight className='size-3.5' />
+        </Link>
+      </div>
     </Card>
   );
 }

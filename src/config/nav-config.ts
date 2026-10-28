@@ -81,6 +81,11 @@ export const navGroups: NavGroup[] = [
         icon: 'chartBar',
         permission: 'reports.view',
         items: [
+          {
+            title: 'Employee Total Orders',
+            url: '/dashboard/employee-orders',
+            permission: 'reports.view'
+          },
           { title: 'Shift Report', url: '/dashboard/reports', permission: 'reports.view' },
           { title: 'Daily Report', url: '/dashboard/daily-report', permission: 'reports.view' },
           { title: 'Ninja Daily Report', url: '/dashboard/reports/ninja' },
@@ -126,6 +131,11 @@ export const navGroups: NavGroup[] = [
         permission: 'employees.view',
         items: [
           { title: 'All Employees', url: '/dashboard/employees', permission: 'employees.view' },
+          {
+            title: 'Employee Total Orders',
+            url: '/dashboard/employee-orders',
+            permission: 'employees.view'
+          },
           { title: 'Penalties', url: '/dashboard/penalties', permission: 'violations.view' },
           {
             title: 'Print ID Cards',
