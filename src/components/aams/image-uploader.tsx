@@ -47,8 +47,44 @@ function isValidUrl(url: string): boolean {
 function detectInitialMode(value?: string): Mode {
   if (!value) return 'upload';
   const v = value.trim();
-  if (isValidUrl(v)) return 'url';
+  if (
+    v.startsWith('data:image/') ||
+    v.startsWith('blob:') ||
+    v.startsWith('/uploads/') ||
+    v.includes('/uploads/')
+  ) {
+    return 'upload';
+  }
+  if (v.startsWith('http://') || v.startsWith('https://')) {
+    return 'url';
+  }
   return 'upload';
+}
+
+function resolvePreviewSrc(url?: string, useDirectBackend = false): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) return trimmed;
+
+  const backendBase = (
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1\/?$/, '') ||
+    'https://api.kerd2sy.com'
+  ).replace(/\/+$/, '');
+
+  const uploadsMatch = trimmed.match(/(?:\/api\/v1)?(\/uploads\/[^\s?#]+)/i);
+  if (uploadsMatch && uploadsMatch[1]) {
+    const cleanPath = uploadsMatch[1];
+    return useDirectBackend ? `${backendBase}${cleanPath}` : cleanPath;
+  }
+
+  if (trimmed.startsWith('uploads/')) {
+    const cleanPath = `/${trimmed}`;
+    return useDirectBackend ? `${backendBase}${cleanPath}` : cleanPath;
+  }
+
+  return trimmed;
 }
 
 export function ImageUploader({
@@ -62,6 +98,7 @@ export function ImageUploader({
   const [mode, setMode] = useState<Mode>(detectInitialMode(value));
   const [urlInput, setUrlInput] = useState<string>(value ?? '');
   const [imgLoadError, setImgLoadError] = useState(false);
+  const [fallbackTried, setFallbackTried] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -69,6 +106,7 @@ export function ImageUploader({
       setUrlInput(value);
       setMode(detectInitialMode(value));
       setImgLoadError(false);
+      setFallbackTried(false);
     }
   }, [value]);
 
@@ -223,10 +261,16 @@ export function ImageUploader({
               <div className='group relative flex w-full flex-col items-center'>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={value}
+                  src={resolvePreviewSrc(value, fallbackTried)}
                   alt={label}
                   referrerPolicy='no-referrer'
-                  crossOrigin='anonymous'
+                  onError={() => {
+                    if (!fallbackTried) {
+                      setFallbackTried(true);
+                    } else {
+                      setImgLoadError(true);
+                    }
+                  }}
                   className='max-h-36 rounded-lg border border-slate-200 object-cover shadow-sm dark:border-slate-700'
                 />
                 <button
@@ -298,11 +342,16 @@ export function ImageUploader({
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={value}
+                    src={resolvePreviewSrc(value, fallbackTried)}
                     alt={label}
                     referrerPolicy='no-referrer'
-                    crossOrigin='anonymous'
-                    onError={() => setImgLoadError(true)}
+                    onError={() => {
+                      if (!fallbackTried) {
+                        setFallbackTried(true);
+                      } else {
+                        setImgLoadError(true);
+                      }
+                    }}
                     className='max-h-36 rounded-lg border border-slate-200 object-cover shadow-sm dark:border-slate-700'
                   />
                 )}

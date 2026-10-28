@@ -51,6 +51,44 @@ export default function VehiclesPage() {
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [oilChangingVehicle, setOilChangingVehicle] = useState<Vehicle | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
+  const [previewFallbackTried, setPreviewFallbackTried] = useState(false);
+  const [previewLoadError, setPreviewLoadError] = useState(false);
+
+  const backendBaseUrl = (
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1\/?$/, '') ||
+    'https://api.kerd2sy.com'
+  ).replace(/\/+$/, '');
+
+  function resolveRegistrationImageUrl(rawUrl?: string, useDirectBackend = false): string {
+    if (!rawUrl) return '';
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return '';
+    if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+      return trimmed;
+    }
+
+    // Extract /uploads/... if present in relative or full URL (also stripping accidental /api/v1 prefix)
+    const uploadsMatch = trimmed.match(/(?:\/api\/v1)?(\/uploads\/[^\s?#]+)/i);
+    if (uploadsMatch && uploadsMatch[1]) {
+      const cleanUploadsPath = uploadsMatch[1];
+      return useDirectBackend ? `${backendBaseUrl}${cleanUploadsPath}` : cleanUploadsPath;
+    }
+
+    if (trimmed.startsWith('uploads/')) {
+      const cleanUploadsPath = `/${trimmed}`;
+      return useDirectBackend ? `${backendBaseUrl}${cleanUploadsPath}` : cleanUploadsPath;
+    }
+
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+
+    const normalizedPath = trimmed.startsWith('/')
+      ? trimmed.replace(/^\/api\/v1(\/uploads\/)/i, '$1')
+      : `/uploads/${trimmed}`;
+    return useDirectBackend ? `${backendBaseUrl}${normalizedPath}` : normalizedPath;
+  }
 
   // Form State
   const [plateNumber, setPlateNumber] = useState('');
@@ -453,12 +491,14 @@ export default function VehiclesPage() {
                                 variant='outline'
                                 size='sm'
                                 type='button'
-                                onClick={() =>
+                                onClick={() => {
+                                  setPreviewFallbackTried(false);
+                                  setPreviewLoadError(false);
                                   setPreviewImage({
                                     url: vehicle.registration_image!,
                                     title: `استمارة المركبة / الدباب (${vehicle.plate_number})`
-                                  })
-                                }
+                                  });
+                                }}
                                 className='h-7 px-2.5 text-xs gap-1.5 border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 shadow-none'
                               >
                                 <Icons.fileText className='size-3.5' />
@@ -621,8 +661,8 @@ export default function VehiclesPage() {
 
         {/* Create Vehicle Sheet */}
         <Sheet open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <SheetContent className='w-full sm:max-w-md overflow-y-auto' dir='rtl'>
-            <SheetHeader>
+          <SheetContent className='sm:max-w-lg w-full p-0 flex flex-col' dir='rtl'>
+            <SheetHeader className='p-6'>
               <SheetTitle className='text-lg font-bold flex items-center gap-2'>
                 <Icons.bike className='size-5 text-primary' />
                 إضافة دباب / مركبة جديدة
@@ -632,132 +672,133 @@ export default function VehiclesPage() {
               </SheetDescription>
             </SheetHeader>
 
-            <form onSubmit={handleSubmitCreate} className='space-y-4 pt-2'>
-              <div className='grid grid-cols-2 gap-3'>
-                <div className='space-y-1'>
-                  <label className='text-xs font-medium'>رقم اللوحة / الدباب *</label>
-                  <Input
-                    placeholder='مثال: 2565 أو 1234 أ ب ج'
-                    value={plateNumber}
-                    onChange={(e) => setPlateNumber(e.target.value)}
-                    required
-                    className='font-mono'
+            <form onSubmit={handleSubmitCreate} className='flex-1 flex flex-col min-h-0'>
+              <div className='flex-1 overflow-y-auto px-6 py-5 space-y-4'>
+                <div className='grid grid-cols-2 gap-3'>
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>رقم اللوحة / الدباب *</label>
+                    <Input
+                      placeholder='مثال: 2565 أو 1234 أ ب ج'
+                      value={plateNumber}
+                      onChange={(e) => setPlateNumber(e.target.value)}
+                      required
+                      className='font-mono'
+                    />
+                  </div>
+
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>نوع المركبة</label>
+                    <NativeSelect
+                      value={vehicleType}
+                      onChange={(e) => setVehicleType(e.target.value)}
+                      className='w-full'
+                    >
+                      <option value='motorcycle'>دراجة نارية (دباب)</option>
+                      <option value='car'>سيارة</option>
+                    </NativeSelect>
+                  </div>
+                </div>
+
+                <div className='grid grid-cols-2 gap-3'>
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>الماركة / الشركة</label>
+                    <Input
+                      placeholder='مثال: هوندا، ياماها، سوزوكي'
+                      value={brand}
+                      onChange={(e) => setBrand(e.target.value)}
+                    />
+                  </div>
+
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>سنة الصنع (الموديل)</label>
+                    <Input
+                      placeholder='مثال: 2024'
+                      value={modelYear}
+                      onChange={(e) => setModelYear(e.target.value)}
+                      className='font-mono'
+                    />
+                  </div>
+                </div>
+
+                <div className='grid grid-cols-3 gap-3'>
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>رقم المفتاح</label>
+                    <Input
+                      placeholder='مثال: K-12'
+                      value={keyNumber}
+                      onChange={(e) => setKeyNumber(e.target.value)}
+                      className='font-mono'
+                    />
+                  </div>
+
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>العداد الحالي (كم)</label>
+                    <Input
+                      type='number'
+                      step='any'
+                      placeholder='123456'
+                      value={currentKm}
+                      onChange={(e) => setCurrentKm(e.target.value)}
+                      className='font-mono'
+                    />
+                  </div>
+
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>عداد آخر زيت (كم)</label>
+                    <Input
+                      type='number'
+                      step='any'
+                      placeholder='123000'
+                      value={lastOilKm}
+                      onChange={(e) => setLastOilKm(e.target.value)}
+                      className='font-mono'
+                    />
+                  </div>
+                </div>
+
+                <div className='rounded-xl border p-3.5 bg-amber-500/5 border-amber-500/25 flex items-center justify-between gap-3'>
+                  <div className='space-y-0.5'>
+                    <p className='text-xs font-bold text-foreground flex items-center gap-1.5'>
+                      <Icons.warning className='size-3.5 text-amber-500' />
+                      عداد المسافات معطل / تالف
+                    </p>
+                    <p className='text-[11px] text-muted-foreground'>
+                      عند التفعيل، يُعفى المندوب من تصوير وإدخال قراءة العداد عند بدء وإنهاء الشفت
+                    </p>
+                  </div>
+                  <Switch checked={isOdometerBroken} onCheckedChange={setIsOdometerBroken} />
+                </div>
+
+                <div className='space-y-1.5'>
+                  <ImageUploader
+                    value={registrationImage}
+                    onChange={setRegistrationImage}
+                    label='صورة استمارة الدباب / المركبة 📄'
+                    category='registration'
+                    description='ستظهر صورة الاستمارة تلقائياً في وثائق المندوب المرتبط بهذا الدباب في التطبيق'
                   />
                 </div>
 
                 <div className='space-y-1'>
-                  <label className='text-xs font-medium'>نوع المركبة</label>
-                  <NativeSelect
-                    value={vehicleType}
-                    onChange={(e) => setVehicleType(e.target.value)}
-                    className='w-full'
-                  >
-                    <option value='motorcycle'>دراجة نارية (دباب)</option>
-                    <option value='car'>سيارة</option>
-                  </NativeSelect>
-                </div>
-              </div>
-
-              <div className='grid grid-cols-2 gap-3'>
-                <div className='space-y-1'>
-                  <label className='text-xs font-medium'>الماركة / الشركة</label>
+                  <label className='text-xs font-medium'>ملاحظات</label>
                   <Input
-                    placeholder='مثال: هوندا، ياماها، سوزوكي'
-                    value={brand}
-                    onChange={(e) => setBrand(e.target.value)}
-                  />
-                </div>
-
-                <div className='space-y-1'>
-                  <label className='text-xs font-medium'>سنة الصنع (الموديل)</label>
-                  <Input
-                    placeholder='مثال: 2024'
-                    value={modelYear}
-                    onChange={(e) => setModelYear(e.target.value)}
-                    className='font-mono'
+                    placeholder='أي تفاصيل أو ملاحظات خاصة بالمركبة...'
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
                   />
                 </div>
               </div>
 
-              <div className='grid grid-cols-3 gap-3'>
-                <div className='space-y-1'>
-                  <label className='text-xs font-medium'>رقم المفتاح</label>
-                  <Input
-                    placeholder='مثال: K-12'
-                    value={keyNumber}
-                    onChange={(e) => setKeyNumber(e.target.value)}
-                    className='font-mono'
-                  />
-                </div>
-
-                <div className='space-y-1'>
-                  <label className='text-xs font-medium'>العداد الحالي (كم)</label>
-                  <Input
-                    type='number'
-                    step='any'
-                    placeholder='123456'
-                    value={currentKm}
-                    onChange={(e) => setCurrentKm(e.target.value)}
-                    className='font-mono'
-                  />
-                </div>
-
-                <div className='space-y-1'>
-                  <label className='text-xs font-medium'>عداد آخر زيت (كم)</label>
-                  <Input
-                    type='number'
-                    step='any'
-                    placeholder='123000'
-                    value={lastOilKm}
-                    onChange={(e) => setLastOilKm(e.target.value)}
-                    className='font-mono'
-                  />
-                </div>
-              </div>
-
-              <div className='rounded-xl border p-3.5 bg-amber-500/5 border-amber-500/25 flex items-center justify-between gap-3'>
-                <div className='space-y-0.5'>
-                  <p className='text-xs font-bold text-foreground flex items-center gap-1.5'>
-                    <Icons.warning className='size-3.5 text-amber-500' />
-                    عداد المسافات معطل / تالف
-                  </p>
-                  <p className='text-[11px] text-muted-foreground'>
-                    عند التفعيل، يُعفى المندوب من تصوير وإدخال قراءة العداد عند بدء وإنهاء الشفت
-                  </p>
-                </div>
-                <Switch checked={isOdometerBroken} onCheckedChange={setIsOdometerBroken} />
-              </div>
-
-              <div className='space-y-1.5'>
-                <ImageUploader
-                  value={registrationImage}
-                  onChange={setRegistrationImage}
-                  label='صورة استمارة الدباب / المركبة 📄'
-                  category='registration'
-                  description='ستظهر صورة الاستمارة تلقائياً في وثائق المندوب المرتبط بهذا الدباب في التطبيق'
-                />
-              </div>
-
-              <div className='space-y-1'>
-                <label className='text-xs font-medium'>ملاحظات</label>
-                <Input
-                  placeholder='أي تفاصيل أو ملاحظات خاصة بالمركبة...'
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-              </div>
-
-              <SheetFooter className='gap-2 sm:gap-0 pt-6 mt-auto'>
+              <SheetFooter className='p-4 border-t bg-muted/20 flex items-center justify-end gap-2'>
                 <Button
                   type='button'
                   variant='outline'
                   onClick={() => setIsCreateOpen(false)}
                   disabled={createMutation.isPending}
-                  className='w-full'
                 >
                   إلغاء
                 </Button>
-                <Button type='submit' disabled={createMutation.isPending} className='w-full'>
+                <Button type='submit' disabled={createMutation.isPending}>
                   {createMutation.isPending ? 'جاري الحفظ...' : 'حفظ الدباب'}
                 </Button>
               </SheetFooter>
@@ -765,123 +806,137 @@ export default function VehiclesPage() {
           </SheetContent>
         </Sheet>
 
-        {/* Edit Vehicle Dialog */}
-        <Dialog open={!!editingVehicle} onOpenChange={(open) => !open && setEditingVehicle(null)}>
-          <DialogContent className='sm:max-w-[480px]' dir='rtl'>
-            <DialogHeader>
-              <DialogTitle className='text-lg font-bold flex items-center gap-2'>
+        {/* Edit Vehicle Sheet (Side Drawer with Scroll) */}
+        <Sheet open={!!editingVehicle} onOpenChange={(open) => !open && setEditingVehicle(null)}>
+          <SheetContent className='sm:max-w-lg w-full p-0 flex flex-col' dir='rtl'>
+            <SheetHeader className='p-6'>
+              <SheetTitle className='text-lg font-bold flex items-center gap-2'>
                 <Icons.edit className='size-5 text-primary' />
                 تعديل بيانات الدباب ({editingVehicle?.plate_number})
-              </DialogTitle>
-              <DialogDescription className='text-xs'>
-                تعديل مواصفات الدباب، قراءة العداد، أو الحالة التشغيلية
-              </DialogDescription>
-            </DialogHeader>
+              </SheetTitle>
+              <SheetDescription className='text-xs'>
+                تعديل مواصفات الدباب، قراءة العداد، الاستمارة، أو الحالة التشغيلية
+              </SheetDescription>
+            </SheetHeader>
 
-            <form onSubmit={handleSubmitEdit} className='space-y-4 pt-2'>
-              <div className='grid grid-cols-2 gap-3'>
-                <div className='space-y-1'>
-                  <label className='text-xs font-medium'>رقم اللوحة / الدباب *</label>
-                  <Input
-                    value={plateNumber}
-                    onChange={(e) => setPlateNumber(e.target.value)}
-                    required
-                    className='font-mono'
+            <form onSubmit={handleSubmitEdit} className='flex-1 flex flex-col min-h-0'>
+              <div className='flex-1 overflow-y-auto px-6 py-5 space-y-4'>
+                <div className='grid grid-cols-2 gap-3'>
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>رقم اللوحة / الدباب *</label>
+                    <Input
+                      value={plateNumber}
+                      onChange={(e) => setPlateNumber(e.target.value)}
+                      required
+                      className='font-mono'
+                    />
+                  </div>
+
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>الحالة التشغيلية</label>
+                    <NativeSelect
+                      value={vehicleStatus}
+                      onChange={(e) => setVehicleStatus(e.target.value)}
+                      className='w-full'
+                    >
+                      <option value='AVAILABLE'>متاح للاستخدام</option>
+                      <option value='IN_USE'>في شفت عمل</option>
+                      <option value='MAINTENANCE'>في الصيانة</option>
+                    </NativeSelect>
+                  </div>
+                </div>
+
+                <div className='grid grid-cols-3 gap-3'>
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>نوع المركبة</label>
+                    <NativeSelect
+                      value={vehicleType}
+                      onChange={(e) => setVehicleType(e.target.value)}
+                      className='w-full'
+                    >
+                      <option value='motorcycle'>دراجة نارية</option>
+                      <option value='car'>سيارة</option>
+                    </NativeSelect>
+                  </div>
+
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>الماركة</label>
+                    <Input value={brand} onChange={(e) => setBrand(e.target.value)} />
+                  </div>
+
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>الموديل</label>
+                    <Input
+                      value={modelYear}
+                      onChange={(e) => setModelYear(e.target.value)}
+                      className='font-mono'
+                    />
+                  </div>
+                </div>
+
+                <div className='grid grid-cols-3 gap-3'>
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>رقم المفتاح</label>
+                    <Input
+                      value={keyNumber}
+                      onChange={(e) => setKeyNumber(e.target.value)}
+                      className='font-mono'
+                    />
+                  </div>
+
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>العداد الحالي (كم)</label>
+                    <Input
+                      type='number'
+                      step='any'
+                      value={currentKm}
+                      onChange={(e) => setCurrentKm(e.target.value)}
+                      className='font-mono'
+                    />
+                  </div>
+
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>عداد آخر زيت (كم)</label>
+                    <Input
+                      type='number'
+                      step='any'
+                      value={lastOilKm}
+                      onChange={(e) => setLastOilKm(e.target.value)}
+                      className='font-mono'
+                    />
+                  </div>
+                </div>
+
+                <div className='rounded-xl border p-3.5 bg-amber-500/5 border-amber-500/25 flex items-center justify-between gap-3'>
+                  <div className='space-y-0.5'>
+                    <p className='text-xs font-bold text-foreground flex items-center gap-1.5'>
+                      <Icons.warning className='size-3.5 text-amber-500' />
+                      عداد المسافات معطل / تالف
+                    </p>
+                    <p className='text-[11px] text-muted-foreground'>
+                      عند التفعيل، يُعفى المندوب من تصوير وإدخال قراءة العداد عند بدء وإنهاء الشفت
+                    </p>
+                  </div>
+                  <Switch checked={isOdometerBroken} onCheckedChange={setIsOdometerBroken} />
+                </div>
+
+                <div className='space-y-1.5'>
+                  <ImageUploader
+                    value={registrationImage}
+                    onChange={setRegistrationImage}
+                    label='صورة استمارة الدباب / المركبة 📄'
+                    category='registration'
+                    description='ستظهر صورة الاستمارة تلقائياً في وثائق المندوب المرتبط بهذا الدباب في التطبيق'
                   />
                 </div>
 
                 <div className='space-y-1'>
-                  <label className='text-xs font-medium'>الحالة التشغيلية</label>
-                  <NativeSelect
-                    value={vehicleStatus}
-                    onChange={(e) => setVehicleStatus(e.target.value)}
-                    className='w-full'
-                  >
-                    <option value='AVAILABLE'>متاح للاستخدام</option>
-                    <option value='IN_USE'>في شفت عمل</option>
-                    <option value='MAINTENANCE'>في الصيانة</option>
-                  </NativeSelect>
+                  <label className='text-xs font-medium'>ملاحظات</label>
+                  <Input value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </div>
               </div>
 
-              <div className='grid grid-cols-2 gap-3'>
-                <div className='space-y-1'>
-                  <label className='text-xs font-medium'>الماركة</label>
-                  <Input value={brand} onChange={(e) => setBrand(e.target.value)} />
-                </div>
-
-                <div className='space-y-1'>
-                  <label className='text-xs font-medium'>الموديل</label>
-                  <Input
-                    value={modelYear}
-                    onChange={(e) => setModelYear(e.target.value)}
-                    className='font-mono'
-                  />
-                </div>
-              </div>
-
-              <div className='grid grid-cols-3 gap-3'>
-                <div className='space-y-1'>
-                  <label className='text-xs font-medium'>رقم المفتاح</label>
-                  <Input
-                    value={keyNumber}
-                    onChange={(e) => setKeyNumber(e.target.value)}
-                    className='font-mono'
-                  />
-                </div>
-
-                <div className='space-y-1'>
-                  <label className='text-xs font-medium'>العداد الحالي (كم)</label>
-                  <Input
-                    type='number'
-                    step='any'
-                    value={currentKm}
-                    onChange={(e) => setCurrentKm(e.target.value)}
-                    className='font-mono'
-                  />
-                </div>
-
-                <div className='space-y-1'>
-                  <label className='text-xs font-medium'>عداد آخر زيت (كم)</label>
-                  <Input
-                    type='number'
-                    step='any'
-                    value={lastOilKm}
-                    onChange={(e) => setLastOilKm(e.target.value)}
-                    className='font-mono'
-                  />
-                </div>
-              </div>
-
-              <div className='rounded-xl border p-3.5 bg-amber-500/5 border-amber-500/25 flex items-center justify-between gap-3'>
-                <div className='space-y-0.5'>
-                  <p className='text-xs font-bold text-foreground flex items-center gap-1.5'>
-                    <Icons.warning className='size-3.5 text-amber-500' />
-                    عداد المسافات معطل / تالف
-                  </p>
-                  <p className='text-[11px] text-muted-foreground'>
-                    عند التفعيل، يُعفى المندوب من تصوير وإدخال قراءة العداد عند بدء وإنهاء الشفت
-                  </p>
-                </div>
-                <Switch checked={isOdometerBroken} onCheckedChange={setIsOdometerBroken} />
-              </div>
-
-              <div className='space-y-1.5'>
-                <ImageUploader
-                  value={registrationImage}
-                  onChange={setRegistrationImage}
-                  label='صورة استمارة الدباب / المركبة 📄'
-                  category='registration'
-                  description='ستظهر صورة الاستمارة تلقائياً في وثائق المندوب المرتبط بهذا الدباب في التطبيق'
-                />
-              </div>
-
-              <div className='space-y-1'>
-                <label className='text-xs font-medium'>ملاحظات</label>
-                <Input value={notes} onChange={(e) => setNotes(e.target.value)} />
-              </div>
-
-              <DialogFooter className='gap-2 sm:gap-0 pt-2'>
+              <SheetFooter className='p-4 border-t bg-muted/20 flex items-center justify-end gap-2'>
                 <Button
                   type='button'
                   variant='outline'
@@ -893,10 +948,10 @@ export default function VehiclesPage() {
                 <Button type='submit' disabled={updateMutation.isPending}>
                   {updateMutation.isPending ? 'جاري التحديث...' : 'حفظ التعديلات'}
                 </Button>
-              </DialogFooter>
+              </SheetFooter>
             </form>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
 
         {/* Oil Change Confirmation Modal */}
         <Dialog
@@ -966,30 +1021,58 @@ export default function VehiclesPage() {
 
         {/* Registration Image Preview Dialog */}
         <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
-          <DialogContent className='sm:max-w-xl' dir='rtl'>
+          <DialogContent className='sm:max-w-xl max-h-[90vh] overflow-y-auto' dir='rtl'>
             <DialogHeader>
               <DialogTitle className='text-base font-bold flex items-center gap-2'>
                 <Icons.fileText className='size-5 text-primary' />
                 {previewImage?.title || 'صورة استمارة المركبة'}
               </DialogTitle>
             </DialogHeader>
-            <div className='flex items-center justify-center p-3 bg-muted/20 rounded-xl overflow-hidden min-h-[250px]'>
+            <div className='flex flex-col items-center justify-center p-3 bg-muted/20 rounded-xl overflow-hidden min-h-[250px]'>
               {previewImage?.url ? (
-                <img
-                  src={
-                    previewImage.url.startsWith('http') || previewImage.url.startsWith('data:')
-                      ? previewImage.url
-                      : `${process.env.NEXT_PUBLIC_API_URL || ''}${previewImage.url}`
-                  }
-                  alt='استمارة المركبة'
-                  className='max-h-[75vh] w-auto max-w-full rounded-lg object-contain shadow-sm'
-                />
+                previewLoadError ? (
+                  <div className='flex flex-col items-center justify-center gap-2 p-6 text-center'>
+                    <Icons.warning className='size-8 text-amber-500' />
+                    <p className='text-sm font-semibold text-foreground'>
+                      تعذر عرض الصورة داخل النافذة
+                    </p>
+                    <p className='text-xs text-muted-foreground break-all max-w-md'>
+                      {resolveRegistrationImageUrl(previewImage.url, true)}
+                    </p>
+                  </div>
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={resolveRegistrationImageUrl(previewImage.url, previewFallbackTried)}
+                    alt='استمارة المركبة'
+                    referrerPolicy='no-referrer'
+                    onError={() => {
+                      if (!previewFallbackTried) {
+                        setPreviewFallbackTried(true);
+                      } else {
+                        setPreviewLoadError(true);
+                      }
+                    }}
+                    className='max-h-[70vh] w-auto max-w-full rounded-lg object-contain shadow-sm'
+                  />
+                )
               ) : null}
             </div>
-            <DialogFooter className='sm:justify-start'>
+            <DialogFooter className='flex items-center justify-between gap-2 sm:justify-between'>
               <Button type='button' variant='outline' onClick={() => setPreviewImage(null)}>
                 إغلاق
               </Button>
+              {previewImage?.url && (
+                <a
+                  href={resolveRegistrationImageUrl(previewImage.url, previewFallbackTried)}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline'
+                >
+                  <Icons.externalLink className='size-3.5' />
+                  فتح الصورة في نافذة جديدة
+                </a>
+              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
