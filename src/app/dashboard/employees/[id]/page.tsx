@@ -292,6 +292,8 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                       <img
                         src={personalImg}
                         alt={employee.name}
+                        referrerPolicy='no-referrer'
+                        crossOrigin='anonymous'
                         className='size-full object-cover transition-transform duration-300 group-hover:scale-105'
                       />
                     ) : (
@@ -536,6 +538,8 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                         <img
                           src={nationalImg}
                           alt='الهوية الوطنية'
+                          referrerPolicy='no-referrer'
+                          crossOrigin='anonymous'
                           className='size-full object-contain p-2 group-hover:scale-105 transition-transform'
                         />
                         <div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1'>
@@ -573,6 +577,8 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                         <img
                           src={licenseImg}
                           alt='رخصة القيادة'
+                          referrerPolicy='no-referrer'
+                          crossOrigin='anonymous'
                           className='size-full object-contain p-2 group-hover:scale-105 transition-transform'
                         />
                         <div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1'>
@@ -610,6 +616,8 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                         <img
                           src={passportImg}
                           alt='جواز السفر'
+                          referrerPolicy='no-referrer'
+                          crossOrigin='anonymous'
                           className='size-full object-contain p-2 group-hover:scale-105 transition-transform'
                         />
                         <div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1'>
@@ -649,6 +657,8 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                         <img
                           src={vehicleRegImg}
                           alt='رخصة السير (الاستمارة)'
+                          referrerPolicy='no-referrer'
+                          crossOrigin='anonymous'
                           className='size-full object-contain p-2 group-hover:scale-105 transition-transform'
                         />
                         <div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1'>
@@ -1148,6 +1158,8 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
               <img
                 src={lightbox.src}
                 alt={lightbox.alt}
+                referrerPolicy='no-referrer'
+                crossOrigin='anonymous'
                 className='max-w-full max-h-[80vh] rounded-2xl object-contain shadow-2xl'
               />
               <button

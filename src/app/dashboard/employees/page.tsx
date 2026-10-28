@@ -837,6 +837,8 @@ function EmployeeAvatar({ emp }: { emp: Employee }) {
         <img
           src={emp.personal_image}
           alt={emp.name}
+          referrerPolicy='no-referrer'
+          crossOrigin='anonymous'
           className='size-full object-cover'
           onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
         />

@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useOfflineQuery } from '@/hooks/use-offline-query';
+import { useOfflineQuery, clearOfflineMemoryCache } from '@/hooks/use-offline-query';
 import { employeeApi, vehicleApi, roleApi } from '@/lib/aams/services';
 import type { Role } from '@/types/aams';
 import { targetWebApi } from '@/lib/aams/target-api';
@@ -173,8 +173,10 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
       }
 
       toast.success('تم تحديث بيانات الموظف بنجاح');
+      clearOfflineMemoryCache();
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       queryClient.invalidateQueries({ queryKey: ['employee', id] });
+      queryClient.invalidateQueries({ queryKey: ['employee-reports', id] });
       router.push(`/dashboard/employees/${id}`);
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message || 'حدث خطأ أثناء التحديث');

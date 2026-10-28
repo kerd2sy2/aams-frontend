@@ -24,10 +24,30 @@ interface ImageUploaderProps {
 
 type Mode = 'upload' | 'url';
 
+function normalizeUrl(url: string): string {
+  let trimmed = (url || '').trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('www.')) {
+    trimmed = `https://${trimmed}`;
+  }
+  return trimmed;
+}
+
+function isValidUrl(url: string): boolean {
+  if (!url) return false;
+  return (
+    url.startsWith('http://') ||
+    url.startsWith('https://') ||
+    url.startsWith('/') ||
+    url.startsWith('data:image/') ||
+    url.startsWith('blob:')
+  );
+}
+
 function detectInitialMode(value?: string): Mode {
   if (!value) return 'upload';
   const v = value.trim();
-  if (v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/')) return 'url';
+  if (isValidUrl(v)) return 'url';
   return 'upload';
 }
 
@@ -41,12 +61,14 @@ export function ImageUploader({
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<Mode>(detectInitialMode(value));
   const [urlInput, setUrlInput] = useState<string>(value ?? '');
+  const [imgLoadError, setImgLoadError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (value !== undefined) {
       setUrlInput(value);
       setMode(detectInitialMode(value));
+      setImgLoadError(false);
     }
   }, [value]);
 
@@ -91,29 +113,52 @@ export function ImageUploader({
     }
   };
 
+  const handleUrlInputChange = (newVal: string) => {
+    setUrlInput(newVal);
+    const normalized = normalizeUrl(newVal);
+    if (!normalized) {
+      onChange('');
+    } else if (isValidUrl(normalized)) {
+      onChange(normalized);
+    }
+  };
+
+  const handleUrlBlur = () => {
+    const normalized = normalizeUrl(urlInput);
+    setUrlInput(normalized);
+    if (!normalized) {
+      onChange('');
+    } else if (isValidUrl(normalized)) {
+      onChange(normalized);
+    } else {
+      toast.error('الرابط غير صالح', {
+        description: 'يجب أن يبدأ الرابط بـ http:// أو https:// أو /'
+      });
+    }
+  };
+
   const handleApplyUrl = () => {
-    const trimmed = urlInput.trim();
-    if (!trimmed) {
+    const normalized = normalizeUrl(urlInput);
+    setUrlInput(normalized);
+    if (!normalized) {
       onChange('');
       return;
     }
-    if (
-      !trimmed.startsWith('http://') &&
-      !trimmed.startsWith('https://') &&
-      !trimmed.startsWith('/')
-    ) {
+    if (!isValidUrl(normalized)) {
       toast.error('الرابط غير صالح', {
         description: 'يجب أن يبدأ الرابط بـ http:// أو https:// أو /'
       });
       return;
     }
-    onChange(trimmed);
+    onChange(normalized);
+    toast.success('تم اعتماد وتطبيق رابط الصورة بنجاح');
   };
 
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
     onChange('');
     setUrlInput('');
+    setImgLoadError(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -180,6 +225,8 @@ export function ImageUploader({
                 <img
                   src={value}
                   alt={label}
+                  referrerPolicy='no-referrer'
+                  crossOrigin='anonymous'
                   className='max-h-36 rounded-lg border border-slate-200 object-cover shadow-sm dark:border-slate-700'
                 />
                 <button
@@ -218,7 +265,8 @@ export function ImageUploader({
                   placeholder='https://... أو /uploads/...'
                   className='h-10 pl-10 text-right dir-ltr'
                   value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
+                  onChange={(e) => handleUrlInputChange(e.target.value)}
+                  onBlur={handleUrlBlur}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -232,20 +280,32 @@ export function ImageUploader({
               </Button>
             </div>
 
-            {value &&
-            (value.startsWith('http://') ||
-              value.startsWith('https://') ||
-              value.startsWith('/')) ? (
+            {value && isValidUrl(value) ? (
               <div className='group relative flex w-full flex-col items-center'>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={value}
-                  alt={label}
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display = 'none';
-                  }}
-                  className='max-h-32 rounded-lg border border-slate-200 object-cover shadow-sm dark:border-slate-700'
-                />
+                {imgLoadError ? (
+                  <div className='flex flex-col items-center justify-center p-3 text-center rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700 max-w-md w-full'>
+                    <Icons.alertCircle className='h-6 w-6 text-amber-500 mb-1' />
+                    <p className='text-xs font-semibold text-amber-800 dark:text-amber-200'>
+                      تعذر تحميل معاينة الصورة من هذا الرابط
+                    </p>
+                    <p className='text-[11px] text-amber-700/80 dark:text-amber-300/80 mt-0.5 break-all line-clamp-2'>
+                      {value}
+                    </p>
+                    <p className='text-[10px] text-muted-foreground mt-1'>
+                      (سيتم حفظ الرابط في النظام، ولكن يفضل التأكد من إمكانية فتح الرابط مباشرة)
+                    </p>
+                  </div>
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={value}
+                    alt={label}
+                    referrerPolicy='no-referrer'
+                    crossOrigin='anonymous'
+                    onError={() => setImgLoadError(true)}
+                    className='max-h-36 rounded-lg border border-slate-200 object-cover shadow-sm dark:border-slate-700'
+                  />
+                )}
                 <button
                   type='button'
                   onClick={handleRemove}
@@ -254,11 +314,15 @@ export function ImageUploader({
                 >
                   <Icons.close className='h-4 w-4' />
                 </button>
+                <span className='mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1'>
+                  <Icons.check className='size-3.5' />
+                  تم اعتماد الرابط وجاهز للحفظ
+                </span>
               </div>
             ) : (
               <div className='flex min-h-[110px] items-center justify-center gap-2 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3 text-xs text-slate-400 dark:border-slate-700 dark:bg-slate-900/40'>
                 <Icons.media className='h-5 w-5 text-slate-400' />
-                <span>أدخل رابط صورة صالح ثم اضغط &quot;تطبيق&quot; لمعاينته هنا.</span>
+                <span>أدخل أو الصق رابط صورة صالح وسيقوم النظام باعتماده ومعاينته تلقائياً.</span>
               </div>
             )}
           </div>
