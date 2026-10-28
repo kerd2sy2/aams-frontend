@@ -830,17 +830,17 @@ function RoleBadge({ emp, rolesList }: { emp: Employee; rolesList: Role[] }) {
 }
 
 function EmployeeAvatar({ emp }: { emp: Employee }) {
+  const [imgErr, setImgErr] = useState(false);
   return (
     <div className='bg-muted relative size-9 shrink-0 overflow-hidden rounded-xl border border-border shadow-2xs flex items-center justify-center'>
-      {emp.personal_image ? (
+      {emp.personal_image && !imgErr ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={emp.personal_image}
           alt={emp.name}
           referrerPolicy='no-referrer'
-          crossOrigin='anonymous'
           className='size-full object-cover'
-          onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
+          onError={() => setImgErr(true)}
         />
       ) : (
         <Icons.user className='text-muted-foreground size-5' />

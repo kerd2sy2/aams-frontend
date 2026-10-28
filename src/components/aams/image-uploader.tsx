@@ -151,6 +151,49 @@ export function ImageUploader({
     }
   };
 
+  const persistExternalUrlIfPossible = async (normalizedUrl: string): Promise<string> => {
+    if (
+      !normalizedUrl ||
+      (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) ||
+      normalizedUrl.includes('/uploads/')
+    ) {
+      return normalizedUrl;
+    }
+
+    try {
+      setLoading(true);
+      const proxyRes = await fetch('/api/upload-from-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: normalizedUrl })
+      });
+      if (!proxyRes.ok) return normalizedUrl;
+      const { dataUrl, mime } = await proxyRes.json();
+      if (!dataUrl) return normalizedUrl;
+
+      // Convert dataUrl to File and upload to /upload for permanent local storage
+      const blobRes = await fetch(dataUrl);
+      const blob = await blobRes.blob();
+      const ext = mime?.includes('png') ? 'png' : mime?.includes('webp') ? 'webp' : 'jpg';
+      const file = new File([blob], `${category}_${Date.now()}.${ext}`, {
+        type: mime || 'image/jpeg'
+      });
+
+      const uploadedPath = await employeeApi.uploadImage(file, category);
+      if (uploadedPath) {
+        setUrlInput(uploadedPath);
+        onChange(uploadedPath);
+        return uploadedPath;
+      }
+      onChange(dataUrl);
+      return dataUrl;
+    } catch {
+      return normalizedUrl;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleUrlInputChange = (newVal: string) => {
     setUrlInput(newVal);
     const normalized = normalizeUrl(newVal);
@@ -161,13 +204,14 @@ export function ImageUploader({
     }
   };
 
-  const handleUrlBlur = () => {
+  const handleUrlBlur = async () => {
     const normalized = normalizeUrl(urlInput);
     setUrlInput(normalized);
     if (!normalized) {
       onChange('');
     } else if (isValidUrl(normalized)) {
       onChange(normalized);
+      await persistExternalUrlIfPossible(normalized);
     } else {
       toast.error('الرابط غير صالح', {
         description: 'يجب أن يبدأ الرابط بـ http:// أو https:// أو /'
@@ -175,7 +219,7 @@ export function ImageUploader({
     }
   };
 
-  const handleApplyUrl = () => {
+  const handleApplyUrl = async () => {
     const normalized = normalizeUrl(urlInput);
     setUrlInput(normalized);
     if (!normalized) {
@@ -189,7 +233,8 @@ export function ImageUploader({
       return;
     }
     onChange(normalized);
-    toast.success('تم اعتماد وتطبيق رابط الصورة بنجاح');
+    await persistExternalUrlIfPossible(normalized);
+    toast.success('تم اعتماد وحفظ الصورة في السيرفر بنجاح');
   };
 
   const handleRemove = (e: React.MouseEvent) => {

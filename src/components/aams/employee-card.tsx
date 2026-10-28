@@ -151,11 +151,7 @@ export function EmployeeCard({ employee, barcodeData, qrCodeData }: EmployeeCard
 
   const barcodeSrc = barcodeData || employee.barcode;
   const qrSrc = qrCodeData || employee.qr_code;
-  const imageSrc = employee.personal_image
-    ? employee.personal_image.startsWith('/uploads')
-      ? `${window.location.protocol}//${window.location.hostname}:8080${employee.personal_image}`
-      : employee.personal_image
-    : '';
+  const imageSrc = employee.personal_image || '';
 
   return (
     <div className='space-y-6'>
@@ -230,8 +226,7 @@ export function EmployeeCard({ employee, barcodeData, qrCodeData }: EmployeeCard
                   <img
                     src={imageSrc}
                     alt={employee.name}
-                    crossOrigin='anonymous'
-                    referrerPolicy='no-referrer-when-downgrade'
+                    referrerPolicy='no-referrer'
                     className='h-full w-full object-cover'
                   />
                 ) : (
