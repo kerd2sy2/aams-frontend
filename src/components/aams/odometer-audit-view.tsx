@@ -24,29 +24,67 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter
+} from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { useLocale } from '@/components/layout/locale-provider';
 import {
   IconGauge,
-  IconCamera,
   IconCheck,
-  IconAlertTriangle,
   IconClock,
   IconSearch,
-  IconFilter,
-  IconEye,
-  IconBike,
   IconPhoto,
   IconCalendar,
   IconArrowsDiff,
-  IconUser,
   IconRefresh,
-  IconEdit,
-  IconInfoCircle
+  IconEdit
 } from '@tabler/icons-react';
 
 export default function OdometerAuditView() {
   const queryClient = useQueryClient();
+  const { dir } = useLocale();
+
+  const backendBaseUrl = (
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1\/?$/, '') ||
+    'https://api.kerd2sy.com'
+  ).replace(/\/+$/, '');
+
+  function resolveAuditImageUrl(rawUrl?: string, useDirectBackend = false): string {
+    if (!rawUrl) return '';
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return '';
+    if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+      return trimmed;
+    }
+
+    const uploadsMatch = trimmed.match(/(?:\/api\/v1)?(\/uploads\/[^\s?#]+)/i);
+    if (uploadsMatch && uploadsMatch[1]) {
+      const cleanUploadsPath = uploadsMatch[1];
+      return useDirectBackend ? `${backendBaseUrl}${cleanUploadsPath}` : cleanUploadsPath;
+    }
+
+    if (trimmed.startsWith('uploads/')) {
+      const cleanUploadsPath = `/${trimmed}`;
+      return useDirectBackend ? `${backendBaseUrl}${cleanUploadsPath}` : cleanUploadsPath;
+    }
+
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+
+    const normalizedPath = trimmed.startsWith('/')
+      ? trimmed.replace(/^\/api\/v1(\/uploads\/)/i, '$1')
+      : `/uploads/${trimmed}`;
+    return useDirectBackend ? `${backendBaseUrl}${normalizedPath}` : normalizedPath;
+  }
 
   // Filters State - Default to 'pending' to load uncertified requests first and immediately
   const [search, setSearch] = useState('');
@@ -65,7 +103,7 @@ export default function OdometerAuditView() {
   // Dialog State for Side-by-Side Comparison
   const [comparisonSession, setComparisonSession] = useState<WorkSessionDetail | null>(null);
 
-  // Dialog State for Review / Audit Action & Editing
+  // Side Sheet State for Review / Audit Action & Editing
   const [reviewModalSession, setReviewModalSession] = useState<WorkSessionDetail | null>(null);
   const [reviewNotes, setReviewNotes] = useState('');
   const [editOrdersCount, setEditOrdersCount] = useState<number>(0);
@@ -664,9 +702,18 @@ export default function OdometerAuditView() {
 
           <div className='rounded-xl overflow-hidden border border-border/60 bg-black/5 flex items-center justify-center my-2 max-h-[450px]'>
             {previewImage?.url ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={previewImage.url}
+                src={resolveAuditImageUrl(previewImage.url)}
                 alt={previewImage.title}
+                referrerPolicy='no-referrer'
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  const directUrl = resolveAuditImageUrl(previewImage.url, true);
+                  if (target.src !== directUrl) {
+                    target.src = directUrl;
+                  }
+                }}
                 className='w-full h-auto max-h-[440px] object-contain rounded-lg'
               />
             ) : (
@@ -715,9 +762,18 @@ export default function OdometerAuditView() {
               </div>
               <div className='rounded-lg overflow-hidden border border-border/40 bg-black/5 flex-1 flex items-center justify-center min-h-[260px] max-h-[300px]'>
                 {comparisonSession?.start_km_image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={comparisonSession.start_km_image}
+                    src={resolveAuditImageUrl(comparisonSession.start_km_image)}
                     alt='Start KM'
+                    referrerPolicy='no-referrer'
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      const directUrl = resolveAuditImageUrl(comparisonSession.start_km_image, true);
+                      if (target.src !== directUrl) {
+                        target.src = directUrl;
+                      }
+                    }}
                     className='w-full h-full object-contain'
                   />
                 ) : (
@@ -741,9 +797,18 @@ export default function OdometerAuditView() {
               </div>
               <div className='rounded-lg overflow-hidden border border-border/40 bg-black/5 flex-1 flex items-center justify-center min-h-[260px] max-h-[300px]'>
                 {comparisonSession?.end_km_image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={comparisonSession.end_km_image}
+                    src={resolveAuditImageUrl(comparisonSession.end_km_image)}
                     alt='End KM'
+                    referrerPolicy='no-referrer'
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      const directUrl = resolveAuditImageUrl(comparisonSession.end_km_image, true);
+                      if (target.src !== directUrl) {
+                        target.src = directUrl;
+                      }
+                    }}
                     className='w-full h-full object-contain'
                   />
                 ) : (
@@ -788,51 +853,154 @@ export default function OdometerAuditView() {
         </DialogContent>
       </Dialog>
 
-      {/* ================= DIALOG 3: REVIEW & SUPERVISOR EDIT MODAL ================= */}
-      <Dialog open={!!reviewModalSession} onOpenChange={() => setReviewModalSession(null)}>
-        <DialogContent className='max-w-lg' dir='rtl'>
-          <DialogHeader>
-            <DialogTitle className='flex items-center gap-2'>
+      {/* ================= SHEET 3: REVIEW & SUPERVISOR EDIT SIDE DRAWER ================= */}
+      <Sheet
+        open={!!reviewModalSession}
+        onOpenChange={(open) => !open && setReviewModalSession(null)}
+      >
+        <SheetContent
+          side={dir === 'rtl' ? 'left' : 'right'}
+          className='w-full sm:max-w-lg p-0 flex flex-col h-full max-h-screen overflow-hidden'
+          dir='rtl'
+        >
+          <SheetHeader className='p-6 pb-4 border-b bg-muted/30 text-right'>
+            <SheetTitle className='text-lg font-bold flex items-center gap-2'>
               <IconCheck className='h-5 w-5 text-emerald-500' />
               مراجعة وتعديل ومصادقة شفت المندوب
-            </DialogTitle>
-            <DialogDescription>
-              {reviewModalSession?.employee_name || reviewModalSession?.employee?.name} | دباب:{' '}
-              {reviewModalSession?.motorcycle_number || '—'}
-            </DialogDescription>
-          </DialogHeader>
+            </SheetTitle>
+            <SheetDescription className='text-xs flex flex-wrap items-center gap-2 mt-1'>
+              <span className='font-semibold text-foreground'>
+                {reviewModalSession?.employee_name || reviewModalSession?.employee?.name}
+              </span>
+              <span>•</span>
+              <span className='font-mono'>
+                دباب: {reviewModalSession?.motorcycle_number || '—'}
+              </span>
+              {reviewModalSession?.start_time && (
+                <>
+                  <span>•</span>
+                  <span>
+                    {new Date(reviewModalSession.start_time).toLocaleDateString('ar-SA')}
+                  </span>
+                </>
+              )}
+            </SheetDescription>
+          </SheetHeader>
 
-          <div className='space-y-4 my-2'>
-            {/* Odometer Photos Thumbnail helper */}
+          {/* Scrollable Body */}
+          <div className='flex-1 overflow-y-auto px-6 py-5 space-y-5'>
+            {/* Odometer Photos Side-by-Side Preview Cards */}
             {(reviewModalSession?.start_km_image || reviewModalSession?.end_km_image) && (
-              <div className='flex gap-2 p-2 bg-muted/30 rounded-lg border border-border/40 text-xs'>
-                {reviewModalSession.start_km_image && (
-                  <div className='flex items-center gap-1.5 flex-1'>
-                    <img
-                      src={reviewModalSession.start_km_image}
-                      alt='Start'
-                      className='h-10 w-10 object-cover rounded border'
-                    />
-                    <span>صورة البداية ({reviewModalSession.start_km})</span>
+              <div className='space-y-2'>
+                <label className='text-xs font-semibold text-foreground block'>
+                  صور العدادات المرفقة (اضغط على الصورة للتكبير)
+                </label>
+                <div className='grid grid-cols-2 gap-3'>
+                  {/* Start KM Photo */}
+                  <div className='rounded-xl border border-border/60 bg-muted/20 p-2.5 flex flex-col gap-2'>
+                    <div className='flex items-center justify-between text-xs'>
+                      <span className='font-semibold text-muted-foreground'>عداد البداية</span>
+                      <Badge variant='outline' className='font-mono text-[11px]'>
+                        {reviewModalSession?.start_km} كم
+                      </Badge>
+                    </div>
+                    {reviewModalSession?.start_km_image ? (
+                      <button
+                        type='button'
+                        onClick={() =>
+                          setPreviewImage({
+                            url: reviewModalSession.start_km_image!,
+                            title: 'صورة عداد البداية',
+                            reading: reviewModalSession.start_km,
+                            employeeName:
+                              reviewModalSession.employee_name ||
+                              reviewModalSession.employee?.name ||
+                              ''
+                          })
+                        }
+                        className='relative group rounded-lg overflow-hidden border border-border/40 bg-black/5 h-32 w-full flex items-center justify-center'
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={resolveAuditImageUrl(reviewModalSession.start_km_image)}
+                          alt='Start KM'
+                          referrerPolicy='no-referrer'
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            const directUrl = resolveAuditImageUrl(
+                              reviewModalSession.start_km_image,
+                              true
+                            );
+                            if (target.src !== directUrl) {
+                              target.src = directUrl;
+                            }
+                          }}
+                          className='h-full w-full object-cover transition-transform group-hover:scale-105'
+                        />
+                      </button>
+                    ) : (
+                      <div className='h-32 rounded-lg border border-dashed flex items-center justify-center text-[11px] text-muted-foreground'>
+                        لا توجد صورة بداية
+                      </div>
+                    )}
                   </div>
-                )}
-                {reviewModalSession.end_km_image && (
-                  <div className='flex items-center gap-1.5 flex-1'>
-                    <img
-                      src={reviewModalSession.end_km_image}
-                      alt='End'
-                      className='h-10 w-10 object-cover rounded border'
-                    />
-                    <span>صورة النهاية ({reviewModalSession.end_km})</span>
+
+                  {/* End KM Photo */}
+                  <div className='rounded-xl border border-border/60 bg-muted/20 p-2.5 flex flex-col gap-2'>
+                    <div className='flex items-center justify-between text-xs'>
+                      <span className='font-semibold text-muted-foreground'>عداد النهاية</span>
+                      <Badge variant='outline' className='font-mono text-[11px]'>
+                        {reviewModalSession?.end_km} كم
+                      </Badge>
+                    </div>
+                    {reviewModalSession?.end_km_image ? (
+                      <button
+                        type='button'
+                        onClick={() =>
+                          setPreviewImage({
+                            url: reviewModalSession.end_km_image!,
+                            title: 'صورة عداد النهاية',
+                            reading: reviewModalSession.end_km,
+                            employeeName:
+                              reviewModalSession.employee_name ||
+                              reviewModalSession.employee?.name ||
+                              ''
+                          })
+                        }
+                        className='relative group rounded-lg overflow-hidden border border-border/40 bg-black/5 h-32 w-full flex items-center justify-center'
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={resolveAuditImageUrl(reviewModalSession.end_km_image)}
+                          alt='End KM'
+                          referrerPolicy='no-referrer'
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            const directUrl = resolveAuditImageUrl(
+                              reviewModalSession.end_km_image,
+                              true
+                            );
+                            if (target.src !== directUrl) {
+                              target.src = directUrl;
+                            }
+                          }}
+                          className='h-full w-full object-cover transition-transform group-hover:scale-105'
+                        />
+                      </button>
+                    ) : (
+                      <div className='h-32 rounded-lg border border-dashed flex items-center justify-center text-[11px] text-muted-foreground'>
+                        لا توجد صورة نهاية
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             )}
 
             {/* Editable Fields Grid */}
-            <div className='grid grid-cols-2 gap-3'>
-              <div>
-                <label className='text-xs font-semibold text-foreground mb-1 block'>
+            <div className='grid grid-cols-2 gap-3.5'>
+              <div className='space-y-1'>
+                <label className='text-xs font-semibold text-foreground block'>
                   عدد الطلبات المنجزة
                 </label>
                 <Input
@@ -841,15 +1009,15 @@ export default function OdometerAuditView() {
                   onChange={(e) => setEditOrdersCount(Number(e.target.value))}
                   className='font-mono text-sm'
                 />
-                {reviewModalSession?.original_orders_count && (
-                  <span className='text-[10px] text-muted-foreground'>
+                {reviewModalSession?.original_orders_count ? (
+                  <span className='text-[10px] text-muted-foreground block'>
                     المدخل الأصلي: {reviewModalSession.original_orders_count}
                   </span>
-                )}
+                ) : null}
               </div>
 
-              <div>
-                <label className='text-xs font-semibold text-foreground mb-1 block'>
+              <div className='space-y-1'>
+                <label className='text-xs font-semibold text-foreground block'>
                   تكلفة الوقود (ر.س)
                 </label>
                 <Input
@@ -861,8 +1029,8 @@ export default function OdometerAuditView() {
                 />
               </div>
 
-              <div>
-                <label className='text-xs font-semibold text-foreground mb-1 block'>
+              <div className='space-y-1'>
+                <label className='text-xs font-semibold text-foreground block'>
                   قراءة عداد البداية (كم)
                 </label>
                 <Input
@@ -873,8 +1041,8 @@ export default function OdometerAuditView() {
                 />
               </div>
 
-              <div>
-                <label className='text-xs font-semibold text-foreground mb-1 block'>
+              <div className='space-y-1'>
+                <label className='text-xs font-semibold text-foreground block'>
                   قراءة عداد النهاية (كم)
                 </label>
                 <Input
@@ -887,29 +1055,32 @@ export default function OdometerAuditView() {
             </div>
 
             {/* Calculated Distance Feedback */}
-            <div className='bg-primary/5 border border-primary/20 rounded-lg p-2.5 flex items-center justify-between text-xs'>
-              <span className='text-muted-foreground'>المسافة المحسوبة بعد التدقيق:</span>
-              <span className='font-bold text-primary font-mono text-sm'>
+            <div className='bg-primary/5 border border-primary/20 rounded-xl p-3.5 flex items-center justify-between text-xs'>
+              <span className='text-muted-foreground font-medium'>
+                المسافة المحسوبة بعد التدقيق:
+              </span>
+              <span className='font-bold text-primary font-mono text-base'>
                 {editEndKM > editStartKM ? `${(editEndKM - editStartKM).toFixed(1)} كم` : '0 كم'}
               </span>
             </div>
 
-            <div>
-              <label className='text-xs font-semibold text-foreground mb-1 block'>
+            <div className='space-y-1.5'>
+              <label className='text-xs font-semibold text-foreground block'>
                 ملاحظات المشرف على المصادقة / سبب التعديل (اختياري)
               </label>
               <Textarea
                 placeholder='أدخل أي ملاحظات حول قراءة العدادات أو سبب تعديل الطلبات...'
                 value={reviewNotes}
                 onChange={(e) => setReviewNotes(e.target.value)}
-                rows={2}
+                rows={3}
                 className='text-sm'
               />
             </div>
           </div>
 
-          <DialogFooter className='gap-2'>
+          <SheetFooter className='p-4 border-t bg-muted/20 flex items-center justify-end gap-2'>
             <Button
+              type='button'
               variant='outline'
               onClick={() => handleConfirmReview(false)}
               disabled={reviewMutation.isPending}
@@ -918,17 +1089,20 @@ export default function OdometerAuditView() {
               تعيين كـ غير مصادق
             </Button>
             <Button
+              type='button'
               variant='default'
               onClick={() => handleConfirmReview(true)}
               disabled={reviewMutation.isPending}
-              className='gap-1 bg-emerald-600 hover:bg-emerald-700 text-white'
+              className='gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white'
             >
               <IconCheck className='h-4 w-4' />
-              مصادقة واعتماد وتثبيت التعديلات
+              {reviewMutation.isPending
+                ? 'جاري الحفظ والمصادقة...'
+                : 'مصادقة واعتماد وتثبيت التعديلات'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
