@@ -11,6 +11,7 @@ import { employeeApi, vehicleApi, roleApi } from '@/lib/aams/services';
 import type { Role } from '@/types/aams';
 import { targetWebApi } from '@/lib/aams/target-api';
 import { ApplicationIdentifierSelect } from '@/components/aams/application-identifier-select';
+import { VehicleSearchSelect } from '@/components/aams/vehicle-search-select';
 import type { IdentifierPerformance } from '@/types/target';
 import { ImageUploader } from '@/components/aams/image-uploader';
 import { FormSkeleton } from '@/components/aams/skeletons';
@@ -435,28 +436,21 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
 
                     {!isManualVehicle && vehiclesList.length > 0 ? (
                       <div className='space-y-3'>
-                        <select
+                        <VehicleSearchSelect
+                          vehicles={vehiclesList}
                           value={selectedVehiclePlate}
-                          onChange={(e) => {
-                            const plate = e.target.value;
+                          onChange={(plate, matched) => {
                             setSelectedVehiclePlate(plate);
                             setValue('motorcycle_number', plate);
-                            const matched = vehiclesList.find((v) => v.plate_number === plate);
                             if (matched) {
-                              setVehicleType(matched.type === 'CAR' ? 'car' : 'motorcycle');
+                              setVehicleType(
+                                matched.type === 'CAR' || matched.vehicle_type === 'car'
+                                  ? 'car'
+                                  : 'motorcycle'
+                              );
                             }
                           }}
-                          className='w-full h-11 px-3 rounded-xl border border-input bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20'
-                        >
-                          <option value=''>-- اختر الدباب / السيارة من الأسطول --</option>
-                          {vehiclesList.map((v) => (
-                            <option key={v.id} value={v.plate_number}>
-                              {v.type === 'CAR' ? '🚗 سيارة' : '🏍️ دباب'} | لوحة: {v.plate_number}{' '}
-                              {v.make ? `(${v.make} ${v.model || ''})` : ''} — العداد الحالي:{' '}
-                              {v.current_km.toLocaleString('en-US')} كم
-                            </option>
-                          ))}
-                        </select>
+                        />
 
                         {selectedVehiclePlate &&
                           (() => {
