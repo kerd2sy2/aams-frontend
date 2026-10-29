@@ -83,7 +83,7 @@ export default function NewEmployeePage() {
   const rolesList: Role[] = rolesData || [];
 
   // Fetch registered fleet vehicles
-  const { data: vehiclesData } = useOfflineQuery({
+  const { data: vehiclesData, isLoading: isVehiclesLoading } = useOfflineQuery({
     queryKey: ['vehicles-list'],
     queryFn: () => vehicleApi.getAll({ limit: 500 }),
     cacheKey: 'vehicles_all',
@@ -398,11 +398,12 @@ export default function NewEmployeePage() {
                       </div>
                     </div>
 
-                    {!isManualVehicle && vehiclesList.length > 0 ? (
+                    {!isManualVehicle ? (
                       <div className='space-y-3'>
                         <VehicleSearchSelect
                           vehicles={vehiclesList}
                           value={selectedVehiclePlate}
+                          loading={isVehiclesLoading}
                           onChange={(plate, matched) => {
                             setSelectedVehiclePlate(plate);
                             setValue('motorcycle_number', plate);
