@@ -36,10 +36,10 @@ import {
 import { Icons } from '@/components/icons';
 import { cn, getWhatsAppURL } from '@/lib/utils';
 import { getAdminUser } from '@/lib/aams/auth';
-import { employeeApi, roleApi } from '@/lib/aams/services';
+import { employeeApi, roleApi, branchApi } from '@/lib/aams/services';
 import { useOfflineQuery } from '@/hooks/use-offline-query';
 import { useLocale } from '@/components/layout/locale-provider';
-import type { Employee, PaginatedResponse, Role } from '@/types/aams';
+import type { Employee, PaginatedResponse, Role, Branch } from '@/types/aams';
 import {
   Building2,
   Users,
@@ -85,6 +85,7 @@ export default function EmployeesPage() {
   const { t, dir } = useLocale();
   const [search, setSearch] = useState('');
   const [selectedDept, setSelectedDept] = useState<DepartmentFilter>('ALL');
+  const [selectedBranch, setSelectedBranch] = useState<string>('ALL');
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
 
@@ -109,6 +110,26 @@ export default function EmployeesPage() {
     cacheKey: 'roles_all'
   });
   const rolesList: Role[] = rolesData || [];
+
+  // Fetch branches
+  const { data: branchesData } = useOfflineQuery({
+    queryKey: ['branches-list'],
+    queryFn: () => branchApi.getAll(),
+    cacheKey: 'branches_all'
+  });
+  const branchesList: Branch[] = branchesData || [];
+
+  const branchMap = useMemo(() => {
+    const map = new Map<string, string>();
+    map.set('0b52c83c-4a37-4950-8040-fcb00fa718b3', 'الفرع الأول');
+    map.set('33b1e65f-074c-4c51-af38-32e13c1fb9a6', 'الفرع الثاني');
+    branchesList.forEach((b) => {
+      if (b.id && b.name) {
+        map.set(b.id, b.name);
+      }
+    });
+    return map;
+  }, [branchesList]);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => employeeApi.delete(id),
@@ -153,6 +174,20 @@ export default function EmployeesPage() {
 
   const allEmployees = data?.data ?? [];
 
+  // Branch counts for filter
+  const branchCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      ALL: allEmployees.length,
+      '0b52c83c-4a37-4950-8040-fcb00fa718b3': 0,
+      '33b1e65f-074c-4c51-af38-32e13c1fb9a6': 0
+    };
+    allEmployees.forEach((emp) => {
+      const bId = emp.branch?.id || emp.branch_id || 'unassigned';
+      counts[bId] = (counts[bId] || 0) + 1;
+    });
+    return counts;
+  }, [allEmployees]);
+
   // Department counts
   const deptCounts = useMemo(() => {
     const counts = {
@@ -174,10 +209,17 @@ export default function EmployeesPage() {
     return counts;
   }, [allEmployees]);
 
-  // Filter employees by selected department
+  // Filter employees by selected department and branch
   const filteredEmployees = useMemo(() => {
-    if (selectedDept === 'ALL') return allEmployees;
     return allEmployees.filter((emp) => {
+      // Branch filter
+      if (selectedBranch !== 'ALL') {
+        const bId = emp.branch?.id || emp.branch_id || 'unassigned';
+        if (bId !== selectedBranch) return false;
+      }
+
+      // Department filter
+      if (selectedDept === 'ALL') return true;
       const r = (emp.job_role || 'DRIVER').toUpperCase();
       if (selectedDept === 'SUPERVISOR') return r === 'SUPERVISOR';
       if (selectedDept === 'CLEANER') return r === 'CLEANER' || r === 'WORKER';
@@ -190,7 +232,7 @@ export default function EmployeesPage() {
         );
       return true;
     });
-  }, [allEmployees, selectedDept]);
+  }, [allEmployees, selectedDept, selectedBranch]);
 
   // Group filtered employees by branch
   const branchGroups = useMemo<BranchGroup[]>(() => {
@@ -198,9 +240,18 @@ export default function EmployeesPage() {
 
     filteredEmployees.forEach((emp) => {
       const branchId = emp.branch?.id || emp.branch_id || 'unassigned';
-      const branchName =
-        emp.branch?.name ||
-        (branchId === 'unassigned' ? 'بدون فرع / الإدارة العامة' : 'الفرع الرئيسي');
+      let branchName = emp.branch?.name || branchMap.get(branchId);
+      if (!branchName) {
+        if (branchId === 'unassigned') {
+          branchName = 'بدون فرع / الإدارة العامة';
+        } else if (branchId === '0b52c83c-4a37-4950-8040-fcb00fa718b3') {
+          branchName = 'الفرع الأول';
+        } else if (branchId === '33b1e65f-074c-4c51-af38-32e13c1fb9a6') {
+          branchName = 'الفرع الثاني';
+        } else {
+          branchName = 'الفرع الرئيسي';
+        }
+      }
 
       if (!map.has(branchId)) {
         map.set(branchId, {
@@ -215,9 +266,11 @@ export default function EmployeesPage() {
     return Array.from(map.values()).sort((a, b) => {
       if (a.id === 'unassigned') return 1;
       if (b.id === 'unassigned') return -1;
+      if (a.name.includes('الأول')) return -1;
+      if (b.name.includes('الأول')) return 1;
       return a.name.localeCompare(b.name, 'ar');
     });
-  }, [filteredEmployees]);
+  }, [filteredEmployees, branchMap]);
 
   const [openBranchIds, setOpenBranchIds] = useState<string[]>([]);
   const [hasInitializedBranches, setHasInitializedBranches] = useState(false);
@@ -301,6 +354,73 @@ export default function EmployeesPage() {
                 )}
               >
                 <Icon className={cn('size-4', isActive ? 'text-primary-foreground' : tab.color)} />
+                <span>{tab.label}</span>
+                <Badge
+                  variant='secondary'
+                  className={cn(
+                    'font-mono tabular-nums px-1.5 py-0.2 text-[11px] rounded-md font-extrabold',
+                    isActive
+                      ? 'bg-primary-foreground/20 text-primary-foreground'
+                      : 'bg-muted text-muted-foreground'
+                  )}
+                >
+                  {tab.count}
+                </Badge>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* شريط اختيار الفرع */}
+        <div className='flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none'>
+          {[
+            {
+              id: 'ALL',
+              label: 'كافة الفروع',
+              count: branchCounts['ALL'] || 0,
+              icon: Building2
+            },
+            {
+              id: '0b52c83c-4a37-4950-8040-fcb00fa718b3',
+              label: 'الفرع الأول',
+              count: branchCounts['0b52c83c-4a37-4950-8040-fcb00fa718b3'] || 0,
+              icon: Building2
+            },
+            {
+              id: '33b1e65f-074c-4c51-af38-32e13c1fb9a6',
+              label: 'الفرع الثاني',
+              count: branchCounts['33b1e65f-074c-4c51-af38-32e13c1fb9a6'] || 0,
+              icon: Building2
+            },
+            ...branchesList
+              .filter(
+                (b) =>
+                  b.id !== '0b52c83c-4a37-4950-8040-fcb00fa718b3' &&
+                  b.id !== '33b1e65f-074c-4c51-af38-32e13c1fb9a6'
+              )
+              .map((b) => ({
+                id: b.id,
+                label: b.name,
+                count: branchCounts[b.id] || 0,
+                icon: Building2
+              }))
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = selectedBranch === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedBranch(tab.id)}
+                className={cn(
+                  'flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-bold transition-all shrink-0 cursor-pointer shadow-2xs',
+                  isActive
+                    ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                    : 'bg-card text-muted-foreground hover:bg-muted/80 hover:text-foreground border-border/70'
+                )}
+              >
+                <Icon
+                  className={cn('size-4', isActive ? 'text-primary-foreground' : 'text-primary')}
+                />
                 <span>{tab.label}</span>
                 <Badge
                   variant='secondary'
@@ -468,6 +588,7 @@ export default function EmployeesPage() {
                             <TableHead className='text-right text-xs min-w-[200px]'>
                               الموظف
                             </TableHead>
+                            <TableHead className='text-center text-xs'>الفرع</TableHead>
                             <TableHead className='text-center text-xs'>القسم والوظيفة</TableHead>
                             <TableHead className='text-center text-xs'>الهوية الوطنية</TableHead>
                             <TableHead className='text-center text-xs'>الصلاحيات</TableHead>
@@ -507,6 +628,16 @@ export default function EmployeesPage() {
                                       )}
                                     </div>
                                   </div>
+                                </TableCell>
+
+                                <TableCell className='text-center'>
+                                  <BranchBadge
+                                    branchId={emp.branch?.id || emp.branch_id}
+                                    branchName={
+                                      emp.branch?.name ||
+                                      branchMap.get(emp.branch?.id || emp.branch_id || '')
+                                    }
+                                  />
                                 </TableCell>
 
                                 <TableCell className='text-center'>
@@ -614,6 +745,7 @@ export default function EmployeesPage() {
                           rowNum={idx + 1}
                           canDelete={canDelete}
                           rolesList={rolesList}
+                          branchMap={branchMap}
                           onDelete={() => setDeleteTarget(emp)}
                           onAssignPermissions={() => openPermissionModal(emp)}
                         />
@@ -876,13 +1008,50 @@ function IconLink({
   );
 }
 
+function BranchBadge({
+  branchId,
+  branchName
+}: {
+  branchId?: string | null;
+  branchName?: string | null;
+}) {
+  let name = branchName;
+  if (!name) {
+    if (branchId === '0b52c83c-4a37-4950-8040-fcb00fa718b3') name = 'الفرع الأول';
+    else if (branchId === '33b1e65f-074c-4c51-af38-32e13c1fb9a6') name = 'الفرع الثاني';
+    else if (!branchId || branchId === 'unassigned') name = 'بدون فرع';
+    else name = 'الفرع الرئيسي';
+  }
+
+  const isFirst = name.includes('الأول') || branchId === '0b52c83c-4a37-4950-8040-fcb00fa718b3';
+  const isSecond = name.includes('الثاني') || branchId === '33b1e65f-074c-4c51-af38-32e13c1fb9a6';
+
+  return (
+    <Badge
+      variant='outline'
+      className={cn(
+        'font-bold text-[11px] gap-1 shrink-0',
+        isFirst
+          ? 'border-blue-400/40 bg-blue-500/10 text-blue-700 dark:text-blue-300'
+          : isSecond
+            ? 'border-purple-400/40 bg-purple-500/10 text-purple-700 dark:text-purple-300'
+            : 'border-muted text-muted-foreground'
+      )}
+    >
+      <Building2 className='size-3 shrink-0' />
+      <span>{name}</span>
+    </Badge>
+  );
+}
+
 function EmployeeMobileCard({
   emp,
   rowNum,
   onDelete,
   onAssignPermissions,
   canDelete,
-  rolesList
+  rolesList,
+  branchMap
 }: {
   emp: Employee;
   rowNum: number;
@@ -890,6 +1059,7 @@ function EmployeeMobileCard({
   onAssignPermissions: () => void;
   canDelete: boolean;
   rolesList: Role[];
+  branchMap?: Map<string, string>;
 }) {
   const router = useRouter();
   const phoneNum = emp.phone || emp.employee_number || '';
@@ -910,6 +1080,13 @@ function EmployeeMobileCard({
             <div className='min-w-0'>
               <p className='truncate text-sm font-bold leading-tight'>{emp.name}</p>
               <div className='flex items-center gap-1.5 mt-1 flex-wrap'>
+                <BranchBadge
+                  branchId={emp.branch?.id || emp.branch_id}
+                  branchName={
+                    emp.branch?.name ||
+                    (branchMap ? branchMap.get(emp.branch?.id || emp.branch_id || '') : undefined)
+                  }
+                />
                 <DepartmentBadge role={emp.job_role} />
                 <RoleBadge emp={emp} rolesList={rolesList} />
               </div>
