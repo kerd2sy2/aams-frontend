@@ -128,7 +128,16 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
       setNationalIdImage(employee.national_id_image || '');
       setDrivingLicenseImage(employee.driving_license_image || '');
       setPassportImage(employee.passport_image || '');
-      setVehicleRegistrationImage(employee.vehicle_registration_image || '');
+      let regImg = employee.vehicle_registration_image || '';
+      if (!regImg && employee.motorcycle_number) {
+        const foundVeh = vehiclesList.find(
+          (v: any) => v.plate_number === employee.motorcycle_number
+        );
+        if (foundVeh?.registration_image) {
+          regImg = foundVeh.registration_image;
+        }
+      }
+      setVehicleRegistrationImage(regImg);
       setVehicleType(employee.vehicle_type || 'motorcycle');
       setShift(employee.shift || 'morning');
       setSelectedVehiclePlate(employee.motorcycle_number || '');
@@ -449,6 +458,9 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
                                   ? 'car'
                                   : 'motorcycle'
                               );
+                              if (matched.registration_image) {
+                                setVehicleRegistrationImage(matched.registration_image);
+                              }
                             }
                           }}
                         />

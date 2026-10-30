@@ -413,6 +413,9 @@ export default function NewEmployeePage() {
                                   ? 'car'
                                   : 'motorcycle'
                               );
+                              if (matched.registration_image) {
+                                setVehicleRegistrationImage(matched.registration_image);
+                              }
                             }
                           }}
                         />
