@@ -18,7 +18,7 @@ import {
 import { TableSkeleton } from '@/components/aams/skeletons';
 import { Icons } from '@/components/icons';
 import { reportApi, settingsApi } from '@/lib/aams/services';
-import type { DailyReportResponse } from '@/types/aams';
+import type { DailyReportResponse, DailyEmployeeRow } from '@/types/aams';
 import { QRCodeImage } from '@/components/aams/employee-codes';
 import { Printer, Calendar, TrendingUp, Route, Fuel, Users, Building2, Layers } from 'lucide-react';
 
@@ -116,6 +116,29 @@ export default function DailyReportPage() {
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const directReportUrl = `${origin}/dashboard/daily-report?date=${selectedDate}`;
 
+  // Safe data normalization: supports both rows & employees from backend
+  const rows: DailyEmployeeRow[] = (
+    data?.rows ||
+    (data as unknown as { employees?: DailyEmployeeRow[] })?.employees ||
+    []
+  ).map((r: any) => ({
+    employee_id: r.employee_id || '',
+    employee_name: r.employee_name || '',
+    branch_name: r.branch_name || '',
+    app_type: r.app_type || '',
+    app_name: r.app_name || '',
+    sessions_count: r.sessions_count ?? 1,
+    total_km: Number(r.total_km ?? r.distance ?? 0),
+    total_orders: Number(r.total_orders ?? r.orders_count ?? 0),
+    total_fuel: Number(r.total_fuel ?? r.fuel_cost ?? 0)
+  }));
+
+  const appSummaries = data?.app_summaries || [];
+  const totalOrders = data?.total_orders ?? rows.reduce((acc, r) => acc + r.total_orders, 0);
+  const totalKM = data?.total_km ?? rows.reduce((acc, r) => acc + r.total_km, 0);
+  const totalFuel = data?.total_fuel ?? rows.reduce((acc, r) => acc + r.total_fuel, 0);
+  const totalSessions = rows.reduce((acc, r) => acc + (r.sessions_count || 1), 0);
+
   return (
     <PageContainer
       pageTitle='تقرير المشرف اليومي'
@@ -154,21 +177,21 @@ export default function DailyReportPage() {
           </div>
 
           {!isToday(selectedDate) && (
-            <Button variant='link' onClick={goToToday} className='text-xs font-bold whitespace-nowrap'>
+            <Button
+              variant='link'
+              onClick={goToToday}
+              className='text-xs font-bold whitespace-nowrap'
+            >
               العودة لليوم
             </Button>
           )}
 
-          <Button
-            onClick={handlePrint}
-            variant='outline'
-            className='gap-1.5 text-xs font-bold'
-          >
+          <Button onClick={handlePrint} variant='outline' className='gap-1.5 text-xs font-bold'>
             <Printer className='size-4' />
             طباعة التقرير
           </Button>
 
-          {data && data.rows.length > 0 && (
+          {rows.length > 0 && (
             <Button
               onClick={downloadExcel}
               disabled={isDownloading}
@@ -212,8 +235,10 @@ export default function DailyReportPage() {
       `}</style>
 
       {/* Main Report Container with Center Watermark */}
-      <div className='daily-report-wrapper relative overflow-hidden bg-card/60 rounded-2xl border border-border/80 p-5 md:p-7 space-y-6 shadow-xs' dir='rtl'>
-        
+      <div
+        className='daily-report-wrapper relative overflow-hidden bg-card/60 rounded-2xl border border-border/80 p-5 md:p-7 space-y-6 shadow-xs'
+        dir='rtl'
+      >
         {/* Subtle Watermark in Center */}
         {brandLogo && (
           <div className='absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden'>
@@ -230,7 +255,6 @@ export default function DailyReportPage() {
           {/* Executive Header Banner */}
           <div className='rounded-xl border border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 text-white p-5 shadow-sm'>
             <div className='flex flex-col sm:flex-row items-center justify-between gap-4'>
-              
               {/* Brand & Title */}
               <div className='flex items-center gap-4 text-center sm:text-right'>
                 {brandLogo && (
@@ -242,9 +266,7 @@ export default function DailyReportPage() {
                   />
                 )}
                 <div>
-                  <h1 className='text-xl font-black tracking-wide text-white'>
-                    {brandName}
-                  </h1>
+                  <h1 className='text-xl font-black tracking-wide text-white'>{brandName}</h1>
                   <div className='flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1'>
                     <span className='text-xs font-bold text-amber-400 bg-amber-400/15 px-2 py-0.5 rounded-md border border-amber-400/30'>
                       تقرير المشرف اليومي
@@ -263,21 +285,26 @@ export default function DailyReportPage() {
                   <QRCodeImage value={directReportUrl} size={58} />
                 </div>
                 <div className='text-right leading-tight pr-1'>
-                  <span className='text-[10px] font-mono text-slate-300 block'>DATE: {selectedDate}</span>
-                  <span className='text-[9px] font-mono text-amber-300 block'>DAILY SHIFT REPORT</span>
+                  <span className='text-[10px] font-mono text-slate-300 block'>
+                    DATE: {selectedDate}
+                  </span>
+                  <span className='text-[9px] font-mono text-amber-300 block'>
+                    DAILY SHIFT REPORT
+                  </span>
                 </div>
               </div>
-
             </div>
           </div>
 
           {isLoading || isFetching ? (
             <TableSkeleton rows={6} />
-          ) : !data || data.rows.length === 0 ? (
+          ) : !data || rows.length === 0 ? (
             <Card className='p-12 text-center border-dashed'>
               <CardContent className='text-muted-foreground p-0 space-y-2'>
                 <Calendar className='size-10 mx-auto text-muted-foreground/40' />
-                <p className='text-base font-bold text-foreground'>لا توجد بيانات دوام مسجلة لهذا اليوم</p>
+                <p className='text-base font-bold text-foreground'>
+                  لا توجد بيانات دوام مسجلة لهذا اليوم
+                </p>
                 <p className='text-xs font-mono text-muted-foreground'>({selectedDate})</p>
               </CardContent>
             </Card>
@@ -292,7 +319,7 @@ export default function DailyReportPage() {
                   <div>
                     <p className='text-xs text-muted-foreground font-semibold'>إجمالي الطلبات</p>
                     <p className='text-xl font-black text-foreground font-mono tabular-nums mt-0.5'>
-                      {data.total_orders.toLocaleString('ar-SA')}
+                      {totalOrders.toLocaleString('ar-SA')}
                     </p>
                   </div>
                 </div>
@@ -304,7 +331,8 @@ export default function DailyReportPage() {
                   <div>
                     <p className='text-xs text-muted-foreground font-semibold'>إجمالي المسافة</p>
                     <p className='text-xl font-black text-foreground font-mono tabular-nums mt-0.5'>
-                      {data.total_km.toFixed(1)} <span className='text-xs font-normal text-muted-foreground'>كم</span>
+                      {totalKM.toFixed(1)}{' '}
+                      <span className='text-xs font-normal text-muted-foreground'>كم</span>
                     </p>
                   </div>
                 </div>
@@ -316,7 +344,8 @@ export default function DailyReportPage() {
                   <div>
                     <p className='text-xs text-muted-foreground font-semibold'>إجمالي الوقود</p>
                     <p className='text-xl font-black text-foreground font-mono tabular-nums mt-0.5'>
-                      {data.total_fuel.toFixed(2)} <span className='text-xs font-normal text-muted-foreground'>ريال</span>
+                      {totalFuel.toFixed(2)}{' '}
+                      <span className='text-xs font-normal text-muted-foreground'>ريال</span>
                     </p>
                   </div>
                 </div>
@@ -328,7 +357,7 @@ export default function DailyReportPage() {
                   <div>
                     <p className='text-xs text-muted-foreground font-semibold'>عدد المناديب</p>
                     <p className='text-xl font-black text-foreground font-mono tabular-nums mt-0.5'>
-                      {data.rows.length}
+                      {rows.length}
                     </p>
                   </div>
                 </div>
@@ -339,7 +368,7 @@ export default function DailyReportPage() {
                 <CardHeader className='py-3.5 px-4 bg-muted/40 border-b border-border flex flex-row items-center justify-between'>
                   <CardTitle className='text-sm font-bold flex items-center gap-2'>
                     <Users className='size-4 text-primary' />
-                    تفاصيل دوام المناديب ({data.rows.length} مندوب)
+                    تفاصيل دوام المناديب ({rows.length} مندوب)
                   </CardTitle>
                 </CardHeader>
                 <CardContent className='p-0'>
@@ -350,15 +379,20 @@ export default function DailyReportPage() {
                           <TableHead className='font-bold text-xs'>الموظف</TableHead>
                           <TableHead className='font-bold text-xs text-center'>الفرع</TableHead>
                           <TableHead className='font-bold text-xs text-center'>التطبيق</TableHead>
-                          <TableHead className='font-bold text-xs text-center'>الكيلومترات</TableHead>
+                          <TableHead className='font-bold text-xs text-center'>
+                            الكيلومترات
+                          </TableHead>
                           <TableHead className='font-bold text-xs text-center'>الطلبات</TableHead>
                           <TableHead className='font-bold text-xs text-center'>الوقود</TableHead>
                           <TableHead className='font-bold text-xs text-center'>الشفتات</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {data.rows.map((row) => (
-                          <TableRow key={`${row.employee_id}-${row.app_type}`} className='hover:bg-muted/30'>
+                        {rows.map((row) => (
+                          <TableRow
+                            key={`${row.employee_id}-${row.app_type}`}
+                            className='hover:bg-muted/30'
+                          >
                             <TableCell className='font-bold text-sm text-foreground'>
                               {row.employee_name}
                             </TableCell>
@@ -394,11 +428,21 @@ export default function DailyReportPage() {
                       </TableBody>
                       <TableFooter className='bg-muted/40 font-bold'>
                         <TableRow>
-                          <TableCell colSpan={3} className='text-right font-black'>الإجمالي العام:</TableCell>
-                          <TableCell className='text-center font-mono font-black'>{data.total_km.toFixed(1)} كم</TableCell>
-                          <TableCell className='text-center font-mono font-black text-emerald-600 dark:text-emerald-400'>{data.total_orders}</TableCell>
-                          <TableCell className='text-center font-mono font-black'>{data.total_fuel.toFixed(2)}</TableCell>
-                          <TableCell className='text-center font-mono font-black'>{data.rows.reduce((acc, r) => acc + (r.sessions_count || 0), 0)}</TableCell>
+                          <TableCell colSpan={3} className='text-right font-black'>
+                            الإجمالي العام:
+                          </TableCell>
+                          <TableCell className='text-center font-mono font-black'>
+                            {totalKM.toFixed(1)} كم
+                          </TableCell>
+                          <TableCell className='text-center font-mono font-black text-emerald-600 dark:text-emerald-400'>
+                            {totalOrders}
+                          </TableCell>
+                          <TableCell className='text-center font-mono font-black'>
+                            {totalFuel.toFixed(2)}
+                          </TableCell>
+                          <TableCell className='text-center font-mono font-black'>
+                            {totalSessions}
+                          </TableCell>
                         </TableRow>
                       </TableFooter>
                     </Table>
@@ -407,7 +451,7 @@ export default function DailyReportPage() {
               </Card>
 
               {/* Per-App Summary Table */}
-              {data.app_summaries.length > 0 && (
+              {appSummaries.length > 0 && (
                 <Card className='overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xs'>
                   <CardHeader className='py-3.5 px-4 bg-muted/40 border-b border-border'>
                     <CardTitle className='text-sm font-bold flex items-center gap-2'>
@@ -421,22 +465,34 @@ export default function DailyReportPage() {
                         <TableHeader className='bg-muted/20'>
                           <TableRow>
                             <TableHead className='font-bold text-xs'>التطبيق</TableHead>
-                            <TableHead className='font-bold text-xs text-center'>عدد المناديب</TableHead>
-                            <TableHead className='font-bold text-xs text-center'>إجمالي الطلبات</TableHead>
-                            <TableHead className='font-bold text-xs text-center'>إجمالي الكيلومترات</TableHead>
-                            <TableHead className='font-bold text-xs text-center'>إجمالي الوقود</TableHead>
+                            <TableHead className='font-bold text-xs text-center'>
+                              عدد المناديب
+                            </TableHead>
+                            <TableHead className='font-bold text-xs text-center'>
+                              إجمالي الطلبات
+                            </TableHead>
+                            <TableHead className='font-bold text-xs text-center'>
+                              إجمالي الكيلومترات
+                            </TableHead>
+                            <TableHead className='font-bold text-xs text-center'>
+                              إجمالي الوقود
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {data.app_summaries.map((s) => (
+                          {appSummaries.map((s) => (
                             <TableRow key={s.app_type} className='hover:bg-muted/30'>
                               <TableCell className='font-bold text-sm'>
                                 <span className='bg-primary/10 text-primary border border-primary/20 rounded-md px-2 py-0.5 text-xs font-black'>
                                   {s.app_name || s.app_type || 'غير محدد'}
                                 </span>
                               </TableCell>
-                              <TableCell className='text-center font-mono tabular-nums font-bold text-sm'>{s.count}</TableCell>
-                              <TableCell className='text-center font-mono tabular-nums font-black text-sm text-emerald-600 dark:text-emerald-400'>{s.total_orders}</TableCell>
+                              <TableCell className='text-center font-mono tabular-nums font-bold text-sm'>
+                                {s.count}
+                              </TableCell>
+                              <TableCell className='text-center font-mono tabular-nums font-black text-sm text-emerald-600 dark:text-emerald-400'>
+                                {s.total_orders}
+                              </TableCell>
                               <TableCell className='text-center font-mono tabular-nums text-sm'>
                                 {s.total_km.toFixed(1)} كم
                               </TableCell>

@@ -81,8 +81,6 @@ export const navGroups: NavGroup[] = [
           },
           { title: 'Shift Report', url: '/dashboard/reports', permission: 'reports.view' },
           { title: 'Daily Report', url: '/dashboard/daily-report', permission: 'reports.view' },
-          { title: 'Ninja Daily Report', url: '/dashboard/reports/ninja' },
-          { title: 'Keeta Daily Report', url: '/dashboard/reports/keeta' },
           { title: 'Attendance', url: '/dashboard/attendance', permission: 'attendance.view' }
         ]
       },
