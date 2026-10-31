@@ -27,14 +27,7 @@ export const navGroups: NavGroup[] = [
         icon: 'key'
       },
 
-      // 4. التارچت والمستهدفات
-      {
-        title: 'Target Dashboard',
-        url: '/dashboard/target',
-        icon: 'chartBar'
-      },
-
-      // 3. محاضر الموظفين
+      // 4. محاضر الموظفين
       {
         title: 'Investigations',
         url: '#',
@@ -136,12 +129,7 @@ export const navGroups: NavGroup[] = [
             url: '/dashboard/employee-orders',
             permission: 'employees.view'
           },
-          { title: 'Penalties', url: '/dashboard/penalties', permission: 'violations.view' },
-          {
-            title: 'Print ID Cards',
-            url: '/dashboard/employees/cards',
-            permission: 'employees.view'
-          }
+          { title: 'Penalties', url: '/dashboard/penalties', permission: 'violations.view' }
         ]
       },
 

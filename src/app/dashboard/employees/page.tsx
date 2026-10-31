@@ -477,26 +477,6 @@ export default function EmployeesPage() {
 
               <div className='flex items-center gap-2'>
                 <Link
-                  href='/dashboard/employees/map'
-                  className={cn(
-                    buttonVariants({ variant: 'default', size: 'sm' }),
-                    'gap-1.5 font-bold shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white'
-                  )}
-                >
-                  <MapPin className='size-4' />
-                  خريطة المناديب
-                </Link>
-                <Link
-                  href='/dashboard/employees/cards'
-                  className={cn(
-                    buttonVariants({ variant: 'outline', size: 'sm' }),
-                    'gap-1.5 font-bold shadow-xs border-primary/30 text-primary hover:bg-primary/10'
-                  )}
-                >
-                  <Icons.printer className='size-4' />
-                  طباعة البطاقات
-                </Link>
-                <Link
                   href='/dashboard/employees/new'
                   className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5 font-bold shadow-xs')}
                 >

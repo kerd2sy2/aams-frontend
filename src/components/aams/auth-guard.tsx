@@ -63,12 +63,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     };
     window.addEventListener('focus', handleFocus);
 
-    // Periodic live sync every 4 seconds while tab is active
+    // Periodic live sync every 30 seconds while tab is active
     const timer = setInterval(() => {
       if (document.visibilityState === 'visible') {
         syncUser();
       }
-    }, 4000);
+    }, 30000);
 
     return () => {
       window.removeEventListener('focus', handleFocus);
