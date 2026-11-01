@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOfflineQuery, clearOfflineMemoryCache } from '@/hooks/use-offline-query';
-import { employeeApi, vehicleApi, roleApi } from '@/lib/aams/services';
+import { employeeApi, vehicleApi, roleApi, branchApi } from '@/lib/aams/services';
 import type { Role } from '@/types/aams';
 import { targetWebApi } from '@/lib/aams/target-api';
 import { ApplicationIdentifierSelect } from '@/components/aams/application-identifier-select';
@@ -61,6 +61,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
   const [vehicleRegistrationImage, setVehicleRegistrationImage] = useState('');
   const [vehicleType, setVehicleType] = useState('motorcycle');
   const [shift, setShift] = useState('morning');
+  const [branchId, setBranchId] = useState('');
   const [applicationType, setApplicationType] = useState('ninja');
   const [jobRole, setJobRole] = useState('DRIVER');
   const [iqamaExpirationDate, setIqamaExpirationDate] = useState('');
@@ -80,6 +81,13 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
     cacheKey: 'roles_all'
   });
   const rolesList: Role[] = rolesData || [];
+
+  // Fetch branches
+  const { data: branches } = useOfflineQuery({
+    queryKey: ['branches'],
+    queryFn: () => branchApi.getAll(),
+    cacheKey: 'branches_all'
+  });
 
   // Fetch registered fleet vehicles from /dashboard/vehicles
   const { data: vehiclesData, isLoading: isVehiclesLoading } = useOfflineQuery({
@@ -143,6 +151,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
       setSelectedVehiclePlate(employee.motorcycle_number || '');
       setApplicationIdVal(employee.application_id || '');
       setSelectedRoleId(employee.role_id || '');
+      setBranchId(employee.branch_id || '');
     }
   }, [employee, reset]);
 
@@ -155,6 +164,8 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
         ...values,
         phone: values.employee_number || '',
         job_role: jobRole,
+        branch_id: branchId || undefined,
+        clear_branch: !branchId,
         iqama_expiration_date: iqamaExpirationDate || undefined,
         personal_image: personalImage,
         national_id_image: nationalIdImage,
@@ -291,6 +302,26 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
                     <option value='CLEANER'>🧹 عامل نظافة</option>
                     <option value='ACCOUNTANT'>💼 حسابات / إدارة مالية</option>
                     <option value='OWNER'>👑 مالك المؤسسة</option>
+                  </select>
+                </div>
+
+                <div className='space-y-2'>
+                  <Label htmlFor='branch_id' className='flex items-center gap-1.5'>
+                    <Building2 className='size-3.5 text-primary' />
+                    الفرع التابع له
+                  </Label>
+                  <select
+                    id='branch_id'
+                    value={branchId}
+                    onChange={(e) => setBranchId(e.target.value)}
+                    className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20'
+                  >
+                    <option value=''>-- بدون فرع (عام) --</option>
+                    {(branches || []).map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
