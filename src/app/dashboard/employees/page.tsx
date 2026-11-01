@@ -648,12 +648,14 @@ export default function EmployeesPage() {
                                     variant='secondary'
                                     className={cn(
                                       'text-[11px] font-bold',
-                                      emp.shift === 'evening'
+                                      emp.shift === 'evening' || emp.shift === 'night'
                                         ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300'
                                         : 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
                                     )}
                                   >
-                                    {emp.shift === 'evening' ? '🌙 مساء' : '☀️ صباح'}
+                                    {emp.shift === 'evening' || emp.shift === 'night'
+                                      ? '🌙 ليل (مساء)'
+                                      : '☀️ صبح (صباح)'}
                                   </Badge>
                                 </TableCell>
 

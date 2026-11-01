@@ -33,7 +33,8 @@ import {
   PlusCircle,
   Wrench,
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  Clock
 } from 'lucide-react';
 
 const employeeSchema = z.object({
@@ -562,16 +563,19 @@ export default function NewEmployeePage() {
 
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     <div className='space-y-2'>
-                      <Label htmlFor='shift'>شفت العمل الافتراضي</Label>
+                      <Label htmlFor='shift' className='flex items-center gap-1.5 font-bold'>
+                        <Clock className='size-3.5 text-primary' />
+                        وردية العمل (الشفت)
+                      </Label>
                       <select
                         id='shift'
                         value={shift}
                         onChange={(e) => setShift(e.target.value)}
-                        className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20'
+                        className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20'
                       >
-                        <option value='morning'>صباحي</option>
-                        <option value='evening'>مسائي</option>
-                        <option value='night'>ليلي</option>
+                        <option value='morning'>☀️ وردية صباحية (صبح)</option>
+                        <option value='evening'>🌙 وردية مسائية (ليل)</option>
+                        <option value='night'>🌃 وردية ليلية متأخرة</option>
                       </select>
                     </div>
                   </div>

@@ -121,6 +121,14 @@ export async function cacheInOfflineDB(key: string, data: unknown): Promise<void
   await db.cacheResponse(key, data);
 }
 
+export async function clearOfflineCacheKey(key: string): Promise<void> {
+  memoryCache.delete(key);
+  try {
+    const db = getOfflineDB();
+    await db.cacheStore.delete(key);
+  } catch {}
+}
+
 export function clearOfflineMemoryCache(): void {
   memoryCache.clear();
 }

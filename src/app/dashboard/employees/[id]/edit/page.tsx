@@ -6,7 +6,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useOfflineQuery, clearOfflineMemoryCache } from '@/hooks/use-offline-query';
+import {
+  useOfflineQuery,
+  clearOfflineMemoryCache,
+  clearOfflineCacheKey,
+  cacheInOfflineDB
+} from '@/hooks/use-offline-query';
 import { employeeApi, vehicleApi, roleApi, branchApi } from '@/lib/aams/services';
 import type { Role } from '@/types/aams';
 import { targetWebApi } from '@/lib/aams/target-api';
@@ -34,7 +39,8 @@ import {
   Gauge,
   PlusCircle,
   Wrench,
-  ShieldCheck
+  ShieldCheck,
+  Clock
 } from 'lucide-react';
 
 const employeeSchema = z.object({
@@ -160,7 +166,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
       setSaving(true);
       const resolvedAppId = applicationIdVal || values.application_id || '';
 
-      await employeeApi.update(id, {
+      const updatePayload = {
         ...values,
         phone: values.employee_number || '',
         job_role: jobRole,
@@ -177,6 +183,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
         key_number: isDriver ? values.key_number || '' : '',
         application_type: isDriver ? applicationType : '',
         application_id: isDriver ? resolvedAppId : '',
+        shift: shift || 'morning',
         role_id: selectedRoleId || undefined,
         role_name: rolesList.find((r) => r.id === selectedRoleId)?.name || '',
         clear_role: !selectedRoleId,
@@ -185,7 +192,9 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
               ? JSON.stringify(rolesList.find((r) => r.id === selectedRoleId)?.permissions)
               : (rolesList.find((r) => r.id === selectedRoleId)?.permissions as any)) || '[]'
           : '[]'
-      } as any);
+      };
+
+      const res = await employeeApi.update(id, updatePayload as any);
 
       // Link identifier if chosen
       if (selectedIdentifier?.id) {
@@ -194,10 +203,19 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
       }
 
       toast.success('تم تحديث بيانات الموظف بنجاح');
+
+      const resData = (res as any)?.data || res;
+      if (resData && typeof resData === 'object' && resData.id) {
+        await cacheInOfflineDB(`employee_${id}`, resData).catch(() => {});
+        queryClient.setQueryData(['employee', id], resData);
+      } else {
+        await clearOfflineCacheKey(`employee_${id}`).catch(() => {});
+      }
+
       clearOfflineMemoryCache();
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-      queryClient.invalidateQueries({ queryKey: ['employee', id] });
-      queryClient.invalidateQueries({ queryKey: ['employee-reports', id] });
+      await queryClient.invalidateQueries({ queryKey: ['employees'] });
+      await queryClient.invalidateQueries({ queryKey: ['employee', id] });
+      await queryClient.invalidateQueries({ queryKey: ['employee-reports', id] });
       router.push(`/dashboard/employees/${id}`);
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message || 'حدث خطأ أثناء التحديث');
@@ -429,16 +447,19 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
                     </div>
 
                     <div className='space-y-2'>
-                      <Label htmlFor='shift'>شفت العمل</Label>
+                      <Label htmlFor='shift' className='flex items-center gap-1.5 font-bold'>
+                        <Clock className='size-3.5 text-primary' />
+                        وردية العمل (الشفت)
+                      </Label>
                       <select
                         id='shift'
                         value={shift}
                         onChange={(e) => setShift(e.target.value)}
-                        className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20'
+                        className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20'
                       >
-                        <option value='morning'>صباحي</option>
-                        <option value='evening'>مسائي</option>
-                        <option value='night'>ليلي</option>
+                        <option value='morning'>☀️ وردية صباحية (صبح)</option>
+                        <option value='evening'>🌙 وردية مسائية (ليل)</option>
+                        <option value='night'>🌃 وردية ليلية متأخرة</option>
                       </select>
                     </div>
                   </div>

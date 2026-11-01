@@ -334,6 +334,21 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                         >
                           تطبيق: {formatAppName(employee.application_type || 'ninja')}
                         </Badge>
+                        <Badge
+                          variant='outline'
+                          className={`font-bold text-xs gap-1 py-1 px-2.5 ${
+                            employee.shift === 'evening' || employee.shift === 'night'
+                              ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20'
+                              : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                          }`}
+                        >
+                          <Clock className='size-3 inline ml-1' />
+                          {employee.shift === 'evening'
+                            ? 'وردية مسائية (ليل)'
+                            : employee.shift === 'night'
+                              ? 'وردية ليلية'
+                              : 'وردية صباحية (صبح)'}
+                        </Badge>
                         {employee.branch?.name && (
                           <Badge variant='secondary' className='gap-1 text-xs font-bold'>
                             <Building2 className='size-3' />
@@ -649,7 +664,19 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                 <div className='py-2.5 flex items-center justify-between'>
                   <span className='text-muted-foreground text-xs'>الفرع التابع له</span>
                   <span className='font-bold text-foreground'>
-                    {employee.branch?.name || 'الفرع الرئيسي'}
+                    {employee.branch?.name || (employee.branch_id ? 'فرع محدد' : 'بدون فرع (عام)')}
+                  </span>
+                </div>
+
+                <div className='py-2.5 flex items-center justify-between'>
+                  <span className='text-muted-foreground text-xs'>وردية العمل (الشفت)</span>
+                  <span className='font-bold text-foreground flex items-center gap-1.5'>
+                    <Clock className='size-3.5 text-primary' />
+                    {employee.shift === 'evening'
+                      ? 'وردية مسائية (ليل)'
+                      : employee.shift === 'night'
+                        ? 'وردية ليلية'
+                        : 'وردية صباحية (صبح)'}
                   </span>
                 </div>
 
