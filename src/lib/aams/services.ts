@@ -491,8 +491,17 @@ export const inventoryApi = {
     const res = await apiClient.post<InventoryTransaction>('/inventory/remove-stock', data);
     return res.data;
   },
-  dispenseOil: async (data: { employee_id: string; quantity: number; notes?: string }) => {
-    const res = await apiClient.post<MaintenanceLog>('/inventory/dispense-oil', data);
+  dispenseOil: async (data: {
+    employee_id?: string;
+    vehicle_id?: string;
+    plate_number?: string;
+    current_km?: number;
+    quantity: number;
+    item_id?: string;
+    notes?: string;
+    branch_id?: string;
+  }) => {
+    const res = await apiClient.post<any>('/inventory/dispense-oil', data);
     return res.data;
   },
   getTransactions: async (params?: { item_id?: string; page?: number; limit?: number }) => {

@@ -185,9 +185,12 @@ export default function VehiclesPage() {
   const oilChangeMutation = useMutation({
     mutationFn: (id: string) => vehicleApi.recordOilChange(id),
     onSuccess: () => {
-      toast.success('تم تسجيل تغيير الزيت وتصفير العداد بنجاح');
+      toast.success('تم تسجيل تغيير الزيت للدباب وخصمه من المخزن وتحديث العداد بنجاح');
       setOilChangingVehicle(null);
       queryClient.invalidateQueries({ queryKey: ['vehicles-list'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory-items'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory-transactions'] });
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.error || 'فشل في تسجيل تغيير الزيت');
@@ -965,8 +968,9 @@ export default function VehiclesPage() {
                 تسجيل غيار زيت للدباب ({oilChangingVehicle?.plate_number})
               </DialogTitle>
               <DialogDescription className='text-xs'>
-                سيتم تصفير عداد الزيت وتعيين قراءة آخر غيار زيت لتكون مساوية للعداد الحالي (
-                {(oilChangingVehicle?.current_km ?? 0).toLocaleString('en-US')} كم).
+                سيتم تصفير عداد الزيت وتحديث قراءة آخر غيار لتكون مساوية للعداد الحالي (
+                {(oilChangingVehicle?.current_km ?? 0).toLocaleString('en-US')} كم) وخصم عبوة زيت
+                واحدة من المخزن تلقائياً.
               </DialogDescription>
             </DialogHeader>
 

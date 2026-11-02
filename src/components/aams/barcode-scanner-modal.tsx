@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { employeeApi } from '@/lib/aams/services';
-import { Employee } from '@/types/aams';
+import { employeeApi, vehicleApi } from '@/lib/aams/services';
+import { Employee, Vehicle } from '@/types/aams';
 import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
 
@@ -11,12 +11,16 @@ interface BarcodeScannerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectEmployee?: (employee: Employee) => void;
+  onSelectVehicle?: (vehicle: Vehicle) => void;
+  onScanCode?: (code: string) => void;
 }
 
 export function BarcodeScannerModal({
   isOpen,
   onClose,
-  onSelectEmployee
+  onSelectEmployee,
+  onSelectVehicle,
+  onScanCode
 }: BarcodeScannerModalProps) {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState('');
@@ -79,6 +83,26 @@ export function BarcodeScannerModal({
     if (!term.trim()) return;
     try {
       setLoading(true);
+
+      if (onScanCode) {
+        onScanCode(term.trim());
+        onClose();
+        return;
+      }
+
+      if (onSelectVehicle) {
+        const res = await vehicleApi.getAll({ search: term.trim(), limit: 5 });
+        if (res.data && res.data.length > 0) {
+          const veh = res.data[0];
+          toast.success(`تم العثور على الدباب: ${veh.plate_number}`);
+          onSelectVehicle(veh);
+          onClose();
+        } else {
+          toast.error('لم يتم العثور على أي دباب بهذا الكود أو رقم اللوحة');
+        }
+        return;
+      }
+
       const results = await employeeApi.search(term.trim());
       if (results && results.length > 0) {
         const emp = results[0];
@@ -94,7 +118,7 @@ export function BarcodeScannerModal({
         toast.error('لم يتم العثور على أي موظف بهذا الكود/الاسم');
       }
     } catch {
-      toast.error('حدث خطأ أثناء البحث عن الموظف');
+      toast.error('حدث خطأ أثناء البحث');
     } finally {
       setLoading(false);
     }
