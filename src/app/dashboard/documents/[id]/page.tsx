@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useOfflineQuery } from '@/hooks/use-offline-query';
 import { documentApi, employeeApi } from '@/lib/aams/services';
+import { EmployeeSearchSelect } from '@/components/aams/employee-search-select';
 import { DetailSkeleton } from '@/components/aams/skeletons';
 import { toast } from 'sonner';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -1019,30 +1020,12 @@ export default function DocumentDetailsPage({ params }: { params: Promise<{ id: 
             <form onSubmit={handleSaveEdit} className='space-y-4 py-4'>
               <div className='space-y-1.5'>
                 <Label>المندوب المعني</Label>
-                <Select
+                <EmployeeSearchSelect
+                  employees={employees}
                   value={editEmployeeId}
-                  onValueChange={(val) => setEditEmployeeId(val || '')}
-                >
-                  <SelectTrigger className='w-full'>
-                    <SelectValue placeholder='اختر المندوب'>
-                      {editEmployeeId
-                        ? (() => {
-                            const emp = employees.find((e) => e.id === editEmployeeId);
-                            return emp
-                              ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
-                              : 'اختر المندوب';
-                          })()
-                        : 'غير محدد'}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employees.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(val) => setEditEmployeeId(val || '')}
+                  placeholder='اختر المندوب (اكتب أول حرفين للبحث)...'
+                />
               </div>
 
               <div className='grid grid-cols-2 gap-3'>

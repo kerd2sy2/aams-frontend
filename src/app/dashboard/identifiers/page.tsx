@@ -39,6 +39,7 @@ import { useLocale } from '@/components/layout/locale-provider';
 import { Icons } from '@/components/icons';
 import type { IdentifierPerformance } from '@/types/target';
 import type { Employee } from '@/types/aams';
+import { EmployeeSearchSelect } from '@/components/aams/employee-search-select';
 import {
   Users,
   Link as LinkIcon,
@@ -795,39 +796,14 @@ export default function IdentifiersPage() {
 
                       {/* Employee Link Selector */}
                       <TableCell>
-                        <div className='flex items-center gap-2'>
-                          <Select
-                            value={item.employee_id || 'NONE'}
-                            onValueChange={(val) => handleInlineLink(item.id, val)}
-                          >
-                            <SelectTrigger className='h-8 text-xs w-full'>
-                              <SelectValue placeholder='اختر المندوب للربط'>
-                                {item.employee_id
-                                  ? (() => {
-                                      const emp =
-                                        item.employee ||
-                                        employees.find((e) => e.id === item.employee_id);
-                                      return emp
-                                        ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
-                                        : 'اختر المندوب للربط';
-                                    })()
-                                  : 'غير مرتبط بمندوب (اضغط للربط)'}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem
-                                value='NONE'
-                                className='text-muted-foreground font-semibold'
-                              >
-                                ✕ بدون ربط (غير معين)
-                              </SelectItem>
-                              {employees.map((emp) => (
-                                <SelectItem key={emp.id} value={emp.id}>
-                                  {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                        <div className='min-w-[200px]'>
+                          <EmployeeSearchSelect
+                            employees={employees}
+                            value={item.employee_id || ''}
+                            onChange={(val) => handleInlineLink(item.id, val || null)}
+                            placeholder='اختر المندوب للربط...'
+                            className='text-xs'
+                          />
                         </div>
                       </TableCell>
 
@@ -1064,33 +1040,12 @@ export default function IdentifiersPage() {
                   <Label className='text-xs font-medium text-muted-foreground'>
                     المندوب المرتبط بهذا المعرف
                   </Label>
-                  <Select
-                    value={selectedEmployeeId}
-                    onValueChange={(val) => setSelectedEmployeeId(val || 'NONE')}
-                  >
-                    <SelectTrigger className='w-full'>
-                      <SelectValue placeholder='اختر المندوب لربطه بالمعرف'>
-                        {selectedEmployeeId !== 'NONE'
-                          ? (() => {
-                              const emp = employees.find((e) => e.id === selectedEmployeeId);
-                              return emp
-                                ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
-                                : 'اختر المندوب لربطه بالمعرف';
-                            })()
-                          : '✕ غير مرتبط بمندوب حتى الآن'}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='NONE' className='text-muted-foreground font-semibold'>
-                        ✕ بدون ربط (غير معين)
-                      </SelectItem>
-                      {employees.map((emp) => (
-                        <SelectItem key={emp.id} value={emp.id}>
-                          {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <EmployeeSearchSelect
+                    employees={employees}
+                    value={selectedEmployeeId === 'NONE' ? '' : selectedEmployeeId}
+                    onChange={(val) => setSelectedEmployeeId(val || 'NONE')}
+                    placeholder='اختر المندوب لربطه بالمعرف (اكتب أول حرفين)...'
+                  />
                 </div>
               </div>
 

@@ -37,6 +37,7 @@ import {
   SheetDescription,
   SheetFooter
 } from '@/components/ui/sheet';
+import { EmployeeSearchSelect } from '@/components/aams/employee-search-select';
 import { TableSkeleton } from '@/components/aams/skeletons';
 import { Icons } from '@/components/icons';
 import type { Employee, PaginatedResponse, WorkSessionDetail } from '@/types/aams';
@@ -703,24 +704,12 @@ export default function ReportsPage() {
                 <span className='inline-block size-2 rounded-full bg-amber-500'></span>
                 تغيير المندوب
               </Label>
-              <Select
+              <EmployeeSearchSelect
+                employees={employees}
                 value={editEmployeeId}
-                onValueChange={(value) => setEditEmployeeId(value ?? '')}
-                modal={false}
-              >
-                <SelectTrigger className='h-10 w-full'>
-                  <SelectValue placeholder='اختر مندوباً آخر...'>
-                    {employeeMap[editEmployeeId] ?? editSession?.employee_name ?? null}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {employees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={(val) => setEditEmployeeId(val)}
+                placeholder='اختر مندوباً آخر...'
+              />
               {editEmployeeId !== editSession?.employee_id && (
                 <p className='text-foreground text-[11px] font-semibold'>
                   سيتم نقل هذا الشفت إلى المندوب المحدد
@@ -879,31 +868,14 @@ export default function ReportsPage() {
               </div>
               <div className='space-y-1.5 sm:col-span-2'>
                 <Label className='text-xs font-semibold'>المندوب</Label>
-                <Select
-                  value={tempEmployeeId || ALL_EMPLOYEES}
-                  onValueChange={(value) =>
-                    setTempEmployeeId(value === ALL_EMPLOYEES ? '' : (value ?? ''))
-                  }
-                  modal={false}
-                >
-                  <SelectTrigger className='h-10 w-full'>
-                    <SelectValue placeholder='جميع المناديب'>
-                      {tempEmployeeId && tempEmployeeId !== ALL_EMPLOYEES
-                        ? (employeeMap[tempEmployeeId] ??
-                          employees.find((e) => e.id === tempEmployeeId)?.name ??
-                          'جميع المناديب')
-                        : 'جميع المناديب'}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={ALL_EMPLOYEES}>جميع المناديب</SelectItem>
-                    {employees.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <EmployeeSearchSelect
+                  employees={employees}
+                  value={tempEmployeeId}
+                  onChange={(val) => setTempEmployeeId(val)}
+                  allowAll
+                  allLabel='جميع المناديب'
+                  allValue=''
+                />
               </div>
               <div className='space-y-1.5 sm:col-span-2'>
                 <Label className='text-xs font-semibold'>التطبيق (App ID)</Label>

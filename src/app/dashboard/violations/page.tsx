@@ -42,6 +42,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Icons } from '@/components/icons';
 import { toast } from 'sonner';
+import { EmployeeSearchSelect } from '@/components/aams/employee-search-select';
 import { violationApi, employeeApi, vehicleApi } from '@/lib/aams/services';
 import type { TrafficViolation, Employee, Vehicle } from '@/types/aams';
 import { formatRiyadhDate, getTodayRiyadh } from '@/lib/aams/riyadh-time';
@@ -724,27 +725,12 @@ export default function ViolationsPage() {
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='space-y-1.5'>
                     <Label className='text-xs font-semibold'>المندوب</Label>
-                    <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
-                      <SelectTrigger className='w-full h-10'>
-                        <SelectValue placeholder='اختر المندوب'>
-                          {employeeId
-                            ? (() => {
-                                const emp = employees.find((e) => e.id === employeeId);
-                                return emp
-                                  ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
-                                  : 'اختر المندوب';
-                              })()
-                            : null}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {employees.map((emp) => (
-                          <SelectItem key={emp.id} value={emp.id}>
-                            {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <EmployeeSearchSelect
+                      employees={employees}
+                      value={employeeId}
+                      onChange={(val) => setEmployeeId(val || '')}
+                      placeholder='اختر المندوب (اكتب أول حرفين للبحث)...'
+                    />
                   </div>
 
                   <div className='space-y-1.5'>

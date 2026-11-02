@@ -37,6 +37,7 @@ import { toast } from 'sonner';
 import { ticketApi, employeeApi } from '@/lib/aams/services';
 import type { SupportTicket, Employee } from '@/types/aams';
 import { formatRiyadhDate } from '@/lib/aams/riyadh-time';
+import { EmployeeSearchSelect } from '@/components/aams/employee-search-select';
 
 const CATEGORIES: Record<string, string> = {
   OPERATIONAL: 'تشغيلي / طلبات',
@@ -494,27 +495,12 @@ export default function SupportTicketsPage() {
                   <Label className='text-xs font-medium text-muted-foreground'>
                     المندوب صاحب المشكلة (اختياري)
                   </Label>
-                  <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
-                    <SelectTrigger className='w-full'>
-                      <SelectValue placeholder='اختر المندوب'>
-                        {employeeId
-                          ? (() => {
-                              const emp = employees.find((e) => e.id === employeeId);
-                              return emp
-                                ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
-                                : 'اختر المندوب';
-                            })()
-                          : null}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {employees.map((emp) => (
-                        <SelectItem key={emp.id} value={emp.id}>
-                          {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <EmployeeSearchSelect
+                    employees={employees}
+                    value={employeeId}
+                    onChange={(val) => setEmployeeId(val || '')}
+                    placeholder='اختر المندوب (اختياري - اكتب أول حرفين)...'
+                  />
                 </div>
 
                 <div className='space-y-1.5'>

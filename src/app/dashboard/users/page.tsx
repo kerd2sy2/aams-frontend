@@ -61,6 +61,7 @@ import { getAdminUser } from '@/lib/aams/auth';
 import { hasPermission, isExecutiveAdmin } from '@/lib/aams/permissions';
 import { adminApi, roleApi, branchApi, employeeApi } from '@/lib/aams/services';
 import type { Admin, Role, Branch, Employee } from '@/types/aams';
+import { EmployeeSearchSelect } from '@/components/aams/employee-search-select';
 import {
   Users,
   UserCheck,
@@ -1691,60 +1692,21 @@ export default function UsersPage() {
                 <Label className='text-xs font-semibold'>
                   الموظف المراد ترقيته <span className='text-destructive'>*</span>
                 </Label>
-                <div className='relative mb-2'>
-                  <Search className='absolute right-2.5 top-2.5 size-3.5 text-muted-foreground' />
-                  <Input
-                    placeholder='بحث بالاسم، رقم الموظف، أو الجوال...'
-                    value={empSearch}
-                    onChange={(e) => setEmpSearch(e.target.value)}
-                    className='pr-8 h-8 text-xs'
-                  />
-                </div>
-                <Select
+                <EmployeeSearchSelect
+                  employees={employeeList}
                   value={selectedEmployeeId}
-                  onValueChange={(val) => {
+                  loading={isEmployeesLoading}
+                  onChange={(val, emp) => {
                     const idStr = val || '';
                     setSelectedEmployeeId(idStr);
-                    const emp = employeeList.find((e) => e.id === idStr);
-                    if (emp) {
-                      if (emp.phone) setPromotePhone(emp.phone);
-                      if ((emp as any).branch_id) setPromoteBranchId((emp as any).branch_id);
+                    const found = emp || employeeList.find((e) => e.id === idStr);
+                    if (found) {
+                      if (found.phone) setPromotePhone(found.phone);
+                      if ((found as any).branch_id) setPromoteBranchId((found as any).branch_id);
                     }
                   }}
-                >
-                  <SelectTrigger className='w-full'>
-                    <SelectValue placeholder='اختر الموظف'>
-                      {selectedEmployeeId
-                        ? (() => {
-                            const emp = employeeList.find((e) => e.id === selectedEmployeeId);
-                            return emp
-                              ? `${emp.name} (${emp.job_role || 'مندوب'} - ${emp.phone || emp.employee_number})`
-                              : 'اختر الموظف';
-                          })()
-                        : null}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className='max-h-56'>
-                    {isEmployeesLoading ? (
-                      <div className='p-3 text-center text-xs text-muted-foreground'>
-                        جارٍ تحميل الموظفين...
-                      </div>
-                    ) : filteredEmployees.length === 0 ? (
-                      <div className='p-3 text-center text-xs text-muted-foreground'>
-                        لا يوجد موظفون يطابقون البحث
-                      </div>
-                    ) : (
-                      filteredEmployees.map((emp) => (
-                        <SelectItem key={emp.id} value={emp.id}>
-                          {emp.name} —{' '}
-                          <span className='text-muted-foreground text-xs'>
-                            ({emp.job_role || 'مندوب'}) {emp.phone || emp.employee_number}
-                          </span>
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                  placeholder='اختر الموظف المراد ترقيته (اكتب أول حرفين)...'
+                />
               </div>
 
               {/* Target Role */}

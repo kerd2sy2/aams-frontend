@@ -45,6 +45,7 @@ import { toast } from 'sonner';
 import { violationApi, employeeApi } from '@/lib/aams/services';
 import type { TrafficViolation, Employee } from '@/types/aams';
 import { formatRiyadhDate, getTodayRiyadh } from '@/lib/aams/riyadh-time';
+import { EmployeeSearchSelect } from '@/components/aams/employee-search-select';
 
 const STATUS_LABELS: Record<
   string,
@@ -671,27 +672,12 @@ export default function PenaltiesPage() {
                   <Label className='text-xs font-semibold'>
                     الموظف / المندوب المعني <span className='text-destructive'>*</span>
                   </Label>
-                  <Select value={employeeId} onValueChange={(val) => setEmployeeId(val || '')}>
-                    <SelectTrigger className='w-full h-10'>
-                      <SelectValue placeholder='اختر الموظف / المندوب'>
-                        {employeeId
-                          ? (() => {
-                              const emp = employees.find((e) => e.id === employeeId);
-                              return emp
-                                ? `${emp.name} (${emp.key_number || emp.employee_number || 'بدون رقم'})`
-                                : 'اختر الموظف';
-                            })()
-                          : null}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {employees.map((emp) => (
-                        <SelectItem key={emp.id} value={emp.id}>
-                          {emp.name} ({emp.key_number || emp.employee_number || 'بدون رقم'})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <EmployeeSearchSelect
+                    employees={employees}
+                    value={employeeId}
+                    onChange={(val) => setEmployeeId(val || '')}
+                    placeholder='اختر الموظف / المندوب (اكتب أول حرفين)...'
+                  />
                 </div>
 
                 <div className='grid grid-cols-2 gap-4'>
