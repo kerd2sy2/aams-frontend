@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useOfflineQuery } from '@/hooks/use-offline-query';
+import { useOfflineQuery, clearOfflineMemoryCache } from '@/hooks/use-offline-query';
 import { reportApi, employeeApi, workApi } from '@/lib/aams/services';
 import { formatRiyadh } from '@/lib/aams/riyadh-time';
 import { ar } from 'date-fns/locale';
@@ -218,6 +218,15 @@ export default function ReportsPage() {
     setEditSession(null);
   };
 
+  const toRiyadhISO = (localDatetimeStr: string): string | undefined => {
+    if (!localDatetimeStr) return undefined;
+    if (localDatetimeStr.includes('Z') || localDatetimeStr.includes('+')) {
+      return new Date(localDatetimeStr).toISOString();
+    }
+    const withSec = localDatetimeStr.length === 16 ? `${localDatetimeStr}:00` : localDatetimeStr;
+    return new Date(`${withSec}+03:00`).toISOString();
+  };
+
   const editMutation = useMutation({
     mutationFn: ({
       sessionId,
@@ -227,6 +236,7 @@ export default function ReportsPage() {
       payload: Parameters<typeof workApi.updateWorkSession>[1];
     }) => workApi.updateWorkSession(sessionId, payload),
     onSuccess: () => {
+      clearOfflineMemoryCache();
       queryClient.invalidateQueries({ queryKey: ['reports'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       toast.success('تم تعديل الشفت بنجاح');
@@ -241,6 +251,7 @@ export default function ReportsPage() {
     mutationFn: (sessionId: string) =>
       workApi.reviewWorkSession(sessionId, { is_reviewed: true, review_notes: '' }),
     onSuccess: () => {
+      clearOfflineMemoryCache();
       queryClient.invalidateQueries({ queryKey: ['reports'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       toast.success('تمت الموافقة على الشفت بنجاح — عدد الطلبات مُعتمد الآن');
@@ -263,14 +274,24 @@ export default function ReportsPage() {
       return;
     }
 
+    if (editStartTime && editEndTime) {
+      const sTime = new Date(toRiyadhISO(editStartTime)!).getTime();
+      const eTime = new Date(toRiyadhISO(editEndTime)!).getTime();
+      if (eTime <= sTime) {
+        toast.error('تاريخ ووقت النهاية يجب أن يكون بعد تاريخ ووقت البداية');
+        return;
+      }
+    }
+
     const payload: Parameters<typeof workApi.updateWorkSession>[1] = {
-      employee_id: editEmployeeId !== session.employee_id ? editEmployeeId : undefined,
+      employee_id:
+        editEmployeeId && editEmployeeId !== session.employee_id ? editEmployeeId : undefined,
       start_km: startKmVal > 0 ? startKmVal : undefined,
       end_km: endKmVal,
       orders_count: parseInt(editOrdersCount) || 0,
       fuel_cost: parseFloat(editFuelCost) || 0,
-      start_time: editStartTime ? new Date(editStartTime).toISOString() : undefined,
-      end_time: editEndTime ? new Date(editEndTime).toISOString() : undefined
+      start_time: editStartTime ? toRiyadhISO(editStartTime) : undefined,
+      end_time: editEndTime ? toRiyadhISO(editEndTime) : undefined
     };
 
     editMutation.mutate({ sessionId: session.id, payload });
