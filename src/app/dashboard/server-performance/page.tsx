@@ -116,7 +116,7 @@ export default function ServerPerformancePage() {
       setPerfData(res.data);
 
       const statusCategory: 'optimal' | 'good' | 'slow' | 'error' =
-        currentLatency < 80 ? 'optimal' : currentLatency < 200 ? 'good' : 'slow';
+        currentLatency < 180 ? 'optimal' : currentLatency < 480 ? 'good' : 'slow';
 
       setPingHistory((prev) => [
         {
@@ -437,14 +437,14 @@ export default function ServerPerformancePage() {
                   <Badge
                     variant='outline'
                     className={`mr-auto text-[10px] font-bold ${
-                      latencyMs < 80
+                      latencyMs < 180
                         ? 'border-emerald-500 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40'
-                        : latencyMs < 200
-                          ? 'border-amber-500 text-amber-600 bg-amber-50 dark:bg-amber-950/40'
-                          : 'border-rose-500 text-rose-600 bg-rose-50 dark:bg-rose-950/40'
+                        : latencyMs < 480
+                          ? 'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-950/40'
+                          : 'border-amber-500 text-amber-600 bg-amber-50 dark:bg-amber-950/40'
                     }`}
                   >
-                    {latencyMs < 80 ? 'ممتاز' : latencyMs < 200 ? 'جيد' : 'بطيء'}
+                    {latencyMs < 180 ? 'ممتاز' : latencyMs < 480 ? 'طبيعي (اتصال دولي)' : 'بطيء'}
                   </Badge>
                 )}
               </div>
