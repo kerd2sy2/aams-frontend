@@ -119,13 +119,18 @@ function getAvatarColor(name: string): string {
 
 function getUserAppBadges(admin: Admin) {
   let perms: string[] = [];
-  if (Array.isArray(admin.permissions)) perms = admin.permissions;
-  else if (typeof admin.permissions === 'string') {
+  if (Array.isArray(admin?.permissions)) {
+    perms = admin.permissions;
+  } else if (typeof admin?.permissions === 'string' && admin.permissions.trim() !== '') {
     try {
-      perms = JSON.parse(admin.permissions);
+      const parsed = JSON.parse(admin.permissions);
+      if (Array.isArray(parsed)) perms = parsed;
     } catch {}
   }
-  const isAll = admin.role === 'SUPER_ADMIN' || perms.includes('*');
+  if (!Array.isArray(perms)) perms = [];
+
+  const role = admin?.role || '';
+  const isAll = role === 'SUPER_ADMIN' || role === 'OWNER' || perms.includes('*');
 
   const apps = [
     {
@@ -162,7 +167,7 @@ function getUserAppBadges(admin: Admin) {
         isAll ||
         perms.includes('apps.dashboard') ||
         perms.includes('app.dashboard') ||
-        ['SUPER_ADMIN', 'ADMIN', 'SUPERVISOR', 'ACCOUNTANT', 'HR', 'OWNER'].includes(admin.role),
+        ['SUPER_ADMIN', 'ADMIN', 'SUPERVISOR', 'ACCOUNTANT', 'HR', 'OWNER'].includes(role),
       color:
         'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
     }
@@ -620,10 +625,10 @@ export default function UsersPage() {
     const q = empSearch.toLowerCase();
     return employeeList.filter(
       (e) =>
-        e.name?.toLowerCase().includes(q) ||
-        e.phone?.includes(q) ||
-        e.employee_number?.toLowerCase().includes(q) ||
-        e.job_role?.toLowerCase().includes(q)
+        (e.name && e.name.toLowerCase().includes(q)) ||
+        (e.phone && String(e.phone).includes(q)) ||
+        (e.employee_number && e.employee_number.toLowerCase().includes(q)) ||
+        (e.job_role && e.job_role.toLowerCase().includes(q))
     );
   }, [employeeList, empSearch]);
 
@@ -652,7 +657,7 @@ export default function UsersPage() {
   // Permission Management Mutation & Helpers
   const savePermsMutation = useMutation({
     mutationFn: (data: { id: string; permissions: string[] }) => {
-      let perms = data.permissions;
+      let perms = Array.isArray(data.permissions) ? data.permissions : [];
       // If granular permissions are configured, strip '*' wildcard so it doesn't bypass revocations
       if (perms.length > 1 && perms.includes('*')) {
         perms = perms.filter((p) => p !== '*');
@@ -672,17 +677,19 @@ export default function UsersPage() {
     let perms: string[] = [];
     if (Array.isArray(user.permissions)) {
       perms = [...user.permissions];
-    } else if (typeof user.permissions === 'string') {
+    } else if (typeof user.permissions === 'string' && user.permissions.trim() !== '') {
       try {
-        perms = JSON.parse(user.permissions);
+        const parsed = JSON.parse(user.permissions);
+        if (Array.isArray(parsed)) perms = parsed;
       } catch {
         perms = [];
       }
     }
     // If not configured, load role permissions as initial suggestion
-    if (!user.permissions_configured && user.role_obj?.permissions) {
+    if (!user.permissions_configured && Array.isArray(user.role_obj?.permissions)) {
       perms = [...user.role_obj.permissions];
     }
+    if (!Array.isArray(perms)) perms = [];
     // If user has specific permissions alongside '*', clean out '*' in the modal
     if (perms.length > 1 && perms.includes('*')) {
       perms = perms.filter((p) => p !== '*');
@@ -692,28 +699,33 @@ export default function UsersPage() {
 
   const togglePerm = (key: string) => {
     setSelectedPerms((prev) => {
+      const arr = Array.isArray(prev) ? prev : [];
       if (key === '*') {
-        return prev.includes('*') ? [] : ['*'];
+        return arr.includes('*') ? [] : ['*'];
       }
-      if (prev.includes(key)) {
+      if (arr.includes(key)) {
         // Removing permission: Always remove '*' so wildcard doesn't override the revocation
-        return prev.filter((k) => k !== key && k !== '*');
+        return arr.filter((k) => k !== key && k !== '*');
       } else {
         // Adding permission: ensure '*' is removed so selections remain granular
-        return [...prev.filter((k) => k !== '*'), key];
+        return [...arr.filter((k) => k !== '*'), key];
       }
     });
   };
 
   const toggleCategory = (catKeys: string[]) => {
     const validCatKeys = catKeys.filter((k) => k !== '*');
-    const allSelected = validCatKeys.every((k) => selectedPerms.includes(k));
+    const safeSelected = Array.isArray(selectedPerms) ? selectedPerms : [];
+    const allSelected = validCatKeys.every((k) => safeSelected.includes(k));
     if (allSelected) {
-      setSelectedPerms((prev) => prev.filter((k) => !validCatKeys.includes(k) && k !== '*'));
-    } else {
       setSelectedPerms((prev) =>
-        Array.from(new Set([...prev.filter((k) => k !== '*'), ...validCatKeys]))
+        Array.isArray(prev) ? prev.filter((k) => !validCatKeys.includes(k) && k !== '*') : []
       );
+    } else {
+      setSelectedPerms((prev) => {
+        const arr = Array.isArray(prev) ? prev : [];
+        return Array.from(new Set([...arr.filter((k) => k !== '*'), ...validCatKeys]));
+      });
     }
   };
 
@@ -824,11 +836,11 @@ export default function UsersPage() {
       // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const matchesName = admin.name?.toLowerCase().includes(q);
-        const matchesEmail = admin.email?.toLowerCase().includes(q);
-        const matchesUsername = admin.username?.toLowerCase().includes(q);
-        const matchesPhone = admin.phone?.toLowerCase().includes(q);
-        const matchesRole = getRoleDisplayName(admin).toLowerCase().includes(q);
+        const matchesName = Boolean(admin.name?.toLowerCase().includes(q));
+        const matchesEmail = Boolean(admin.email?.toLowerCase().includes(q));
+        const matchesUsername = Boolean(admin.username?.toLowerCase().includes(q));
+        const matchesPhone = Boolean(admin.phone && String(admin.phone).includes(q));
+        const matchesRole = Boolean(getRoleDisplayName(admin)?.toLowerCase().includes(q));
         if (!matchesName && !matchesEmail && !matchesUsername && !matchesPhone && !matchesRole) {
           return false;
         }
@@ -1885,7 +1897,8 @@ export default function UsersPage() {
               <div className='space-y-5'>
                 {SYSTEM_PERMISSION_GROUPS.map((group) => {
                   const groupKeys = group.permissions.map((p) => p.key);
-                  const isAllSelected = groupKeys.every((k) => selectedPerms.includes(k));
+                  const safeSelected = Array.isArray(selectedPerms) ? selectedPerms : [];
+                  const isAllSelected = groupKeys.every((k) => safeSelected.includes(k));
 
                   return (
                     <div
@@ -1907,7 +1920,7 @@ export default function UsersPage() {
 
                       <div className='grid grid-cols-1 sm:grid-cols-2 gap-2.5'>
                         {group.permissions.map((perm) => {
-                          const checked = selectedPerms.includes(perm.key);
+                          const checked = safeSelected.includes(perm.key);
 
                           return (
                             <label
