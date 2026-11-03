@@ -38,7 +38,7 @@ export interface Admin {
   google_avatar?: string;
   avatar?: string;
   is_google_linked?: boolean;
-  permissions?: string[];
+  permissions?: string[] | string | null;
   permissions_list?: string[];
   branch_id?: string | null;
   branch?: { id: string; name: string } | null;

@@ -186,7 +186,19 @@ export default function ProfileViewPage() {
                   </div>
                 ) : (
                   <div className='flex flex-wrap gap-1.5'>
-                    {(admin?.permissions || []).map((perm, idx) => (
+                    {(Array.isArray(admin?.permissions)
+                      ? admin.permissions
+                      : typeof admin?.permissions === 'string'
+                        ? (() => {
+                            try {
+                              const p = JSON.parse(admin.permissions);
+                              return Array.isArray(p) ? p : [];
+                            } catch {
+                              return [];
+                            }
+                          })()
+                        : []
+                    ).map((perm: string, idx: number) => (
                       <Badge key={idx} variant='outline' className='text-[11px] font-mono'>
                         {perm}
                       </Badge>

@@ -119,11 +119,12 @@ function getAvatarColor(name: string): string {
 
 function getUserAppBadges(admin: Admin) {
   let perms: string[] = [];
-  if (Array.isArray(admin?.permissions)) {
-    perms = admin.permissions;
-  } else if (typeof admin?.permissions === 'string' && admin.permissions.trim() !== '') {
+  const rawPerms = (admin as any)?.permissions;
+  if (Array.isArray(rawPerms)) {
+    perms = rawPerms;
+  } else if (typeof rawPerms === 'string' && rawPerms.trim() !== '') {
     try {
-      const parsed = JSON.parse(admin.permissions);
+      const parsed = JSON.parse(rawPerms);
       if (Array.isArray(parsed)) perms = parsed;
     } catch {}
   }
@@ -675,11 +676,12 @@ export default function UsersPage() {
   const openPermModal = (user: Admin) => {
     setPermModalUser(user);
     let perms: string[] = [];
-    if (Array.isArray(user.permissions)) {
-      perms = [...user.permissions];
-    } else if (typeof user.permissions === 'string' && user.permissions.trim() !== '') {
+    const rawPerms = (user as any)?.permissions;
+    if (Array.isArray(rawPerms)) {
+      perms = [...rawPerms];
+    } else if (typeof rawPerms === 'string' && rawPerms.trim() !== '') {
       try {
-        const parsed = JSON.parse(user.permissions);
+        const parsed = JSON.parse(rawPerms);
         if (Array.isArray(parsed)) perms = parsed;
       } catch {
         perms = [];
