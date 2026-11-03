@@ -233,51 +233,6 @@ export default function MaintenanceRequestsPage() {
       }
     >
       <div className='flex flex-1 flex-col gap-4' dir={dir}>
-        {/* Stats */}
-        <div className='grid gap-4 sm:grid-cols-3'>
-          <Card className='border-blue-100 bg-blue-50/40 dark:border-blue-950/40 dark:bg-blue-950/20'>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-sm font-medium text-blue-900 dark:text-blue-200'>
-                طلبات جديدة ومفتوحة
-              </CardTitle>
-              <Icons.alertCircle className='h-4 w-4 text-blue-600' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold text-blue-700 dark:text-blue-400'>
-                {openCount} <span className='text-sm font-normal text-slate-500'>طلب</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className='border-amber-100 bg-amber-50/40 dark:border-amber-950/40 dark:bg-amber-950/20'>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-sm font-medium text-amber-900 dark:text-amber-200'>
-                قيد الإصلاح بالورشة
-              </CardTitle>
-              <Icons.wrench className='h-4 w-4 text-amber-600' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold text-amber-700 dark:text-amber-400'>
-                {inProgressCount} <span className='text-sm font-normal text-slate-500'>مركبة</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className='border-emerald-100 bg-emerald-50/40 dark:border-emerald-950/40 dark:bg-emerald-950/20'>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-sm font-medium text-emerald-900 dark:text-emerald-200'>
-                تم الإصلاح والجاهزية
-              </CardTitle>
-              <Icons.check className='h-4 w-4 text-emerald-600' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold text-emerald-700 dark:text-emerald-400'>
-                {resolvedCount} <span className='text-sm font-normal text-slate-500'>طلب</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Tabs & Filters */}
         <div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
           <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full md:w-auto'>

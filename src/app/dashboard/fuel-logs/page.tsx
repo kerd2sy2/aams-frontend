@@ -209,67 +209,6 @@ export default function FuelLogsPage() {
       }
     >
       <div className='flex flex-1 flex-col gap-4' dir='rtl'>
-        {/* Stats Cards */}
-        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-          <Card className='border-amber-100 bg-amber-50/40 dark:border-amber-950/40 dark:bg-amber-950/20'>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-sm font-medium text-amber-900 dark:text-amber-200'>
-                إجمالي تكلفة الوقود
-              </CardTitle>
-              <Icons.dollarSign className='h-4 w-4 text-amber-600' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold text-amber-700 dark:text-amber-400'>
-                {stats.totalCost.toLocaleString('ar-SA')}{' '}
-                <span className='text-sm font-normal text-slate-500'>ر.س</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className='border-blue-100 bg-blue-50/40 dark:border-blue-950/40 dark:bg-blue-950/20'>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-sm font-medium text-blue-900 dark:text-blue-200'>
-                إجمالي اللترات
-              </CardTitle>
-              <Icons.fuel className='h-4 w-4 text-blue-600' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold text-blue-700 dark:text-blue-400'>
-                {stats.totalLiters.toLocaleString('ar-SA')}{' '}
-                <span className='text-sm font-normal text-slate-500'>لتر</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className='border-emerald-100 bg-emerald-50/40 dark:border-emerald-950/40 dark:bg-emerald-950/20'>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-sm font-medium text-emerald-900 dark:text-emerald-200'>
-                متوسط السعر / لتر
-              </CardTitle>
-              <Icons.gauge className='h-4 w-4 text-emerald-600' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold text-emerald-700 dark:text-emerald-400'>
-                {avgPerLiter} <span className='text-sm font-normal text-slate-500'>ر.س/لتر</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className='border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900'>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-sm font-medium text-slate-600 dark:text-slate-400'>
-                إجمالي العمليات
-              </CardTitle>
-              <Icons.receipt className='h-4 w-4 text-slate-500' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold text-slate-900 dark:text-slate-100'>
-                {stats.totalCount} <span className='text-sm font-normal text-slate-500'>عملية</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Filters */}
         <Card>
           <CardContent className='p-4'>

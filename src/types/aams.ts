@@ -67,6 +67,8 @@ export interface Employee {
   application_type?: string;
   vehicle_type?: string;
   shift?: string;
+  is_shift_active?: boolean;
+  is_working?: boolean;
   total_distance: number;
   last_oil_change_distance: number;
   branch_id?: string | null;

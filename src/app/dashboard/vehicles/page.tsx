@@ -149,15 +149,11 @@ export default function VehiclesPage() {
     );
   }
 
-  // Metrics
-  const metrics = useMemo(() => {
-    const total = vehicles.length;
-    const inUse = vehicles.filter((v) => v.status === 'IN_USE').length;
-    const available = vehicles.filter((v) => v.status === 'AVAILABLE').length;
-    const maintenance = vehicles.filter((v) => v.status === 'MAINTENANCE').length;
-    const needsOil = vehicles.filter((v) => v.needs_oil_change).length;
-    return { total, inUse, available, maintenance, needsOil };
-  }, [vehicles]);
+  function isVehicleActiveInField(v: Vehicle): boolean {
+    if (v.status === 'IN_USE') return true;
+    const assigned = getAssignedEmployee(v.plate_number);
+    return Boolean(assigned && (assigned.is_shift_active || (assigned as any).is_working));
+  }
 
   // Filtered & Sorted List (Sorted by Key Number naturally)
   const filteredVehicles = useMemo(() => {
@@ -168,8 +164,9 @@ export default function VehiclesPage() {
           if (vBranch !== branchFilter) return false;
         }
 
-        if (statusFilter === 'AVAILABLE' && v.status !== 'AVAILABLE') return false;
-        if (statusFilter === 'IN_USE' && v.status !== 'IN_USE') return false;
+        const inField = isVehicleActiveInField(v);
+        if (statusFilter === 'AVAILABLE' && (inField || v.status === 'MAINTENANCE')) return false;
+        if (statusFilter === 'IN_USE' && !inField) return false;
         if (statusFilter === 'MAINTENANCE' && v.status !== 'MAINTENANCE') return false;
         if (statusFilter === 'NEEDS_OIL' && !v.needs_oil_change) return false;
 
@@ -295,33 +292,36 @@ export default function VehiclesPage() {
       return;
     }
 
-    createMutation.mutate({
-      plate_number: plateNumber.trim(),
-      vehicle_type: vehicleType,
-      brand: brand.trim(),
-      model_year: modelYear.trim(),
-      key_number: keyNumber.trim(),
-      branch_id: branchId || defaultBranchId,
-      current_km: parseFloat(currentKm) || 0,
-      last_oil_change_km: parseFloat(lastOilKm) || 0,
-      is_odometer_broken: isOdometerBroken,
-      registration_image: registrationImage.trim(),
-      notes: notes.trim()
-    }, {
-      onSuccess: async () => {
-        if (assignedEmployeeId) {
-          try {
-            await employeeApi.update(assignedEmployeeId, {
-              motorcycle_number: plateNumber.trim(),
-              key_number: keyNumber.trim()
-            });
-            queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
-          } catch (err) {
-            console.error('Failed to link employee to vehicle', err);
+    createMutation.mutate(
+      {
+        plate_number: plateNumber.trim(),
+        vehicle_type: vehicleType,
+        brand: brand.trim(),
+        model_year: modelYear.trim(),
+        key_number: keyNumber.trim(),
+        branch_id: branchId || defaultBranchId,
+        current_km: parseFloat(currentKm) || 0,
+        last_oil_change_km: parseFloat(lastOilKm) || 0,
+        is_odometer_broken: isOdometerBroken,
+        registration_image: registrationImage.trim(),
+        notes: notes.trim()
+      },
+      {
+        onSuccess: async () => {
+          if (assignedEmployeeId) {
+            try {
+              await employeeApi.update(assignedEmployeeId, {
+                motorcycle_number: plateNumber.trim(),
+                key_number: keyNumber.trim()
+              });
+              queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
+            } catch (err) {
+              console.error('Failed to link employee to vehicle', err);
+            }
           }
         }
       }
-    });
+    );
   }
 
   function handleSubmitEdit(e: React.FormEvent) {
@@ -331,52 +331,62 @@ export default function VehiclesPage() {
     const cleanPlate = plateNumber.trim();
     const cleanKey = keyNumber.trim();
 
-    updateMutation.mutate({
-      id: editingVehicle.id,
-      updates: {
-        plate_number: cleanPlate,
-        vehicle_type: vehicleType,
-        brand: brand.trim(),
-        model_year: modelYear.trim(),
-        key_number: cleanKey,
-        branch_id: branchId || defaultBranchId,
-        current_km: parseFloat(currentKm) || 0,
-        last_oil_change_km: parseFloat(lastOilKm) || 0,
-        is_odometer_broken: isOdometerBroken,
-        registration_image: registrationImage.trim(),
-        status: vehicleStatus,
-        notes: notes.trim()
-      }
-    }, {
-      onSuccess: async () => {
-        const prevAssigned = getAssignedEmployee(editingVehicle.plate_number);
-        try {
-          if (assignedEmployeeId && assignedEmployeeId !== prevAssigned?.id) {
-            if (prevAssigned) {
-              await employeeApi.update(prevAssigned.id, { motorcycle_number: '' });
-            }
-            await employeeApi.update(assignedEmployeeId, {
-              motorcycle_number: cleanPlate,
-              key_number: cleanKey
-            });
-            queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
-          } else if (!assignedEmployeeId && prevAssigned) {
-            await employeeApi.update(prevAssigned.id, { motorcycle_number: '' });
-            queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
-          } else if (assignedEmployeeId && prevAssigned && assignedEmployeeId === prevAssigned.id) {
-            if (prevAssigned.key_number !== cleanKey || prevAssigned.motorcycle_number !== cleanPlate) {
+    updateMutation.mutate(
+      {
+        id: editingVehicle.id,
+        updates: {
+          plate_number: cleanPlate,
+          vehicle_type: vehicleType,
+          brand: brand.trim(),
+          model_year: modelYear.trim(),
+          key_number: cleanKey,
+          branch_id: branchId || defaultBranchId,
+          current_km: parseFloat(currentKm) || 0,
+          last_oil_change_km: parseFloat(lastOilKm) || 0,
+          is_odometer_broken: isOdometerBroken,
+          registration_image: registrationImage.trim(),
+          status: vehicleStatus,
+          notes: notes.trim()
+        }
+      },
+      {
+        onSuccess: async () => {
+          const prevAssigned = getAssignedEmployee(editingVehicle.plate_number);
+          try {
+            if (assignedEmployeeId && assignedEmployeeId !== prevAssigned?.id) {
+              if (prevAssigned) {
+                await employeeApi.update(prevAssigned.id, { motorcycle_number: '' });
+              }
               await employeeApi.update(assignedEmployeeId, {
                 motorcycle_number: cleanPlate,
                 key_number: cleanKey
               });
               queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
+            } else if (!assignedEmployeeId && prevAssigned) {
+              await employeeApi.update(prevAssigned.id, { motorcycle_number: '' });
+              queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
+            } else if (
+              assignedEmployeeId &&
+              prevAssigned &&
+              assignedEmployeeId === prevAssigned.id
+            ) {
+              if (
+                prevAssigned.key_number !== cleanKey ||
+                prevAssigned.motorcycle_number !== cleanPlate
+              ) {
+                await employeeApi.update(assignedEmployeeId, {
+                  motorcycle_number: cleanPlate,
+                  key_number: cleanKey
+                });
+                queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
+              }
             }
+          } catch (err) {
+            console.error('Failed to sync employee link', err);
           }
-        } catch (err) {
-          console.error('Failed to sync employee link', err);
         }
       }
-    });
+    );
   }
 
   return (
@@ -402,72 +412,6 @@ export default function VehiclesPage() {
           </Button>
         </div>
 
-        {/* Compact Stats Row */}
-        <div className='grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5'>
-          <div className='rounded-xl border bg-card p-3 shadow-2xs'>
-            <div className='flex items-center justify-between text-muted-foreground'>
-              <span className='text-xs font-semibold'>إجمالي الأسطول</span>
-              <Icons.bike className='size-4 text-muted-foreground/70' />
-            </div>
-            <div className='mt-1.5 flex items-baseline gap-1.5'>
-              <span className='text-2xl font-bold font-mono tracking-tight'>{metrics.total}</span>
-              <span className='text-[11px] text-muted-foreground font-medium'>مركبة</span>
-            </div>
-          </div>
-
-          <div className='rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 shadow-2xs'>
-            <div className='flex items-center justify-between text-emerald-700 dark:text-emerald-400'>
-              <span className='text-xs font-semibold'>متاحة للعمل</span>
-              <Icons.circleCheck className='size-4 text-emerald-600 dark:text-emerald-400' />
-            </div>
-            <div className='mt-1.5 flex items-baseline gap-1.5'>
-              <span className='text-2xl font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400'>
-                {metrics.available}
-              </span>
-              <span className='text-[11px] text-muted-foreground font-medium'>جاهزة</span>
-            </div>
-          </div>
-
-          <div className='rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 shadow-2xs'>
-            <div className='flex items-center justify-between text-blue-700 dark:text-blue-400'>
-              <span className='text-xs font-semibold'>في الميدان الآن</span>
-              <Icons.play className='size-4 text-blue-600 dark:text-blue-400' />
-            </div>
-            <div className='mt-1.5 flex items-baseline gap-1.5'>
-              <span className='text-2xl font-bold font-mono tracking-tight text-blue-600 dark:text-blue-400'>
-                {metrics.inUse}
-              </span>
-              <span className='text-[11px] text-muted-foreground font-medium'>شفت جاري</span>
-            </div>
-          </div>
-
-          <div className='rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 shadow-2xs'>
-            <div className='flex items-center justify-between text-amber-700 dark:text-amber-400'>
-              <span className='text-xs font-semibold'>في الصيانة</span>
-              <Icons.wrench className='size-4 text-amber-600 dark:text-amber-400' />
-            </div>
-            <div className='mt-1.5 flex items-baseline gap-1.5'>
-              <span className='text-2xl font-bold font-mono tracking-tight text-amber-600 dark:text-amber-400'>
-                {metrics.maintenance}
-              </span>
-              <span className='text-[11px] text-muted-foreground font-medium'>تحت الصيانة</span>
-            </div>
-          </div>
-
-          <div className='rounded-xl border border-destructive/20 bg-destructive/5 p-3 shadow-2xs'>
-            <div className='flex items-center justify-between text-destructive'>
-              <span className='text-xs font-semibold'>تحتاج غيار زيت</span>
-              <Icons.droplet className='size-4 text-destructive' />
-            </div>
-            <div className='mt-1.5 flex items-baseline gap-1.5'>
-              <span className='text-2xl font-bold font-mono tracking-tight text-destructive'>
-                {metrics.needsOil}
-              </span>
-              <span className='text-[11px] text-muted-foreground font-medium'>تجاوزت المسافة</span>
-            </div>
-          </div>
-        </div>
-
         {/* Filters & Actions Bar */}
         <Card className='shadow-xs'>
           <CardContent className='p-4 space-y-4'>
@@ -488,7 +432,7 @@ export default function VehiclesPage() {
                 {[
                   { id: 'all', label: 'الكل' },
                   { id: 'AVAILABLE', label: 'متاح' },
-                  { id: 'IN_USE', label: 'في شفت' },
+                  { id: 'IN_USE', label: 'في الميدان' },
                   { id: 'MAINTENANCE', label: 'صيانة' },
                   { id: 'NEEDS_OIL', label: 'يحتاج زيت' }
                 ].map((tab) => (
@@ -522,7 +466,11 @@ export default function VehiclesPage() {
                     جميع الفروع
                   </Button>
                   <Button
-                    variant={branchFilter === '0b52c83c-4a37-4950-8040-fcb00fa718b3' ? 'default' : 'outline'}
+                    variant={
+                      branchFilter === '0b52c83c-4a37-4950-8040-fcb00fa718b3'
+                        ? 'default'
+                        : 'outline'
+                    }
                     size='sm'
                     onClick={() => setBranchFilter('0b52c83c-4a37-4950-8040-fcb00fa718b3')}
                     className='text-xs h-7 px-3 font-medium'
@@ -530,7 +478,11 @@ export default function VehiclesPage() {
                     الفرع الأول
                   </Button>
                   <Button
-                    variant={branchFilter === '33b1e65f-074c-4c51-af38-32e13c1fb9a6' ? 'default' : 'outline'}
+                    variant={
+                      branchFilter === '33b1e65f-074c-4c51-af38-32e13c1fb9a6'
+                        ? 'default'
+                        : 'outline'
+                    }
                     size='sm'
                     onClick={() => setBranchFilter('33b1e65f-074c-4c51-af38-32e13c1fb9a6')}
                     className='text-xs h-7 px-3 font-medium'
@@ -644,9 +596,18 @@ export default function VehiclesPage() {
                                   <Icons.user className='size-3 text-primary' />
                                 </div>
                                 <div>
-                                  <span className='font-bold text-xs text-foreground block'>
-                                    {assignedEmp.name}
-                                  </span>
+                                  <div className='flex items-center gap-1.5'>
+                                    <span className='font-bold text-xs text-foreground block'>
+                                      {assignedEmp.name}
+                                    </span>
+                                    {(assignedEmp.is_shift_active ||
+                                      (assignedEmp as any).is_working) && (
+                                      <span
+                                        className='size-2 rounded-full bg-emerald-500 animate-pulse shrink-0'
+                                        title='يعمل الآن في الميدان'
+                                      />
+                                    )}
+                                  </div>
                                   {assignedEmp.key_number && (
                                     <span className='text-[10px] text-muted-foreground font-mono'>
                                       (مفتاح: {assignedEmp.key_number})
@@ -770,13 +731,13 @@ export default function VehiclesPage() {
 
                           {/* Operational Status */}
                           <TableCell>
-                            {vehicle.status === 'IN_USE' ? (
+                            {isVehicleActiveInField(vehicle) ? (
                               <Badge
                                 variant='secondary'
-                                className='bg-blue-500/10 text-blue-600 border-blue-500/20 gap-1'
+                                className='bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30 gap-1.5 font-bold shadow-none'
                               >
-                                <span className='size-1.5 rounded-full bg-blue-500 animate-pulse' />
-                                قيد العمل (في شفت)
+                                <span className='size-2 rounded-full bg-blue-500 animate-pulse' />
+                                في الميدان (شفت جاري)
                               </Badge>
                             ) : vehicle.status === 'MAINTENANCE' ? (
                               <Badge

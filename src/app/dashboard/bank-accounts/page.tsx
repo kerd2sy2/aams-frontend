@@ -185,53 +185,6 @@ export default function BankAccountsPage() {
       }
     >
       <div className='flex flex-1 flex-col gap-4' dir='rtl'>
-        {/* Stats */}
-        <div className='grid gap-4 sm:grid-cols-3'>
-          <Card className='border-teal-100 bg-teal-50/40 dark:border-teal-950/40 dark:bg-teal-950/20'>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-sm font-medium text-teal-900 dark:text-teal-200'>
-                إجمالي الحسابات المسجلة
-              </CardTitle>
-              <Icons.bank className='h-4 w-4 text-teal-600' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold text-teal-700 dark:text-teal-400'>
-                {accounts.length} <span className='text-sm font-normal text-slate-500'>حساب</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className='border-blue-100 bg-blue-50/40 dark:border-blue-950/40 dark:bg-blue-950/20'>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-sm font-medium text-blue-900 dark:text-blue-200'>
-                الحسابات الافتراضية للتحويل
-              </CardTitle>
-              <Icons.check className='h-4 w-4 text-blue-600' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold text-blue-700 dark:text-blue-400'>
-                {accounts.filter((a) => a.is_default).length}{' '}
-                <span className='text-sm font-normal text-slate-500'>حساب</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className='border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900'>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-sm font-medium text-slate-600 dark:text-slate-400'>
-                البنوك المعتمدة
-              </CardTitle>
-              <Icons.creditCard className='h-4 w-4 text-slate-500' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold text-slate-900 dark:text-slate-100'>
-                {new Set(accounts.map((a) => a.bank_name)).size}{' '}
-                <span className='text-sm font-normal text-slate-500'>بنك</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Search */}
         <div className='flex gap-2'>
           <div className='relative w-full md:w-80'>

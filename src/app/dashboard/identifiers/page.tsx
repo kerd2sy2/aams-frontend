@@ -417,87 +417,7 @@ export default function IdentifiersPage() {
         </div>
       }
     >
-      <div className='space-y-6'>
-        {/* Compact KPI Summary Bar */}
-        <div className='grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5'>
-          {/* Total Identifiers */}
-          <div className='rounded-xl border bg-card p-3 shadow-2xs'>
-            <div className='flex items-center justify-between text-muted-foreground'>
-              <span className='text-xs font-semibold'>إجمالي المعرفات</span>
-              <Users className='size-4 text-muted-foreground/70' />
-            </div>
-            <div className='mt-1.5 flex items-baseline gap-1.5'>
-              <span className='text-2xl font-bold font-mono tracking-tight'>{totalCount}</span>
-              <span className='text-[11px] text-muted-foreground font-medium'>
-                {ninjaCount} نينجا · {keetaCount} كيتا
-              </span>
-            </div>
-          </div>
-
-          {/* Active Identifiers */}
-          <div className='rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 shadow-2xs'>
-            <div className='flex items-center justify-between text-emerald-700 dark:text-emerald-400'>
-              <span className='text-xs font-semibold'>معرفات نشطة (متاحة)</span>
-              <ShieldCheck className='size-4 text-emerald-600 dark:text-emerald-400' />
-            </div>
-            <div className='mt-1.5 flex items-baseline gap-1.5'>
-              <span className='text-2xl font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400'>
-                {activeCount}
-              </span>
-              <span className='text-[11px] text-muted-foreground font-medium'>متاحة للدوام</span>
-            </div>
-          </div>
-
-          {/* Blocked Identifiers */}
-          <div
-            className={cn(
-              'rounded-xl border p-3 shadow-2xs',
-              blockedCount > 0 ? 'border-destructive/25 bg-destructive/5' : 'border-border bg-card'
-            )}
-          >
-            <div className='flex items-center justify-between text-destructive'>
-              <span className='text-xs font-semibold'>معرفات محظورة</span>
-              <Ban className='size-4 text-destructive' />
-            </div>
-            <div className='mt-1.5 flex items-baseline gap-1.5'>
-              <span className='text-2xl font-bold font-mono tracking-tight text-destructive'>
-                {blockedCount}
-              </span>
-              <span className='text-[11px] text-muted-foreground font-medium'>محجوبة من الدوام</span>
-            </div>
-          </div>
-
-          {/* Linked Identifiers */}
-          <div className='rounded-xl border border-primary/20 bg-primary/5 p-3 shadow-2xs'>
-            <div className='flex items-center justify-between text-primary'>
-              <span className='text-xs font-semibold'>مرتبطة بمندوب</span>
-              <UserCheck className='size-4 text-primary' />
-            </div>
-            <div className='mt-1.5 flex items-baseline gap-1.5'>
-              <span className='text-2xl font-bold font-mono tracking-tight text-primary'>
-                {linkedCount}
-              </span>
-              <span className='text-[11px] text-muted-foreground font-medium'>
-                {totalCount > 0 ? Math.round((linkedCount / totalCount) * 100) : 0}% معينة
-              </span>
-            </div>
-          </div>
-
-          {/* Unlinked Identifiers */}
-          <div className='rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 shadow-2xs'>
-            <div className='flex items-center justify-between text-amber-700 dark:text-amber-400'>
-              <span className='text-xs font-semibold'>غير مرتبطة (معلقة)</span>
-              <AlertTriangle className='size-4 text-amber-600 dark:text-amber-400' />
-            </div>
-            <div className='mt-1.5 flex items-baseline gap-1.5'>
-              <span className='text-2xl font-bold font-mono tracking-tight text-amber-600 dark:text-amber-400'>
-                {unlinkedCount}
-              </span>
-              <span className='text-[11px] text-muted-foreground font-medium'>شاغرة</span>
-            </div>
-          </div>
-        </div>
-
+      <div className='space-y-4'>
         {/* Filters and Search Bar */}
         <div className='flex flex-col gap-3 border-b pb-3'>
           <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3'>
@@ -591,258 +511,254 @@ export default function IdentifiersPage() {
         <Card className='shadow-xs overflow-hidden'>
           <div className='overflow-x-auto w-full min-w-0'>
             <Table>
-            <TableHeader>
-              <TableRow className='bg-muted/50'>
-                <TableHead className='font-semibold w-[60px] text-center'>الصورة</TableHead>
-                <TableHead className='font-semibold min-w-[200px]'>
-                  الاسم بالعربي (قابل للتعديل)
-                </TableHead>
-                <TableHead className='font-semibold min-w-[170px]'>الاسم بالإنجليزي</TableHead>
-                <TableHead className='font-semibold'>معرّف التطبيق</TableHead>
-                <TableHead className='font-semibold'>الهوية / الجوال / البريد</TableHead>
-                <TableHead className='font-semibold min-w-[210px]'>المندوب المرتبط</TableHead>
-                <TableHead className='font-semibold text-center'>حظر المعرف</TableHead>
-                <TableHead className='font-semibold text-center'>إجراءات</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={8} className='text-center py-12'>
-                    <Icons.spinner className='size-6 animate-spin mx-auto text-primary' />
-                    <div className='text-xs text-muted-foreground mt-2'>
-                      جاري تحميل بيانات المعرفات والصور...
-                    </div>
-                  </TableCell>
+              <TableHeader>
+                <TableRow className='bg-muted/50'>
+                  <TableHead className='font-semibold w-[60px] text-center'>الصورة</TableHead>
+                  <TableHead className='font-semibold min-w-[200px]'>
+                    الاسم بالعربي (قابل للتعديل)
+                  </TableHead>
+                  <TableHead className='font-semibold min-w-[170px]'>الاسم بالإنجليزي</TableHead>
+                  <TableHead className='font-semibold'>معرّف التطبيق</TableHead>
+                  <TableHead className='font-semibold'>الهوية / الجوال / البريد</TableHead>
+                  <TableHead className='font-semibold min-w-[210px]'>المندوب المرتبط</TableHead>
+                  <TableHead className='font-semibold text-center'>حظر المعرف</TableHead>
+                  <TableHead className='font-semibold text-center'>إجراءات</TableHead>
                 </TableRow>
-              ) : filteredIdentifiers.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={8}
-                    className='text-center py-12 text-muted-foreground text-xs'
-                  >
-                    لا توجد معرفات مطابقة لمعايير البحث
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredIdentifiers.map((item) => {
-                  const isBlocked = Boolean(item.is_blocked);
-                  const isEditingThisAr = editingArId === item.id;
-                  const isNinja = (item.app_name || '').toUpperCase().includes('NINJA');
-                  const isKeeta = (item.app_name || '').toUpperCase().includes('KEETA');
-
-                  return (
-                    <TableRow
-                      key={item.id}
-                      className={cn(
-                        'hover:bg-muted/30 transition-colors',
-                        isBlocked && 'bg-destructive/5 dark:bg-destructive/10'
-                      )}
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className='text-center py-12'>
+                      <Icons.spinner className='size-6 animate-spin mx-auto text-primary' />
+                      <div className='text-xs text-muted-foreground mt-2'>
+                        جاري تحميل بيانات المعرفات والصور...
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredIdentifiers.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className='text-center py-12 text-muted-foreground text-xs'
                     >
-                      {/* Captain Photo (Avatar) */}
-                      <TableCell className='text-center p-2'>
-                        <Avatar className='size-11 rounded-full border shadow-xs mx-auto'>
-                          {item.avatar ? (
-                            <AvatarImage
-                              src={item.avatar}
-                              alt={item.name_en || item.name || 'Captain'}
-                              className='object-cover'
-                            />
-                          ) : null}
-                          <AvatarFallback className='text-xs font-bold bg-muted text-muted-foreground'>
-                            {(item.name_ar || item.name_en || 'C').slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                      </TableCell>
+                      لا توجد معرفات مطابقة لمعايير البحث
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredIdentifiers.map((item) => {
+                    const isBlocked = Boolean(item.is_blocked);
+                    const isEditingThisAr = editingArId === item.id;
+                    const isNinja = (item.app_name || '').toUpperCase().includes('NINJA');
+                    const isKeeta = (item.app_name || '').toUpperCase().includes('KEETA');
 
-                      {/* Arabic Name with Inline Quick Edit */}
-                      <TableCell className='font-medium text-foreground'>
-                        {isEditingThisAr ? (
-                          <div className='flex items-center gap-1.5'>
-                            <Input
-                              value={editingArValue}
-                              onChange={(e) => setEditingArValue(e.target.value)}
-                              className='h-8 text-xs font-semibold'
-                              autoFocus
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') saveInlineEditAr(item);
-                                if (e.key === 'Escape') cancelInlineEditAr();
-                              }}
-                            />
-                            <Button
-                              size='icon'
-                              variant='default'
-                              className='size-7 shrink-0'
-                              onClick={() => saveInlineEditAr(item)}
-                              disabled={savingAr}
-                            >
-                              <Check className='size-3.5' />
-                            </Button>
-                            <Button
-                              size='icon'
-                              variant='ghost'
-                              className='size-7 shrink-0'
-                              onClick={cancelInlineEditAr}
-                            >
-                              <X className='size-3.5' />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className='flex items-center justify-between group gap-2'>
+                    return (
+                      <TableRow
+                        key={item.id}
+                        className={cn(
+                          'hover:bg-muted/30 transition-colors',
+                          isBlocked && 'bg-destructive/5 dark:bg-destructive/10'
+                        )}
+                      >
+                        {/* Captain Photo (Avatar) */}
+                        <TableCell className='text-center p-2'>
+                          <Avatar className='size-11 rounded-full border shadow-xs mx-auto'>
+                            {item.avatar ? (
+                              <AvatarImage
+                                src={item.avatar}
+                                alt={item.name_en || item.name || 'Captain'}
+                                className='object-cover'
+                              />
+                            ) : null}
+                            <AvatarFallback className='text-xs font-bold bg-muted text-muted-foreground'>
+                              {(item.name_ar || item.name_en || 'C').slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        </TableCell>
+
+                        {/* Arabic Name with Inline Quick Edit */}
+                        <TableCell className='font-medium text-foreground'>
+                          {isEditingThisAr ? (
                             <div className='flex items-center gap-1.5'>
-                              {isBlocked && (
-                                <Badge variant='destructive' className='text-[10px] px-1 py-0'>
-                                  محظور
-                                </Badge>
-                              )}
-                              <span
+                              <Input
+                                value={editingArValue}
+                                onChange={(e) => setEditingArValue(e.target.value)}
+                                className='h-8 text-xs font-semibold'
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') saveInlineEditAr(item);
+                                  if (e.key === 'Escape') cancelInlineEditAr();
+                                }}
+                              />
+                              <Button
+                                size='icon'
+                                variant='default'
+                                className='size-7 shrink-0'
+                                onClick={() => saveInlineEditAr(item)}
+                                disabled={savingAr}
+                              >
+                                <Check className='size-3.5' />
+                              </Button>
+                              <Button
+                                size='icon'
+                                variant='ghost'
+                                className='size-7 shrink-0'
+                                onClick={cancelInlineEditAr}
+                              >
+                                <X className='size-3.5' />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className='flex items-center justify-between group gap-2'>
+                              <div className='flex items-center gap-1.5'>
+                                {isBlocked && (
+                                  <Badge variant='destructive' className='text-[10px] px-1 py-0'>
+                                    محظور
+                                  </Badge>
+                                )}
+                                <span
+                                  className={cn(
+                                    'text-sm font-semibold',
+                                    isBlocked && 'text-muted-foreground line-through'
+                                  )}
+                                >
+                                  {item.name_ar || item.name || '—'}
+                                </span>
+                              </div>
+                              <Button
+                                variant='ghost'
+                                size='icon'
+                                className='size-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary transition-opacity'
+                                onClick={() => startInlineEditAr(item)}
+                                title='تعديل الاسم بالعربي'
+                              >
+                                <Edit2 className='size-3' />
+                              </Button>
+                            </div>
+                          )}
+                        </TableCell>
+
+                        {/* English Name */}
+                        <TableCell>
+                          <span className='font-mono text-xs uppercase text-muted-foreground font-medium'>
+                            {item.name_en || '—'}
+                          </span>
+                        </TableCell>
+
+                        {/* Application Identifier & App Badge */}
+                        <TableCell>
+                          <div className='flex flex-col gap-1'>
+                            <div className='flex items-center gap-1.5'>
+                              <Badge
+                                variant='outline'
                                 className={cn(
-                                  'text-sm font-semibold',
-                                  isBlocked && 'text-muted-foreground line-through'
+                                  'font-mono text-[10px] px-1.5 py-0 font-bold',
+                                  isNinja &&
+                                    'border-purple-500/30 text-purple-600 dark:text-purple-400 bg-purple-500/10',
+                                  isKeeta &&
+                                    'border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10'
                                 )}
                               >
-                                {item.name_ar || item.name || '—'}
-                              </span>
+                                {isNinja ? 'NINJA' : isKeeta ? 'KEETA' : item.app_name || 'تطبيق'}
+                              </Badge>
                             </div>
-                            <Button
-                              variant='ghost'
-                              size='icon'
-                              className='size-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary transition-opacity'
-                              onClick={() => startInlineEditAr(item)}
-                              title='تعديل الاسم بالعربي'
-                            >
-                              <Edit2 className='size-3' />
-                            </Button>
+                            <span className='font-mono text-xs font-bold text-foreground'>
+                              {item.ninja_id || item.code || item.id}
+                            </span>
                           </div>
-                        )}
-                      </TableCell>
+                        </TableCell>
 
-                      {/* English Name */}
-                      <TableCell>
-                        <span className='font-mono text-xs uppercase text-muted-foreground font-medium'>
-                          {item.name_en || '—'}
-                        </span>
-                      </TableCell>
-
-                      {/* Application Identifier & App Badge */}
-                      <TableCell>
-                        <div className='flex flex-col gap-1'>
-                          <div className='flex items-center gap-1.5'>
-                            <Badge
-                              variant='outline'
-                              className={cn(
-                                'font-mono text-[10px] px-1.5 py-0 font-bold',
-                                isNinja &&
-                                  'border-purple-500/30 text-purple-600 dark:text-purple-400 bg-purple-500/10',
-                                isKeeta &&
-                                  'border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10'
-                              )}
-                            >
-                              {isNinja
-                                ? 'NINJA'
-                                : isKeeta
-                                  ? 'KEETA'
-                                  : item.app_name || 'تطبيق'}
-                            </Badge>
+                        {/* National ID, Mobile & Email */}
+                        <TableCell>
+                          <div className='space-y-1 text-xs font-mono text-muted-foreground'>
+                            {item.national_id && (
+                              <div className='flex items-center gap-1'>
+                                <CreditCard className='size-3 text-muted-foreground shrink-0' />
+                                <span>{item.national_id}</span>
+                              </div>
+                            )}
+                            {item.mobile && (
+                              <div className='flex items-center gap-1 text-[11px]'>
+                                <Phone className='size-3 text-muted-foreground shrink-0' />
+                                <span dir='ltr'>+966 {item.mobile}</span>
+                              </div>
+                            )}
+                            {item.email && (
+                              <div className='flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 font-sans truncate max-w-[180px]'>
+                                <Mail className='size-3 shrink-0' />
+                                <span title={item.email} className='truncate'>
+                                  {item.email}
+                                </span>
+                              </div>
+                            )}
+                            {!item.national_id && !item.mobile && !item.email && (
+                              <span className='text-muted-foreground'>—</span>
+                            )}
                           </div>
-                          <span className='font-mono text-xs font-bold text-foreground'>
-                            {item.ninja_id || item.code || item.id}
-                          </span>
-                        </div>
-                      </TableCell>
+                        </TableCell>
 
-                      {/* National ID, Mobile & Email */}
-                      <TableCell>
-                        <div className='space-y-1 text-xs font-mono text-muted-foreground'>
-                          {item.national_id && (
-                            <div className='flex items-center gap-1'>
-                              <CreditCard className='size-3 text-muted-foreground shrink-0' />
-                              <span>{item.national_id}</span>
-                            </div>
-                          )}
-                          {item.mobile && (
-                            <div className='flex items-center gap-1 text-[11px]'>
-                              <Phone className='size-3 text-muted-foreground shrink-0' />
-                              <span dir='ltr'>+966 {item.mobile}</span>
-                            </div>
-                          )}
-                          {item.email && (
-                            <div className='flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 font-sans truncate max-w-[180px]'>
-                              <Mail className='size-3 shrink-0' />
-                              <span title={item.email} className='truncate'>
-                                {item.email}
-                              </span>
-                            </div>
-                          )}
-                          {!item.national_id && !item.mobile && !item.email && (
-                            <span className='text-muted-foreground'>—</span>
-                          )}
-                        </div>
-                      </TableCell>
+                        {/* Employee Link Selector */}
+                        <TableCell>
+                          <div className='min-w-[200px]'>
+                            <EmployeeSearchSelect
+                              employees={employees}
+                              value={item.employee_id || ''}
+                              onChange={(val) => handleInlineLink(item.id, val || null)}
+                              placeholder='اختر المندوب للربط...'
+                              className='text-xs'
+                            />
+                          </div>
+                        </TableCell>
 
-                      {/* Employee Link Selector */}
-                      <TableCell>
-                        <div className='min-w-[200px]'>
-                          <EmployeeSearchSelect
-                            employees={employees}
-                            value={item.employee_id || ''}
-                            onChange={(val) => handleInlineLink(item.id, val || null)}
-                            placeholder='اختر المندوب للربط...'
-                            className='text-xs'
-                          />
-                        </div>
-                      </TableCell>
+                        {/* Block / Active Status Toggle */}
+                        <TableCell className='text-center'>
+                          <Button
+                            variant={isBlocked ? 'destructive' : 'outline'}
+                            size='sm'
+                            onClick={() => handleToggleBlock(item)}
+                            className={cn(
+                              'h-7 px-2.5 text-[11px] gap-1 font-medium transition-colors',
+                              !isBlocked && 'hover:border-destructive hover:text-destructive'
+                            )}
+                            title={
+                              isBlocked
+                                ? 'اضغط لفك الحظر عن المعرف'
+                                : 'اضغط لحظر هذا المعرف ومنعه بالدوام'
+                            }
+                          >
+                            {isBlocked ? (
+                              <>
+                                <Ban className='size-3.5' />
+                                <span>محظور (فك الحظر)</span>
+                              </>
+                            ) : (
+                              <>
+                                <ShieldCheck className='size-3.5 text-emerald-600' />
+                                <span>متاح (حظر)</span>
+                              </>
+                            )}
+                          </Button>
+                        </TableCell>
 
-                      {/* Block / Active Status Toggle */}
-                      <TableCell className='text-center'>
-                        <Button
-                          variant={isBlocked ? 'destructive' : 'outline'}
-                          size='sm'
-                          onClick={() => handleToggleBlock(item)}
-                          className={cn(
-                            'h-7 px-2.5 text-[11px] gap-1 font-medium transition-colors',
-                            !isBlocked && 'hover:border-destructive hover:text-destructive'
-                          )}
-                          title={
-                            isBlocked
-                              ? 'اضغط لفك الحظر عن المعرف'
-                              : 'اضغط لحظر هذا المعرف ومنعه بالدوام'
-                          }
-                        >
-                          {isBlocked ? (
-                            <>
-                              <Ban className='size-3.5' />
-                              <span>محظور (فك الحظر)</span>
-                            </>
-                          ) : (
-                            <>
-                              <ShieldCheck className='size-3.5 text-emerald-600' />
-                              <span>متاح (حظر)</span>
-                            </>
-                          )}
-                        </Button>
-                      </TableCell>
-
-                      {/* Actions */}
-                      <TableCell className='text-center'>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          onClick={() => handleOpenEdit(item)}
-                          className='h-8 px-2.5 gap-1 text-xs'
-                        >
-                          <LinkIcon className='size-3.5 text-primary' />
-                          <span>تعديل</span>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </Card>
+                        {/* Actions */}
+                        <TableCell className='text-center'>
+                          <Button
+                            variant='ghost'
+                            size='sm'
+                            onClick={() => handleOpenEdit(item)}
+                            className='h-8 px-2.5 gap-1 text-xs'
+                          >
+                            <LinkIcon className='size-3.5 text-primary' />
+                            <span>تعديل</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
 
         {/* Create / Edit Identifier Sheet (Side Drawer) */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>

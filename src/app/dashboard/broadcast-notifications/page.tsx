@@ -219,61 +219,6 @@ export default function BroadcastNotificationsPage() {
           </div>
         </div>
 
-        {/* Quick Stats Grid */}
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-          <Card className='border-emerald-200 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-950/20'>
-            <CardHeader className='pb-2'>
-              <CardTitle className='text-sm font-medium text-emerald-800 dark:text-emerald-300 flex items-center justify-between'>
-                <span>إجمالي الإشعارات المرسلة</span>
-                <IconSend className='h-4 w-4' />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold text-emerald-900 dark:text-emerald-100'>
-                {broadcasts.length}
-              </div>
-              <p className='text-xs text-muted-foreground mt-1'>تصل إلى هواتف المناديب فوراً</p>
-            </CardContent>
-          </Card>
-
-          <Card className='border-sky-200 dark:border-sky-800 bg-sky-50/40 dark:bg-sky-950/20'>
-            <CardHeader className='pb-2'>
-              <CardTitle className='text-sm font-medium text-sky-800 dark:text-sky-300 flex items-center justify-between'>
-                <span>الاستبيانات التفاعلية</span>
-                <IconChartBar className='h-4 w-4' />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold text-sky-900 dark:text-sky-100'>
-                {broadcasts.filter((b) => b.has_poll).length}
-              </div>
-              <p className='text-xs text-muted-foreground mt-1'>
-                استبيانات تتطلب تصويت (موافق / معترض)
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className='border-amber-200 dark:border-amber-800 bg-amber-50/40 dark:bg-amber-950/20'>
-            <CardHeader className='pb-2'>
-              <CardTitle className='text-sm font-medium text-amber-800 dark:text-amber-300 flex items-center justify-between'>
-                <span>إجمالي الأصوات المسجلة</span>
-                <IconUsers className='h-4 w-4' />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold text-amber-900 dark:text-amber-100'>
-                {broadcasts.reduce(
-                  (acc, b) => acc + (b.agree_count || 0) + (b.disagree_count || 0),
-                  0
-                )}
-              </div>
-              <p className='text-xs text-muted-foreground mt-1'>
-                أصوات المناديب المحفوظة في النظام
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Broadcasts List */}
         <Card>
           <CardHeader>
