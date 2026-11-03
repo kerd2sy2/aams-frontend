@@ -36,9 +36,10 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Switch } from '@/components/ui/switch';
 import { Icons } from '@/components/icons';
 import { ImageUploader } from '@/components/aams/image-uploader';
-import { vehicleApi } from '@/lib/aams/services';
+import { vehicleApi, employeeApi, branchApi } from '@/lib/aams/services';
 import { useOfflineQuery } from '@/hooks/use-offline-query';
-import type { Vehicle } from '@/types/aams';
+import type { Vehicle, Employee, Branch } from '@/types/aams';
+import { EmployeeSearchSelect } from '@/components/aams/employee-search-select';
 import Link from 'next/link';
 import { useLocale } from '@/components/layout/locale-provider';
 
@@ -47,12 +48,15 @@ export default function VehiclesPage() {
   const { t, dir } = useLocale();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [branchFilter, setBranchFilter] = useState<string>('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [oilChangingVehicle, setOilChangingVehicle] = useState<Vehicle | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
   const [previewFallbackTried, setPreviewFallbackTried] = useState(false);
   const [previewLoadError, setPreviewLoadError] = useState(false);
+
+  const defaultBranchId = '0b52c83c-4a37-4950-8040-fcb00fa718b3';
 
   const backendBaseUrl = (
     process.env.NEXT_PUBLIC_BACKEND_URL ||
@@ -96,6 +100,8 @@ export default function VehiclesPage() {
   const [brand, setBrand] = useState('');
   const [modelYear, setModelYear] = useState('');
   const [keyNumber, setKeyNumber] = useState('');
+  const [branchId, setBranchId] = useState<string>(defaultBranchId);
+  const [assignedEmployeeId, setAssignedEmployeeId] = useState<string>('');
   const [currentKm, setCurrentKm] = useState('');
   const [lastOilKm, setLastOilKm] = useState('');
   const [isOdometerBroken, setIsOdometerBroken] = useState(false);
@@ -112,6 +118,37 @@ export default function VehiclesPage() {
 
   const vehicles = data?.data || [];
 
+  // Branches & Employees
+  const { data: branches = [] } = useOfflineQuery<Branch[]>({
+    queryKey: ['branches-list'],
+    queryFn: () => branchApi.getAll(),
+    cacheKey: 'branches_cache',
+    staleTime: 1000 * 60 * 10
+  });
+
+  const { data: employeesData } = useOfflineQuery<{ data: Employee[] }>({
+    queryKey: ['all-employees-cache'],
+    queryFn: () => employeeApi.getAll({ limit: 1000 }),
+    cacheKey: 'employees_all',
+    staleTime: 1000 * 60 * 5
+  });
+
+  const employees = employeesData?.data || [];
+
+  function getBranchName(bId?: string | null): string {
+    if (!bId) return 'الفرع الأول';
+    const b = branches.find((item) => item.id === bId);
+    return b ? b.name : 'الفرع الأول';
+  }
+
+  function getAssignedEmployee(plate: string): Employee | undefined {
+    if (!plate) return undefined;
+    const clean = plate.trim().toLowerCase();
+    return employees.find(
+      (emp) => emp.motorcycle_number && emp.motorcycle_number.trim().toLowerCase() === clean
+    );
+  }
+
   // Metrics
   const metrics = useMemo(() => {
     const total = vehicles.length;
@@ -122,27 +159,47 @@ export default function VehiclesPage() {
     return { total, inUse, available, maintenance, needsOil };
   }, [vehicles]);
 
-  // Filtered List
+  // Filtered & Sorted List (Sorted by Key Number naturally)
   const filteredVehicles = useMemo(() => {
-    return vehicles.filter((v) => {
-      if (statusFilter === 'AVAILABLE' && v.status !== 'AVAILABLE') return false;
-      if (statusFilter === 'IN_USE' && v.status !== 'IN_USE') return false;
-      if (statusFilter === 'MAINTENANCE' && v.status !== 'MAINTENANCE') return false;
-      if (statusFilter === 'NEEDS_OIL' && !v.needs_oil_change) return false;
+    return vehicles
+      .filter((v) => {
+        if (branchFilter !== 'all') {
+          const vBranch = v.branch_id || defaultBranchId;
+          if (vBranch !== branchFilter) return false;
+        }
 
-      if (search.trim()) {
-        const query = search.trim().toLowerCase();
-        const plate = v.plate_number?.toLowerCase() || '';
-        const br = v.brand?.toLowerCase() || '';
-        const key = v.key_number?.toLowerCase() || '';
-        const n = v.notes?.toLowerCase() || '';
-        return (
-          plate.includes(query) || br.includes(query) || key.includes(query) || n.includes(query)
-        );
-      }
-      return true;
-    });
-  }, [vehicles, statusFilter, search]);
+        if (statusFilter === 'AVAILABLE' && v.status !== 'AVAILABLE') return false;
+        if (statusFilter === 'IN_USE' && v.status !== 'IN_USE') return false;
+        if (statusFilter === 'MAINTENANCE' && v.status !== 'MAINTENANCE') return false;
+        if (statusFilter === 'NEEDS_OIL' && !v.needs_oil_change) return false;
+
+        if (search.trim()) {
+          const query = search.trim().toLowerCase();
+          const plate = v.plate_number?.toLowerCase() || '';
+          const br = v.brand?.toLowerCase() || '';
+          const key = v.key_number?.toLowerCase() || '';
+          const n = v.notes?.toLowerCase() || '';
+          const assigned = getAssignedEmployee(v.plate_number);
+          const empName = assigned?.name?.toLowerCase() || '';
+          return (
+            plate.includes(query) ||
+            br.includes(query) ||
+            key.includes(query) ||
+            n.includes(query) ||
+            empName.includes(query)
+          );
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        const ka = a.key_number?.trim() || '';
+        const kb = b.key_number?.trim() || '';
+        if (!ka && !kb) return a.plate_number.localeCompare(b.plate_number);
+        if (!ka) return 1;
+        if (!kb) return -1;
+        return ka.localeCompare(kb, undefined, { numeric: true, sensitivity: 'base' });
+      });
+  }, [vehicles, statusFilter, branchFilter, search, employees, defaultBranchId]);
 
   const createMutation = useMutation({
     mutationFn: (newVehicle: Partial<Vehicle>) => vehicleApi.create(newVehicle),
@@ -203,6 +260,8 @@ export default function VehiclesPage() {
     setBrand('');
     setModelYear('');
     setKeyNumber('');
+    setBranchId(defaultBranchId);
+    setAssignedEmployeeId('');
     setCurrentKm('');
     setLastOilKm('');
     setIsOdometerBroken(false);
@@ -218,6 +277,9 @@ export default function VehiclesPage() {
     setBrand(vehicle.brand || '');
     setModelYear(vehicle.model_year || '');
     setKeyNumber(vehicle.key_number || '');
+    setBranchId(vehicle.branch_id || defaultBranchId);
+    const assigned = getAssignedEmployee(vehicle.plate_number);
+    setAssignedEmployeeId(assigned?.id || '');
     setCurrentKm(String(vehicle.current_km ?? ''));
     setLastOilKm(String(vehicle.last_oil_change_km ?? ''));
     setIsOdometerBroken(Boolean(vehicle.is_odometer_broken));
@@ -239,11 +301,26 @@ export default function VehiclesPage() {
       brand: brand.trim(),
       model_year: modelYear.trim(),
       key_number: keyNumber.trim(),
+      branch_id: branchId || defaultBranchId,
       current_km: parseFloat(currentKm) || 0,
       last_oil_change_km: parseFloat(lastOilKm) || 0,
       is_odometer_broken: isOdometerBroken,
       registration_image: registrationImage.trim(),
       notes: notes.trim()
+    }, {
+      onSuccess: async () => {
+        if (assignedEmployeeId) {
+          try {
+            await employeeApi.update(assignedEmployeeId, {
+              motorcycle_number: plateNumber.trim(),
+              key_number: keyNumber.trim()
+            });
+            queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
+          } catch (err) {
+            console.error('Failed to link employee to vehicle', err);
+          }
+        }
+      }
     });
   }
 
@@ -251,20 +328,53 @@ export default function VehiclesPage() {
     e.preventDefault();
     if (!editingVehicle) return;
 
+    const cleanPlate = plateNumber.trim();
+    const cleanKey = keyNumber.trim();
+
     updateMutation.mutate({
       id: editingVehicle.id,
       updates: {
-        plate_number: plateNumber.trim(),
+        plate_number: cleanPlate,
         vehicle_type: vehicleType,
         brand: brand.trim(),
         model_year: modelYear.trim(),
-        key_number: keyNumber.trim(),
+        key_number: cleanKey,
+        branch_id: branchId || defaultBranchId,
         current_km: parseFloat(currentKm) || 0,
         last_oil_change_km: parseFloat(lastOilKm) || 0,
         is_odometer_broken: isOdometerBroken,
         registration_image: registrationImage.trim(),
         status: vehicleStatus,
         notes: notes.trim()
+      }
+    }, {
+      onSuccess: async () => {
+        const prevAssigned = getAssignedEmployee(editingVehicle.plate_number);
+        try {
+          if (assignedEmployeeId && assignedEmployeeId !== prevAssigned?.id) {
+            if (prevAssigned) {
+              await employeeApi.update(prevAssigned.id, { motorcycle_number: '' });
+            }
+            await employeeApi.update(assignedEmployeeId, {
+              motorcycle_number: cleanPlate,
+              key_number: cleanKey
+            });
+            queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
+          } else if (!assignedEmployeeId && prevAssigned) {
+            await employeeApi.update(prevAssigned.id, { motorcycle_number: '' });
+            queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
+          } else if (assignedEmployeeId && prevAssigned && assignedEmployeeId === prevAssigned.id) {
+            if (prevAssigned.key_number !== cleanKey || prevAssigned.motorcycle_number !== cleanPlate) {
+              await employeeApi.update(assignedEmployeeId, {
+                motorcycle_number: cleanPlate,
+                key_number: cleanKey
+              });
+              queryClient.invalidateQueries({ queryKey: ['all-employees-cache'] });
+            }
+          }
+        } catch (err) {
+          console.error('Failed to sync employee link', err);
+        }
       }
     });
   }
@@ -402,14 +512,60 @@ export default function VehiclesPage() {
               </div>
             </div>
 
-            {/* Vehicles Table */}
-            <div className='rounded-lg border overflow-hidden'>
+            {/* Branch Filter Row */}
+            <div className='flex flex-wrap items-center justify-between gap-3 pt-2 border-t'>
+              <div className='flex items-center gap-2'>
+                <span className='text-xs font-bold text-muted-foreground flex items-center gap-1.5'>
+                  <Icons.building className='size-3.5 text-primary' />
+                  الفرع:
+                </span>
+                <div className='flex items-center gap-1.5'>
+                  <Button
+                    variant={branchFilter === 'all' ? 'default' : 'outline'}
+                    size='sm'
+                    onClick={() => setBranchFilter('all')}
+                    className='text-xs h-7 px-3 font-medium'
+                  >
+                    جميع الفروع
+                  </Button>
+                  <Button
+                    variant={branchFilter === '0b52c83c-4a37-4950-8040-fcb00fa718b3' ? 'default' : 'outline'}
+                    size='sm'
+                    onClick={() => setBranchFilter('0b52c83c-4a37-4950-8040-fcb00fa718b3')}
+                    className='text-xs h-7 px-3 font-medium'
+                  >
+                    🏢 الفرع الأول
+                  </Button>
+                  <Button
+                    variant={branchFilter === '33b1e65f-074c-4c51-af38-32e13c1fb9a6' ? 'default' : 'outline'}
+                    size='sm'
+                    onClick={() => setBranchFilter('33b1e65f-074c-4c51-af38-32e13c1fb9a6')}
+                    className='text-xs h-7 px-3 font-medium'
+                  >
+                    🏢 الفرع الثاني
+                  </Button>
+                </div>
+              </div>
+              <div className='text-xs text-muted-foreground flex items-center gap-1.5 font-medium'>
+                <span>🔑 الترتيب التلقائي:</span>
+                <span className='text-primary font-bold'>تصاعدياً حسب أرقام المفاتيح (طبيعي)</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Vehicles Table */}
+        <Card className='shadow-xs'>
+          <CardContent className='p-0 overflow-hidden'>
+            <div className='overflow-x-auto'>
               <Table>
                 <TableHeader className='bg-muted/50'>
                   <TableRow>
+                    <TableHead className='text-right w-24'>🔑 المفتاح</TableHead>
                     <TableHead className='text-right'>رقم الدباب / اللوحة</TableHead>
+                    <TableHead className='text-right'>الفرع</TableHead>
+                    <TableHead className='text-right'>المندوب المعين</TableHead>
                     <TableHead className='text-right'>النوع والماركة</TableHead>
-                    <TableHead className='text-right'>رقم المفتاح</TableHead>
                     <TableHead className='text-right'>الاستمارة</TableHead>
                     <TableHead className='text-right'>العداد الحالي</TableHead>
                     <TableHead className='text-right'>حالة الزيت</TableHead>
@@ -420,7 +576,7 @@ export default function VehiclesPage() {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={8} className='h-32 text-center'>
+                      <TableCell colSpan={10} className='h-32 text-center'>
                         <div className='flex flex-col items-center justify-center gap-2'>
                           <Icons.spinner className='size-6 animate-spin text-primary' />
                           <span className='text-sm text-muted-foreground'>
@@ -431,7 +587,7 @@ export default function VehiclesPage() {
                     </TableRow>
                   ) : filteredVehicles.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className='h-32 text-center text-muted-foreground'>
+                      <TableCell colSpan={10} className='h-32 text-center text-muted-foreground'>
                         لا توجد دبابات أو مركبات مطابقة لمعايير البحث
                       </TableCell>
                     </TableRow>
@@ -442,9 +598,24 @@ export default function VehiclesPage() {
                         vehicle.current_km - vehicle.last_oil_change_km
                       );
                       const isOilWarning = vehicle.needs_oil_change;
+                      const assignedEmp = getAssignedEmployee(vehicle.plate_number);
 
                       return (
                         <TableRow key={vehicle.id} className='hover:bg-muted/40 transition-colors'>
+                          {/* Key Number */}
+                          <TableCell className='font-mono'>
+                            {vehicle.key_number ? (
+                              <Badge
+                                variant='outline'
+                                className='font-mono text-xs font-black bg-primary/10 text-primary border-primary/25 px-2.5 py-0.5'
+                              >
+                                🔑 {vehicle.key_number}
+                              </Badge>
+                            ) : (
+                              <span className='text-muted-foreground text-xs'>—</span>
+                            )}
+                          </TableCell>
+
                           {/* Plate Number */}
                           <TableCell className='font-bold font-mono text-base text-foreground'>
                             <div className='flex items-center gap-2'>
@@ -461,6 +632,41 @@ export default function VehiclesPage() {
                             </div>
                           </TableCell>
 
+                          {/* Branch */}
+                          <TableCell>
+                            <Badge
+                              variant='outline'
+                              className='text-xs font-semibold bg-muted/40 text-foreground border-border'
+                            >
+                              🏢 {getBranchName(vehicle.branch_id)}
+                            </Badge>
+                          </TableCell>
+
+                          {/* Assigned Employee */}
+                          <TableCell>
+                            {assignedEmp ? (
+                              <div className='flex items-center gap-1.5'>
+                                <div className='size-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-xs font-bold'>
+                                  <Icons.user className='size-3 text-primary' />
+                                </div>
+                                <div>
+                                  <span className='font-bold text-xs text-foreground block'>
+                                    {assignedEmp.name}
+                                  </span>
+                                  {assignedEmp.key_number && (
+                                    <span className='text-[10px] text-muted-foreground font-mono'>
+                                      (مفتاح: {assignedEmp.key_number})
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className='text-xs text-muted-foreground/60 italic'>
+                                غير مخصص
+                              </span>
+                            )}
+                          </TableCell>
+
                           {/* Brand & Type */}
                           <TableCell>
                             <div>
@@ -474,17 +680,6 @@ export default function VehiclesPage() {
                                 </p>
                               )}
                             </div>
-                          </TableCell>
-
-                          {/* Key Number */}
-                          <TableCell className='font-mono text-sm'>
-                            {vehicle.key_number ? (
-                              <Badge variant='outline' className='font-mono'>
-                                🔑 {vehicle.key_number}
-                              </Badge>
-                            ) : (
-                              <span className='text-muted-foreground text-xs'>—</span>
-                            )}
                           </TableCell>
 
                           {/* Registration Document */}
@@ -723,17 +918,48 @@ export default function VehiclesPage() {
                   </div>
                 </div>
 
-                <div className='grid grid-cols-3 gap-3'>
+                <div className='grid grid-cols-2 gap-3'>
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>الفرع التابع له الدباب *</label>
+                    <NativeSelect
+                      value={branchId}
+                      onChange={(e) => setBranchId(e.target.value)}
+                      className='w-full'
+                    >
+                      <option value='0b52c83c-4a37-4950-8040-fcb00fa718b3'>🏢 الفرع الأول</option>
+                      <option value='33b1e65f-074c-4c51-af38-32e13c1fb9a6'>🏢 الفرع الثاني</option>
+                    </NativeSelect>
+                  </div>
+
                   <div className='space-y-1'>
                     <label className='text-xs font-medium'>رقم المفتاح</label>
                     <Input
-                      placeholder='مثال: K-12'
+                      placeholder='مثال: 12 أو K-12'
                       value={keyNumber}
                       onChange={(e) => setKeyNumber(e.target.value)}
                       className='font-mono'
                     />
                   </div>
+                </div>
 
+                {/* Linked Employee */}
+                <div className='space-y-1.5 p-3 rounded-lg border bg-muted/20'>
+                  <label className='text-xs font-semibold flex items-center gap-1.5 text-foreground'>
+                    <Icons.user className='size-3.5 text-primary' />
+                    ربط الدباب بموظف / مندوب (اختياري)
+                  </label>
+                  <EmployeeSearchSelect
+                    employees={employees}
+                    value={assignedEmployeeId}
+                    onChange={(val) => setAssignedEmployeeId(val || '')}
+                    placeholder='ابحث عن الموظف (اكتب أول حرفين)...'
+                  />
+                  <p className='text-[10px] text-muted-foreground'>
+                    عند تعيين المندوب، سيتم ربط رقم الدباب ورقم المفتاح به تلقائياً.
+                  </p>
+                </div>
+
+                <div className='grid grid-cols-2 gap-3'>
                   <div className='space-y-1'>
                     <label className='text-xs font-medium'>العداد الحالي (كم)</label>
                     <Input
@@ -877,7 +1103,19 @@ export default function VehiclesPage() {
                   </div>
                 </div>
 
-                <div className='grid grid-cols-3 gap-3'>
+                <div className='grid grid-cols-2 gap-3'>
+                  <div className='space-y-1'>
+                    <label className='text-xs font-medium'>الفرع التابع له الدباب *</label>
+                    <NativeSelect
+                      value={branchId}
+                      onChange={(e) => setBranchId(e.target.value)}
+                      className='w-full'
+                    >
+                      <option value='0b52c83c-4a37-4950-8040-fcb00fa718b3'>🏢 الفرع الأول</option>
+                      <option value='33b1e65f-074c-4c51-af38-32e13c1fb9a6'>🏢 الفرع الثاني</option>
+                    </NativeSelect>
+                  </div>
+
                   <div className='space-y-1'>
                     <label className='text-xs font-medium'>رقم المفتاح</label>
                     <Input
@@ -886,7 +1124,26 @@ export default function VehiclesPage() {
                       className='font-mono'
                     />
                   </div>
+                </div>
 
+                {/* Linked Employee */}
+                <div className='space-y-1.5 p-3 rounded-lg border bg-muted/20'>
+                  <label className='text-xs font-semibold flex items-center gap-1.5 text-foreground'>
+                    <Icons.user className='size-3.5 text-primary' />
+                    المندوب المعين لهذا الدباب
+                  </label>
+                  <EmployeeSearchSelect
+                    employees={employees}
+                    value={assignedEmployeeId}
+                    onChange={(val) => setAssignedEmployeeId(val || '')}
+                    placeholder='ابحث عن الموظف (اكتب أول حرفين)...'
+                  />
+                  <p className='text-[10px] text-muted-foreground'>
+                    عند تعيين المندوب أو تغيير المفتاح، سيتم تحديث بيانات الموظف ومفتاحه تلقائياً.
+                  </p>
+                </div>
+
+                <div className='grid grid-cols-2 gap-3'>
                   <div className='space-y-1'>
                     <label className='text-xs font-medium'>العداد الحالي (كم)</label>
                     <Input

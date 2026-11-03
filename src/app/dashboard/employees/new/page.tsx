@@ -409,6 +409,9 @@ export default function NewEmployeePage() {
                             setSelectedVehiclePlate(plate);
                             setValue('motorcycle_number', plate);
                             if (matched) {
+                              if (matched.key_number) {
+                                setValue('key_number', matched.key_number);
+                              }
                               setVehicleType(
                                 matched.type === 'CAR' || matched.vehicle_type === 'car'
                                   ? 'car'
