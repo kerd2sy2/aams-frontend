@@ -477,8 +477,8 @@ export default function ReportsPage() {
             </div>
 
             {/* Desktop Table */}
-            <Card className='hidden overflow-hidden md:block'>
-              <div className='overflow-x-auto'>
+            <Card className='hidden overflow-hidden md:block shadow-xs'>
+              <div className='overflow-x-auto w-full min-w-0'>
                 <Table>
                   <TableHeader>
                     <TableRow>

@@ -66,7 +66,7 @@ export default function PageContainer({
   const translatedDesc = pageDescription ? t(pageDescription, pageDescription) : '';
 
   return (
-    <div className='flex flex-1 flex-col px-4 pt-2 pb-4 md:px-6 md:pt-4' dir={dir}>
+    <div className='flex flex-1 flex-col px-4 pt-2 pb-4 md:px-6 md:pt-4 min-w-0 max-w-full w-full' dir={dir}>
       {hasHeader && (
         <div className='mb-4 flex items-start justify-between gap-4'>
           <Heading

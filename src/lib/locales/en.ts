@@ -77,6 +77,8 @@ const en: Record<string, string> = {
   // ===== Arabic page title keys (for when locale switches to English) =====
   'بدء الدوام': 'Start Work',
   'اختيار المندوب وبدء دوام جديد': 'Select employee and start a new shift',
+  'Support & Communication': 'Support & Communication',
+  'Inventory Overview': 'Inventory Overview',
   'إنهاء الدوام': 'End Work',
   'توثيق عداد النهاية وإقفال الدوام': 'Record end mileage and close shift',
   'محاضر الموظفين': 'Employee Records',

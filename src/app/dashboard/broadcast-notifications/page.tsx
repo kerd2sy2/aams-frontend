@@ -508,7 +508,7 @@ export default function BroadcastNotificationsPage() {
                 <div className='space-y-0.5'>
                   <label className='text-sm font-bold text-foreground flex items-center gap-1.5 cursor-pointer'>
                     <IconChartBar className='h-4 w-4 text-emerald-600' />
-                    تضمين استبيان (موافق / معترض) في الإشعار 📊
+                    تضمين استبيان (موافق / معترض) في الإشعار
                   </label>
                   <p className='text-xs text-muted-foreground'>
                     سيظهر للمندوب خياران تفاعليان بلغة تطبيقه لتسجيل صوته مباشرة وحفظه في النظام

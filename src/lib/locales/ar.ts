@@ -80,6 +80,8 @@ const ar: Record<string, string> = {
   'Audit Logs': 'سجل العمليات والرقابة',
   'Error Logs': 'سجل الأخطاء',
   Errors: 'الأخطاء',
+  'Support & Communication': 'الدعم والتواصل',
+  'Inventory Overview': 'نظرة عامة على المخزن',
   'Support Tickets': 'تذاكر الدعم',
   Tickets: 'التذاكر',
   'Partner Platforms': 'منصات الشركاء',

@@ -389,7 +389,7 @@ export default function FuelLogsPage() {
                         <TableCell>
                           {log.vehicle_plate ? (
                             <Badge variant='secondary' className='font-mono'>
-                              🛵 {log.vehicle_plate}
+                              {log.vehicle_plate}
                             </Badge>
                           ) : (
                             <span className='text-slate-400'>-</span>

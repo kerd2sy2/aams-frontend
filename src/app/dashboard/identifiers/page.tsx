@@ -418,99 +418,84 @@ export default function IdentifiersPage() {
       }
     >
       <div className='space-y-6'>
-        {/* KPI Summary Cards */}
-        <div className='grid grid-cols-2 md:grid-cols-5 gap-3'>
-          {/* Total Identifiers Card */}
-          <Card>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-xs font-medium text-muted-foreground'>
-                إجمالي المعرفات
-              </CardTitle>
-              <div className='bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg'>
-                <Users className='size-4' />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold tracking-tight font-mono'>{totalCount}</div>
-              <p className='text-muted-foreground text-xs mt-1'>
+        {/* Compact KPI Summary Bar */}
+        <div className='grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5'>
+          {/* Total Identifiers */}
+          <div className='rounded-xl border bg-card p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-muted-foreground'>
+              <span className='text-xs font-semibold'>إجمالي المعرفات</span>
+              <Users className='size-4 text-muted-foreground/70' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight'>{totalCount}</span>
+              <span className='text-[11px] text-muted-foreground font-medium'>
                 {ninjaCount} نينجا · {keetaCount} كيتا
-              </p>
-            </CardContent>
-          </Card>
+              </span>
+            </div>
+          </div>
 
-          {/* Active Identifiers Card */}
-          <Card>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-xs font-medium text-muted-foreground'>
-                معرفات نشطة (متاحة)
-              </CardTitle>
-              <div className='bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex size-8 items-center justify-center rounded-lg'>
-                <ShieldCheck className='size-4' />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 font-mono'>
+          {/* Active Identifiers */}
+          <div className='rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-emerald-700 dark:text-emerald-400'>
+              <span className='text-xs font-semibold'>معرفات نشطة (متاحة)</span>
+              <ShieldCheck className='size-4 text-emerald-600 dark:text-emerald-400' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400'>
                 {activeCount}
-              </div>
-              <p className='text-muted-foreground text-xs mt-1'>تظهر في منسدلة بدء الدوام</p>
-            </CardContent>
-          </Card>
+              </span>
+              <span className='text-[11px] text-muted-foreground font-medium'>متاحة للدوام</span>
+            </div>
+          </div>
 
-          {/* Blocked Identifiers Card */}
-          <Card className={cn(blockedCount > 0 && 'border-destructive/40 bg-destructive/5')}>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-xs font-medium text-destructive'>
-                معرفات محظورة 🚫
-              </CardTitle>
-              <div className='bg-destructive/10 text-destructive flex size-8 items-center justify-center rounded-lg'>
-                <Ban className='size-4' />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold tracking-tight text-destructive font-mono'>
+          {/* Blocked Identifiers */}
+          <div
+            className={cn(
+              'rounded-xl border p-3 shadow-2xs',
+              blockedCount > 0 ? 'border-destructive/25 bg-destructive/5' : 'border-border bg-card'
+            )}
+          >
+            <div className='flex items-center justify-between text-destructive'>
+              <span className='text-xs font-semibold'>معرفات محظورة</span>
+              <Ban className='size-4 text-destructive' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight text-destructive'>
                 {blockedCount}
-              </div>
-              <p className='text-muted-foreground text-xs mt-1'>محجوبة وممنوعة من الدوام</p>
-            </CardContent>
-          </Card>
+              </span>
+              <span className='text-[11px] text-muted-foreground font-medium'>محجوبة من الدوام</span>
+            </div>
+          </div>
 
-          {/* Linked Identifiers Card */}
-          <Card>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-xs font-medium text-muted-foreground'>
-                مرتبط بمندوب
-              </CardTitle>
-              <div className='bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg'>
-                <UserCheck className='size-4' />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold tracking-tight text-primary font-mono'>
+          {/* Linked Identifiers */}
+          <div className='rounded-xl border border-primary/20 bg-primary/5 p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-primary'>
+              <span className='text-xs font-semibold'>مرتبطة بمندوب</span>
+              <UserCheck className='size-4 text-primary' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight text-primary'>
                 {linkedCount}
-              </div>
-              <p className='text-muted-foreground text-xs mt-1'>
-                {totalCount > 0 ? Math.round((linkedCount / totalCount) * 100) : 0}% معينة لمندوب
-              </p>
-            </CardContent>
-          </Card>
+              </span>
+              <span className='text-[11px] text-muted-foreground font-medium'>
+                {totalCount > 0 ? Math.round((linkedCount / totalCount) * 100) : 0}% معينة
+              </span>
+            </div>
+          </div>
 
-          {/* Unlinked Identifiers Card */}
-          <Card>
-            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-              <CardTitle className='text-xs font-medium text-muted-foreground'>
-                غير مرتبطة (معلقة)
-              </CardTitle>
-              <div className='bg-amber-500/10 text-amber-600 dark:text-amber-400 flex size-8 items-center justify-center rounded-lg'>
-                <AlertTriangle className='size-4' />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400 font-mono'>
+          {/* Unlinked Identifiers */}
+          <div className='rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-amber-700 dark:text-amber-400'>
+              <span className='text-xs font-semibold'>غير مرتبطة (معلقة)</span>
+              <AlertTriangle className='size-4 text-amber-600 dark:text-amber-400' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight text-amber-600 dark:text-amber-400'>
                 {unlinkedCount}
-              </div>
-              <p className='text-muted-foreground text-xs mt-1'>متاحة لتعيين مندوب</p>
-            </CardContent>
-          </Card>
+              </span>
+              <span className='text-[11px] text-muted-foreground font-medium'>شاغرة</span>
+            </div>
+          </div>
         </div>
 
         {/* Filters and Search Bar */}
@@ -533,7 +518,7 @@ export default function IdentifiersPage() {
                 className='h-8 text-xs font-semibold'
                 onClick={() => setAppFilter('NINJA')}
               >
-                🥷 نينجا ({ninjaCount})
+                نینجا ({ninjaCount})
               </Button>
               <Button
                 size='sm'
@@ -541,7 +526,7 @@ export default function IdentifiersPage() {
                 className='h-8 text-xs font-semibold'
                 onClick={() => setAppFilter('KEETA')}
               >
-                🛵 كيتا ({keetaCount})
+                كيتا ({keetaCount})
               </Button>
             </div>
 
@@ -581,7 +566,7 @@ export default function IdentifiersPage() {
               className='h-7 text-xs px-2.5'
               onClick={() => setStatusFilter('BLOCKED')}
             >
-              المحظورة 🚫 ({blockedCount})
+              المحظورة ({blockedCount})
             </Button>
             <Button
               size='sm'
@@ -604,7 +589,8 @@ export default function IdentifiersPage() {
 
         {/* Table of Identifiers */}
         <Card className='shadow-xs overflow-hidden'>
-          <Table>
+          <div className='overflow-x-auto w-full min-w-0'>
+            <Table>
             <TableHeader>
               <TableRow className='bg-muted/50'>
                 <TableHead className='font-semibold w-[60px] text-center'>الصورة</TableHead>
@@ -753,9 +739,9 @@ export default function IdentifiersPage() {
                               )}
                             >
                               {isNinja
-                                ? '🥷 NINJA'
+                                ? 'NINJA'
                                 : isKeeta
-                                  ? '🛵 KEETA'
+                                  ? 'KEETA'
                                   : item.app_name || 'تطبيق'}
                             </Badge>
                           </div>
@@ -855,7 +841,8 @@ export default function IdentifiersPage() {
               )}
             </TableBody>
           </Table>
-        </Card>
+        </div>
+      </Card>
 
         {/* Create / Edit Identifier Sheet (Side Drawer) */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>

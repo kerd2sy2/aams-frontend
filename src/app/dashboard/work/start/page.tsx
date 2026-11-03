@@ -99,7 +99,7 @@ export default function StartWorkPage() {
 
         optionsMap.set(key, {
           id: key,
-          label: ident.is_blocked ? `🚫 ${displayName} - [محظور]` : displayName,
+          label: ident.is_blocked ? `${displayName} - [محظور]` : displayName,
           is_blocked: Boolean(ident.is_blocked)
         });
       });

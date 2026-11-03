@@ -455,7 +455,7 @@ export default function ViolationsPage() {
                           <TableCell>
                             {v.vehicle_plate ? (
                               <Badge variant='secondary' className='font-mono'>
-                                🛵 {v.vehicle_plate}
+                                {v.vehicle_plate}
                               </Badge>
                             ) : (
                               <span className='text-slate-400'>-</span>

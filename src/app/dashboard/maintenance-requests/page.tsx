@@ -361,7 +361,7 @@ export default function MaintenanceRequestsPage() {
                           </TableCell>
                           <TableCell>
                             <Badge variant='secondary' className='font-mono font-bold'>
-                              🛵 {r.vehicle_plate}
+                              {r.vehicle_plate}
                             </Badge>
                           </TableCell>
                           <TableCell>

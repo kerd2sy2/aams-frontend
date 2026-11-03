@@ -806,121 +806,96 @@ export default function EmployeeTotalOrdersPage() {
           </CardContent>
         </Card>
 
-        {/* Top 5 KPI Summary Cards */}
-        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5'>
+        {/* Compact Top 5 KPI Summary Bar */}
+        <div className='grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5'>
           {/* 1. Overall Total Orders */}
-          <Card className='border-primary/20 from-primary/5 to-card bg-gradient-to-br shadow-xs'>
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <span className='text-muted-foreground text-xs font-bold'>إجمالي كافة الطلبات</span>
-                <div className='bg-primary/15 text-primary flex size-9 items-center justify-center rounded-xl'>
-                  <Package className='size-5' />
-                </div>
-              </div>
-              <div className='mt-2 flex items-baseline gap-1.5'>
-                <span className='text-3xl font-black tabular-nums'>
-                  {isLoading ? '—' : summaryStats.overallOrders.toLocaleString('ar-SA')}
-                </span>
-                <span className='text-muted-foreground text-xs font-semibold'>طلب</span>
-              </div>
-              <p className='text-muted-foreground mt-1.5 text-[11px] font-medium'>
-                شامل الطلبات المعتمدة وقيد المراجعة
-              </p>
-            </CardContent>
-          </Card>
+          <div className='rounded-xl border bg-card p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-muted-foreground'>
+              <span className='text-xs font-semibold'>إجمالي كافة الطلبات</span>
+              <Package className='size-4 text-muted-foreground/70' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight'>
+                {isLoading ? '—' : summaryStats.overallOrders.toLocaleString('ar-SA')}
+              </span>
+              <span className='text-[11px] text-muted-foreground font-medium'>طلب</span>
+            </div>
+            <p className='text-muted-foreground mt-1 text-[10px] truncate'>
+              شامل المعتمدة وقيد المراجعة
+            </p>
+          </div>
 
           {/* 2. Approved Orders */}
-          <Card className='border-emerald-500/25 from-emerald-500/5 to-card bg-gradient-to-br shadow-xs'>
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <span className='text-xs font-bold text-emerald-700 dark:text-emerald-400'>
-                  الطلبات المعتمدة
-                </span>
-                <div className='flex size-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'>
-                  <CheckCircle2 className='size-5' />
-                </div>
-              </div>
-              <div className='mt-2 flex items-baseline gap-1.5'>
-                <span className='text-3xl font-black text-emerald-600 tabular-nums dark:text-emerald-400'>
-                  {isLoading ? '—' : summaryStats.totalApprovedOrders.toLocaleString('ar-SA')}
-                </span>
-                <span className='text-muted-foreground text-xs font-semibold'>طلب معتمد</span>
-              </div>
-              <p className='text-muted-foreground mt-1.5 text-[11px] font-medium'>
-                تمت المصادقة عليها من المشرفين
-              </p>
-            </CardContent>
-          </Card>
+          <div className='rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-emerald-700 dark:text-emerald-400'>
+              <span className='text-xs font-semibold'>الطلبات المعتمدة</span>
+              <CheckCircle2 className='size-4 text-emerald-600 dark:text-emerald-400' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400'>
+                {isLoading ? '—' : summaryStats.totalApprovedOrders.toLocaleString('ar-SA')}
+              </span>
+              <span className='text-[11px] text-muted-foreground font-medium'>طلب معتمد</span>
+            </div>
+            <p className='text-muted-foreground mt-1 text-[10px] truncate'>
+              تمت المصادقة عليها من المشرفين
+            </p>
+          </div>
 
           {/* 3. Pending Orders */}
-          <Card className='border-amber-500/25 from-amber-500/5 to-card bg-gradient-to-br shadow-xs'>
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <span className='text-xs font-bold text-amber-700 dark:text-amber-400'>
-                  طلبات قيد المراجعة
-                </span>
-                <div className='flex size-9 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400'>
-                  <Clock className='size-5' />
-                </div>
-              </div>
-              <div className='mt-2 flex items-baseline gap-1.5'>
-                <span className='text-3xl font-black text-amber-600 tabular-nums dark:text-amber-400'>
-                  {isLoading ? '—' : summaryStats.totalPendingOrders.toLocaleString('ar-SA')}
-                </span>
-                <span className='text-muted-foreground text-xs font-semibold'>
-                  ({summaryStats.pendingShifts} شفت)
-                </span>
-              </div>
-              <p className='text-muted-foreground mt-1.5 text-[11px] font-medium'>
-                بانتظار مراجعة ومصادقة المشرف
-              </p>
-            </CardContent>
-          </Card>
+          <div className='rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-amber-700 dark:text-amber-400'>
+              <span className='text-xs font-semibold'>قيد المراجعة</span>
+              <Clock className='size-4 text-amber-600 dark:text-amber-400' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight text-amber-600 dark:text-amber-400'>
+                {isLoading ? '—' : summaryStats.totalPendingOrders.toLocaleString('ar-SA')}
+              </span>
+              <span className='text-[11px] text-muted-foreground font-medium'>
+                ({summaryStats.pendingShifts} شفت)
+              </span>
+            </div>
+            <p className='text-muted-foreground mt-1 text-[10px] truncate'>
+              بانتظار مراجعة ومصادقة المشرف
+            </p>
+          </div>
 
-          {/* 4. Active Employees with Orders */}
-          <Card className='shadow-xs'>
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <span className='text-muted-foreground text-xs font-bold'>الموظفون النشطون</span>
-                <div className='bg-blue-500/15 flex size-9 items-center justify-center rounded-xl text-blue-600 dark:text-blue-400'>
-                  <Users className='size-5' />
-                </div>
-              </div>
-              <div className='mt-2 flex items-baseline gap-1.5'>
-                <span className='text-3xl font-black tabular-nums'>
-                  {isLoading ? '—' : summaryStats.activeEmployeesWithOrders}
-                </span>
-                <span className='text-muted-foreground text-xs font-semibold'>
-                  من {filteredRows.length} موظف
-                </span>
-              </div>
-              <p className='text-muted-foreground mt-1.5 text-[11px] font-medium'>
-                متوسط {summaryStats.avgPerActiveEmp} طلب لكل موظف نشط
-              </p>
-            </CardContent>
-          </Card>
+          {/* 4. Active Employees */}
+          <div className='rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-blue-700 dark:text-blue-400'>
+              <span className='text-xs font-semibold'>الموظفون النشطون</span>
+              <Users className='size-4 text-blue-600 dark:text-blue-400' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight text-blue-600 dark:text-blue-400'>
+                {isLoading ? '—' : summaryStats.activeEmployeesWithOrders}
+              </span>
+              <span className='text-[11px] text-muted-foreground font-medium'>
+                من {filteredRows.length} موظف
+              </span>
+            </div>
+            <p className='text-muted-foreground mt-1 text-[10px] truncate'>
+              متوسط {summaryStats.avgPerActiveEmp} طلب لكل موظف نشط
+            </p>
+          </div>
 
-          {/* 5. Total Shifts & Distance */}
-          <Card className='shadow-xs'>
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <span className='text-muted-foreground text-xs font-bold'>الشفتات والمسافة</span>
-                <div className='bg-purple-500/15 flex size-9 items-center justify-center rounded-xl text-purple-600 dark:text-purple-400'>
-                  <Route className='size-5' />
-                </div>
-              </div>
-              <div className='mt-2 flex items-baseline gap-1.5'>
-                <span className='text-3xl font-black tabular-nums'>
-                  {isLoading ? '—' : summaryStats.totalShifts.toLocaleString('ar-SA')}
-                </span>
-                <span className='text-muted-foreground text-xs font-semibold'>شفت عمل</span>
-              </div>
-              <p className='text-muted-foreground mt-1.5 text-[11px] font-medium tabular-nums'>
-                {summaryStats.totalDistance.toLocaleString('ar-SA')} كم ·{' '}
-                {summaryStats.totalFuel.toLocaleString('ar-SA')} ر.س وقود
-              </p>
-            </CardContent>
-          </Card>
+          {/* 5. Shifts & Distance */}
+          <div className='rounded-xl border border-purple-500/20 bg-purple-500/5 p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-purple-700 dark:text-purple-400'>
+              <span className='text-xs font-semibold'>الشفتات والمسافة</span>
+              <Route className='size-4 text-purple-600 dark:text-purple-400' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight text-purple-600 dark:text-purple-400'>
+                {isLoading ? '—' : summaryStats.totalShifts.toLocaleString('ar-SA')}
+              </span>
+              <span className='text-[11px] text-muted-foreground font-medium'>شفت عمل</span>
+            </div>
+            <p className='text-muted-foreground mt-1 text-[10px] truncate tabular-nums'>
+              {summaryStats.totalDistance.toLocaleString('ar-SA')} كم · {summaryStats.totalFuel.toLocaleString('ar-SA')} ر.س
+            </p>
+          </div>
         </div>
 
         {/* Search, Branch, App & Status Filters */}
@@ -1126,7 +1101,7 @@ export default function EmployeeTotalOrdersPage() {
                       <div className='grid grid-cols-3 gap-2 rounded-xl bg-muted/40 p-2.5 text-center'>
                         <div>
                           <p className='text-muted-foreground text-[10px] font-semibold'>
-                            المعتمدة ✅
+                            المعتمدة
                           </p>
                           <p className='text-base font-black text-emerald-600 tabular-nums dark:text-emerald-400'>
                             {row.approved_orders}
@@ -1134,7 +1109,7 @@ export default function EmployeeTotalOrdersPage() {
                         </div>
                         <div>
                           <p className='text-muted-foreground text-[10px] font-semibold'>
-                            قيد المراجعة ⏳
+                            قيد المراجعة
                           </p>
                           <p className='text-base font-black text-amber-600 tabular-nums dark:text-amber-400'>
                             {row.pending_orders}
@@ -1142,7 +1117,7 @@ export default function EmployeeTotalOrdersPage() {
                         </div>
                         <div>
                           <p className='text-muted-foreground text-[10px] font-semibold'>
-                            الإجمالي 📦
+                            الإجمالي
                           </p>
                           <p className='text-primary text-base font-black tabular-nums'>
                             {row.total_orders}
@@ -1510,7 +1485,7 @@ export default function EmployeeTotalOrdersPage() {
                   </div>
                   <div className='rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-2.5 text-center'>
                     <p className='text-[11px] font-semibold text-emerald-700 dark:text-emerald-400'>
-                      المعتمدة ✅
+                      المعتمدة
                     </p>
                     <p className='mt-0.5 font-mono text-xl font-black text-emerald-600 tabular-nums dark:text-emerald-400'>
                       {selectedEmployee.approved_orders}
@@ -1518,7 +1493,7 @@ export default function EmployeeTotalOrdersPage() {
                   </div>
                   <div className='rounded-xl border border-amber-500/30 bg-amber-500/5 p-2.5 text-center'>
                     <p className='text-[11px] font-semibold text-amber-700 dark:text-amber-400'>
-                      بانتظار المصادقة ⏳
+                      بانتظار المصادقة
                     </p>
                     <p className='mt-0.5 font-mono text-xl font-black text-amber-600 tabular-nums dark:text-amber-400'>
                       {selectedEmployee.pending_orders}

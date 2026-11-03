@@ -635,7 +635,7 @@ export default function EmployeesPage() {
                                 <TableCell className='text-center font-mono tabular-nums text-xs font-medium'>
                                   {emp.motorcycle_number ? (
                                     <span className='font-bold text-foreground'>
-                                      🏍️ {emp.motorcycle_number}
+                                      {emp.motorcycle_number}
                                       {emp.key_number && ` (مفتاح ${emp.key_number})`}
                                     </span>
                                   ) : (
@@ -654,8 +654,8 @@ export default function EmployeesPage() {
                                     )}
                                   >
                                     {emp.shift === 'evening' || emp.shift === 'night'
-                                      ? '🌙 ليل (مساء)'
-                                      : '☀️ صبح (صباح)'}
+                                      ? 'ليل (مساء)'
+                                      : 'صبح (صباح)'}
                                   </Badge>
                                 </TableCell>
 
@@ -784,11 +784,11 @@ export default function EmployeesPage() {
                   }}
                   className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20'
                 >
-                  <option value='DRIVER'>🏍️ مندوب توصيل</option>
-                  <option value='SUPERVISOR'>🛡️ مشرف وردية / ميداني</option>
-                  <option value='ACCOUNTANT'>💼 حسابات / إدارة مالية</option>
-                  <option value='OWNER'>👑 مالك المؤسسة</option>
-                  <option value='CLEANER'>🧹 عامل نظافة</option>
+                  <option value='DRIVER'>مندوب توصيل</option>
+                  <option value='SUPERVISOR'>مشرف وردية / ميداني</option>
+                  <option value='ACCOUNTANT'>حسابات / إدارة مالية</option>
+                  <option value='OWNER'>مالك المؤسسة</option>
+                  <option value='CLEANER'>عامل نظافة</option>
                 </select>
               </div>
 
@@ -894,34 +894,34 @@ function DepartmentBadge({ role }: { role?: string }) {
   if (r === 'OWNER' || r === 'MANAGEMENT') {
     return (
       <Badge className='font-bold text-[11px] bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800 gap-1'>
-        👑 مالك المؤسسة
+        مالك المؤسسة
       </Badge>
     );
   }
   if (r === 'SUPERVISOR') {
     return (
       <Badge className='font-bold text-[11px] bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-800 gap-1'>
-        🛡️ مشرف وردية
+        مشرف وردية
       </Badge>
     );
   }
   if (r === 'ACCOUNTANT') {
     return (
       <Badge className='font-bold text-[11px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 gap-1'>
-        💼 حسابات
+        حسابات
       </Badge>
     );
   }
   if (r === 'CLEANER' || r === 'WORKER') {
     return (
       <Badge className='font-bold text-[11px] bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-300 dark:border-slate-800 gap-1'>
-        🧹 عامل نظافة
+        عامل نظافة
       </Badge>
     );
   }
   return (
     <Badge className='font-bold text-[11px] bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-300 dark:border-sky-800 gap-1'>
-      🏍️ مندوب
+      مندوب
     </Badge>
   );
 }
@@ -1080,12 +1080,12 @@ function EmployeeMobileCard({
             </span>
             {phoneNum && (
               <span className='font-mono tabular-nums text-foreground/90' dir='ltr'>
-                📱 {phoneNum}
+                {phoneNum}
               </span>
             )}
             {emp.motorcycle_number && (
               <span className='font-mono tabular-nums font-semibold text-foreground'>
-                🏍 {emp.motorcycle_number}
+                {emp.motorcycle_number}
               </span>
             )}
           </div>

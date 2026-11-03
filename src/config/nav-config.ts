@@ -9,25 +9,78 @@ export const navGroups: NavGroup[] = [
       // 1. لوحة التحكم
       { title: 'Dashboard', url: '/dashboard', icon: 'dashboard' },
 
-      // 2. الدوام
+      // 2. الدوام والتشغيل
       {
         title: 'Work',
         url: '#',
         icon: 'play',
         items: [
           { title: 'Start Work', url: '/dashboard/work/start', permission: 'work.start' },
-          { title: 'End Work', url: '/dashboard/work/end', permission: 'work.end' }
+          { title: 'End Work', url: '/dashboard/work/end', permission: 'work.end' },
+          {
+            title: 'Odometer Audits',
+            url: '/dashboard/odometer-audits',
+            permission: 'work.view'
+          }
         ]
       },
 
-      // 3. المعرفات (مستقلة بذاتها)
+      // 3. المعرفات
       {
         title: 'Identifiers',
         url: '/dashboard/identifiers',
         icon: 'key'
       },
 
-      // 4. محاضر الموظفين
+      // 4. التقارير والإحصائيات
+      {
+        title: 'Reports',
+        url: '#',
+        icon: 'chartBar',
+        permission: 'reports.view',
+        items: [
+          {
+            title: 'Employee Total Orders',
+            url: '/dashboard/employee-orders',
+            permission: 'reports.view'
+          },
+          { title: 'Shift Report', url: '/dashboard/reports', permission: 'reports.view' },
+          { title: 'Daily Report', url: '/dashboard/daily-report', permission: 'reports.view' },
+          { title: 'Attendance', url: '/dashboard/attendance', permission: 'attendance.view' }
+        ]
+      },
+
+      // 5. الأسطول والصيانة
+      {
+        title: 'Fleet Management',
+        url: '#',
+        icon: 'bike',
+        items: [
+          { title: 'Vehicles', url: '/dashboard/vehicles', permission: 'vehicles.view' },
+          { title: 'Violations', url: '/dashboard/violations', permission: 'violations.view' },
+          { title: 'Fuel Logs', url: '/dashboard/fuel-logs', permission: 'vehicles.view' },
+          {
+            title: 'Maintenance Requests',
+            url: '/dashboard/maintenance-requests',
+            permission: 'maintenance.view'
+          }
+        ]
+      },
+
+      // 6. الموظفون
+      {
+        title: 'Employees',
+        url: '#',
+        icon: 'employees',
+        permission: 'employees.view',
+        items: [
+          { title: 'All Employees', url: '/dashboard/employees', permission: 'employees.view' },
+          { title: 'Leaves', url: '/dashboard/leaves', permission: 'leaves.view' },
+          { title: 'Penalties', url: '/dashboard/penalties', permission: 'violations.view' }
+        ]
+      },
+
+      // 7. محاضر التحقيق
       {
         title: 'Investigations',
         url: '#',
@@ -67,25 +120,7 @@ export const navGroups: NavGroup[] = [
         ]
       },
 
-      // 4. التقارير
-      {
-        title: 'Reports',
-        url: '#',
-        icon: 'chartBar',
-        permission: 'reports.view',
-        items: [
-          {
-            title: 'Employee Total Orders',
-            url: '/dashboard/employee-orders',
-            permission: 'reports.view'
-          },
-          { title: 'Shift Report', url: '/dashboard/reports', permission: 'reports.view' },
-          { title: 'Daily Report', url: '/dashboard/daily-report', permission: 'reports.view' },
-          { title: 'Attendance', url: '/dashboard/attendance', permission: 'attendance.view' }
-        ]
-      },
-
-      // 5. العهدة
+      // 8. العهدة
       {
         title: 'Custody',
         url: '#',
@@ -97,43 +132,6 @@ export const navGroups: NavGroup[] = [
         ]
       },
 
-      // 6. الأسطول
-      {
-        title: 'Fleet Management',
-        url: '#',
-        icon: 'bike',
-        items: [
-          { title: 'Vehicles', url: '/dashboard/vehicles', permission: 'vehicles.view' },
-          { title: 'Violations', url: '/dashboard/violations', permission: 'violations.view' },
-          { title: 'Penalties', url: '/dashboard/penalties', permission: 'violations.view' },
-          {
-            title: 'Maintenance Requests',
-            url: '/dashboard/maintenance-requests',
-            permission: 'maintenance.view'
-          }
-        ]
-      },
-
-      // 7. الموظفين
-      {
-        title: 'Employees',
-        url: '#',
-        icon: 'employees',
-        permission: 'employees.view',
-        items: [
-          { title: 'All Employees', url: '/dashboard/employees', permission: 'employees.view' },
-          {
-            title: 'Employee Total Orders',
-            url: '/dashboard/employee-orders',
-            permission: 'employees.view'
-          },
-          { title: 'Penalties', url: '/dashboard/penalties', permission: 'violations.view' }
-        ]
-      },
-
-      // 8. الإجازات
-      { title: 'Leaves', url: '/dashboard/leaves', icon: 'leaves', permission: 'leaves.view' },
-
       // 9. المخزن
       {
         title: 'Inventory',
@@ -141,7 +139,11 @@ export const navGroups: NavGroup[] = [
         icon: 'inventory',
         permission: 'inventory.view',
         items: [
-          { title: 'Inventory', url: '/dashboard/inventory', permission: 'inventory.view' },
+          {
+            title: 'Inventory Overview',
+            url: '/dashboard/inventory',
+            permission: 'inventory.view'
+          },
           {
             title: 'Oil Dispense',
             url: '/dashboard/oil-dispense',
@@ -151,7 +153,7 @@ export const navGroups: NavGroup[] = [
         ]
       },
 
-      // 10. المستندات والمالية
+      // 10. المستندات والحسابات
       {
         title: 'Documents & Banking',
         url: '#',
@@ -166,7 +168,25 @@ export const navGroups: NavGroup[] = [
         ]
       },
 
-      // 11. الإدارة
+      // 11. الدعم والتواصل
+      {
+        title: 'Support & Communication',
+        url: '#',
+        icon: 'ticket',
+        items: [
+          {
+            title: 'Support Tickets',
+            url: '/dashboard/tickets',
+            permission: 'tickets.view'
+          },
+          {
+            title: 'Broadcast Notifications',
+            url: '/dashboard/broadcast-notifications'
+          }
+        ]
+      },
+
+      // 12. الإدارة
       {
         title: 'Administration',
         url: '#',
@@ -186,21 +206,6 @@ export const navGroups: NavGroup[] = [
           { title: 'Audit Logs', url: '/dashboard/audit-logs', permission: 'audit_logs.view' },
           { title: 'Error Logs', url: '/dashboard/errors', permission: 'error_logs.view' }
         ]
-      },
-
-      // 12. مراجعة وتدقيق العدادات
-      {
-        title: 'Odometer Audits',
-        url: '/dashboard/odometer-audits',
-        icon: 'clipboardCheck',
-        permission: 'work.view'
-      },
-
-      // 14. الإشعارات الجماعية والاستبيانات
-      {
-        title: 'Broadcast Notifications',
-        url: '/dashboard/broadcast-notifications',
-        icon: 'notification'
       }
     ]
   }

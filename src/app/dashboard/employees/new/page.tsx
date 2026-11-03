@@ -269,11 +269,11 @@ export default function NewEmployeePage() {
                     }}
                     className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20'
                   >
-                    <option value='DRIVER'>🏍️ مندوب توصيل (سائق)</option>
-                    <option value='SUPERVISOR'>🛡️ مشرف وردية / ميداني</option>
-                    <option value='CLEANER'>🧹 عامل نظافة</option>
-                    <option value='ACCOUNTANT'>💼 حسابات / إدارة مالية</option>
-                    <option value='OWNER'>👑 مالك المؤسسة</option>
+                    <option value='DRIVER'>مندوب توصيل (سائق)</option>
+                    <option value='SUPERVISOR'>مشرف وردية / ميداني</option>
+                    <option value='CLEANER'>عامل نظافة</option>
+                    <option value='ACCOUNTANT'>حسابات / إدارة مالية</option>
+                    <option value='OWNER'>مالك المؤسسة</option>
                   </select>
                 </div>
               </div>
@@ -576,9 +576,9 @@ export default function NewEmployeePage() {
                         onChange={(e) => setShift(e.target.value)}
                         className='w-full h-10 px-3 rounded-xl border border-input bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20'
                       >
-                        <option value='morning'>☀️ وردية صباحية (صبح)</option>
-                        <option value='evening'>🌙 وردية مسائية (ليل)</option>
-                        <option value='night'>🌃 وردية ليلية متأخرة</option>
+                        <option value='morning'>وردية صباحية (صبح)</option>
+                        <option value='evening'>وردية مسائية (ليل)</option>
+                        <option value='night'>وردية ليلية متأخرة</option>
                       </select>
                     </div>
                   </div>

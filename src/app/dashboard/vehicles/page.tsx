@@ -385,10 +385,9 @@ export default function VehiclesPage() {
         {/* Page Header */}
         <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
           <div>
-            <h1 className='text-2xl font-bold tracking-tight'>إدارة الدبابات والمركبات 🛵</h1>
+            <h1 className='text-2xl font-bold tracking-tight'>إدارة الدبابات والمركبات</h1>
             <p className='text-muted-foreground text-sm mt-1'>
-              إدارة أسطول الدبابات والثوابت، تتبع عدادات الكيلومترات المشتركة وتنبيهات غيار الزيت
-              والصيانة
+              إدارة أسطول الدبابات والثوابت، تتبع عدادات الكيلومترات وتنبيهات غيار الزيت والصيانة
             </p>
           </div>
           <Button
@@ -403,76 +402,70 @@ export default function VehiclesPage() {
           </Button>
         </div>
 
-        {/* Stats Row */}
-        <div className='grid grid-cols-2 gap-4 lg:grid-cols-5'>
-          <Card className='shadow-xs'>
-            <CardHeader className='flex-row items-center justify-between pb-2 space-y-0'>
-              <CardDescription className='text-xs'>إجمالي الأسطول</CardDescription>
-              <div className='bg-primary/10 text-primary p-2 rounded-lg'>
-                <Icons.bike className='size-4' />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className='text-2xl font-bold tabular-nums'>{metrics.total}</p>
-              <p className='text-muted-foreground text-xs mt-1'>مركبة مسجلة</p>
-            </CardContent>
-          </Card>
+        {/* Compact Stats Row */}
+        <div className='grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5'>
+          <div className='rounded-xl border bg-card p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-muted-foreground'>
+              <span className='text-xs font-semibold'>إجمالي الأسطول</span>
+              <Icons.bike className='size-4 text-muted-foreground/70' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight'>{metrics.total}</span>
+              <span className='text-[11px] text-muted-foreground font-medium'>مركبة</span>
+            </div>
+          </div>
 
-          <Card className='shadow-xs border-emerald-500/30 bg-emerald-500/5'>
-            <CardHeader className='flex-row items-center justify-between pb-2 space-y-0'>
-              <CardDescription className='text-xs'>متاحة للعمل</CardDescription>
-              <div className='bg-emerald-500/10 text-emerald-600 p-2 rounded-lg'>
-                <Icons.circleCheck className='size-4' />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className='text-2xl font-bold text-emerald-600 tabular-nums'>
+          <div className='rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-emerald-700 dark:text-emerald-400'>
+              <span className='text-xs font-semibold'>متاحة للعمل</span>
+              <Icons.circleCheck className='size-4 text-emerald-600 dark:text-emerald-400' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400'>
                 {metrics.available}
-              </p>
-              <p className='text-muted-foreground text-xs mt-1'>جاهزة للاستخدام</p>
-            </CardContent>
-          </Card>
+              </span>
+              <span className='text-[11px] text-muted-foreground font-medium'>جاهزة</span>
+            </div>
+          </div>
 
-          <Card className='shadow-xs border-blue-500/30 bg-blue-500/5'>
-            <CardHeader className='flex-row items-center justify-between pb-2 space-y-0'>
-              <CardDescription className='text-xs'>في الميدان الآن</CardDescription>
-              <div className='bg-blue-500/10 text-blue-600 p-2 rounded-lg'>
-                <Icons.play className='size-4' />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className='text-2xl font-bold text-blue-600 tabular-nums'>{metrics.inUse}</p>
-              <p className='text-muted-foreground text-xs mt-1'>شفتات جارية</p>
-            </CardContent>
-          </Card>
+          <div className='rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-blue-700 dark:text-blue-400'>
+              <span className='text-xs font-semibold'>في الميدان الآن</span>
+              <Icons.play className='size-4 text-blue-600 dark:text-blue-400' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight text-blue-600 dark:text-blue-400'>
+                {metrics.inUse}
+              </span>
+              <span className='text-[11px] text-muted-foreground font-medium'>شفت جاري</span>
+            </div>
+          </div>
 
-          <Card className='shadow-xs border-amber-500/30 bg-amber-500/5'>
-            <CardHeader className='flex-row items-center justify-between pb-2 space-y-0'>
-              <CardDescription className='text-xs'>في الصيانة</CardDescription>
-              <div className='bg-amber-500/10 text-amber-600 p-2 rounded-lg'>
-                <Icons.wrench className='size-4' />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className='text-2xl font-bold text-amber-600 tabular-nums'>
+          <div className='rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-amber-700 dark:text-amber-400'>
+              <span className='text-xs font-semibold'>في الصيانة</span>
+              <Icons.wrench className='size-4 text-amber-600 dark:text-amber-400' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight text-amber-600 dark:text-amber-400'>
                 {metrics.maintenance}
-              </p>
-              <p className='text-muted-foreground text-xs mt-1'>تحت الصيانة</p>
-            </CardContent>
-          </Card>
+              </span>
+              <span className='text-[11px] text-muted-foreground font-medium'>تحت الصيانة</span>
+            </div>
+          </div>
 
-          <Card className='shadow-xs border-destructive/30 bg-destructive/5'>
-            <CardHeader className='flex-row items-center justify-between pb-2 space-y-0'>
-              <CardDescription className='text-xs'>تحتاج غيار زيت</CardDescription>
-              <div className='bg-destructive/10 text-destructive p-2 rounded-lg'>
-                <Icons.droplet className='size-4' />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className='text-2xl font-bold text-destructive tabular-nums'>{metrics.needsOil}</p>
-              <p className='text-muted-foreground text-xs mt-1'>تجاوزت المسافة</p>
-            </CardContent>
-          </Card>
+          <div className='rounded-xl border border-destructive/20 bg-destructive/5 p-3 shadow-2xs'>
+            <div className='flex items-center justify-between text-destructive'>
+              <span className='text-xs font-semibold'>تحتاج غيار زيت</span>
+              <Icons.droplet className='size-4 text-destructive' />
+            </div>
+            <div className='mt-1.5 flex items-baseline gap-1.5'>
+              <span className='text-2xl font-bold font-mono tracking-tight text-destructive'>
+                {metrics.needsOil}
+              </span>
+              <span className='text-[11px] text-muted-foreground font-medium'>تجاوزت المسافة</span>
+            </div>
+          </div>
         </div>
 
         {/* Filters & Actions Bar */}
@@ -497,7 +490,7 @@ export default function VehiclesPage() {
                   { id: 'AVAILABLE', label: 'متاح' },
                   { id: 'IN_USE', label: 'في شفت' },
                   { id: 'MAINTENANCE', label: 'صيانة' },
-                  { id: 'NEEDS_OIL', label: 'يحتاج زيت ⚠️' }
+                  { id: 'NEEDS_OIL', label: 'يحتاج زيت' }
                 ].map((tab) => (
                   <Button
                     key={tab.id}
@@ -534,7 +527,7 @@ export default function VehiclesPage() {
                     onClick={() => setBranchFilter('0b52c83c-4a37-4950-8040-fcb00fa718b3')}
                     className='text-xs h-7 px-3 font-medium'
                   >
-                    🏢 الفرع الأول
+                    الفرع الأول
                   </Button>
                   <Button
                     variant={branchFilter === '33b1e65f-074c-4c51-af38-32e13c1fb9a6' ? 'default' : 'outline'}
@@ -542,12 +535,13 @@ export default function VehiclesPage() {
                     onClick={() => setBranchFilter('33b1e65f-074c-4c51-af38-32e13c1fb9a6')}
                     className='text-xs h-7 px-3 font-medium'
                   >
-                    🏢 الفرع الثاني
+                    الفرع الثاني
                   </Button>
                 </div>
               </div>
               <div className='text-xs text-muted-foreground flex items-center gap-1.5 font-medium'>
-                <span>🔑 الترتيب التلقائي:</span>
+                <Icons.key className='size-3.5 text-primary' />
+                <span>الترتيب التلقائي:</span>
                 <span className='text-primary font-bold'>تصاعدياً حسب أرقام المفاتيح (طبيعي)</span>
               </div>
             </div>
@@ -561,7 +555,7 @@ export default function VehiclesPage() {
               <Table>
                 <TableHeader className='bg-muted/50'>
                   <TableRow>
-                    <TableHead className='text-right w-24'>🔑 المفتاح</TableHead>
+                    <TableHead className='text-right w-24'>رقم المفتاح</TableHead>
                     <TableHead className='text-right'>رقم الدباب / اللوحة</TableHead>
                     <TableHead className='text-right'>الفرع</TableHead>
                     <TableHead className='text-right'>المندوب المعين</TableHead>
@@ -609,7 +603,7 @@ export default function VehiclesPage() {
                                 variant='outline'
                                 className='font-mono text-xs font-black bg-primary/10 text-primary border-primary/25 px-2.5 py-0.5'
                               >
-                                🔑 {vehicle.key_number}
+                                {vehicle.key_number}
                               </Badge>
                             ) : (
                               <span className='text-muted-foreground text-xs'>—</span>
@@ -638,7 +632,7 @@ export default function VehiclesPage() {
                               variant='outline'
                               className='text-xs font-semibold bg-muted/40 text-foreground border-border'
                             >
-                              🏢 {getBranchName(vehicle.branch_id)}
+                              {getBranchName(vehicle.branch_id)}
                             </Badge>
                           </TableCell>
 
@@ -926,8 +920,8 @@ export default function VehiclesPage() {
                       onChange={(e) => setBranchId(e.target.value)}
                       className='w-full'
                     >
-                      <option value='0b52c83c-4a37-4950-8040-fcb00fa718b3'>🏢 الفرع الأول</option>
-                      <option value='33b1e65f-074c-4c51-af38-32e13c1fb9a6'>🏢 الفرع الثاني</option>
+                      <option value='0b52c83c-4a37-4950-8040-fcb00fa718b3'>الفرع الأول</option>
+                      <option value='33b1e65f-074c-4c51-af38-32e13c1fb9a6'>الفرع الثاني</option>
                     </NativeSelect>
                   </div>
 
@@ -1002,7 +996,7 @@ export default function VehiclesPage() {
                   <ImageUploader
                     value={registrationImage}
                     onChange={setRegistrationImage}
-                    label='صورة استمارة الدباب / المركبة 📄'
+                    label='صورة استمارة الدباب / المركبة'
                     category='registration'
                     description='ستظهر صورة الاستمارة تلقائياً في وثائق المندوب المرتبط بهذا الدباب في التطبيق'
                   />
@@ -1111,8 +1105,8 @@ export default function VehiclesPage() {
                       onChange={(e) => setBranchId(e.target.value)}
                       className='w-full'
                     >
-                      <option value='0b52c83c-4a37-4950-8040-fcb00fa718b3'>🏢 الفرع الأول</option>
-                      <option value='33b1e65f-074c-4c51-af38-32e13c1fb9a6'>🏢 الفرع الثاني</option>
+                      <option value='0b52c83c-4a37-4950-8040-fcb00fa718b3'>الفرع الأول</option>
+                      <option value='33b1e65f-074c-4c51-af38-32e13c1fb9a6'>الفرع الثاني</option>
                     </NativeSelect>
                   </div>
 
@@ -1184,7 +1178,7 @@ export default function VehiclesPage() {
                   <ImageUploader
                     value={registrationImage}
                     onChange={setRegistrationImage}
-                    label='صورة استمارة الدباب / المركبة 📄'
+                    label='صورة استمارة الدباب / المركبة'
                     category='registration'
                     description='ستظهر صورة الاستمارة تلقائياً في وثائق المندوب المرتبط بهذا الدباب في التطبيق'
                   />
