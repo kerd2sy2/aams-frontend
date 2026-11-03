@@ -292,6 +292,7 @@ export const reportApi = {
     end_date?: string;
     employee_id?: string;
     application_id?: string;
+    status?: string;
     is_reviewed?: boolean;
     page?: number;
     limit?: number;

@@ -140,6 +140,7 @@ export default function OdometerAuditView() {
       const res = await reportApi.getReports({
         start_date: startDate,
         end_date: endDate,
+        status: 'COMPLETED',
         is_reviewed:
           statusFilter === 'pending' ? false : statusFilter === 'reviewed' ? true : undefined,
         limit: statusFilter === 'pending' ? 100 : 50
@@ -149,7 +150,11 @@ export default function OdometerAuditView() {
   });
 
   const sessions: WorkSessionDetail[] = useMemo(() => {
-    return Array.isArray(reportsData) ? reportsData : [];
+    const raw = Array.isArray(reportsData) ? reportsData : [];
+    // Only display completed sessions that have ended and have final readings
+    return raw.filter(
+      (s) => s.status === 'COMPLETED' || (Boolean(s.end_time) && s.status !== 'ACTIVE')
+    );
   }, [reportsData]);
 
   // Review & Edit mutation
@@ -547,7 +552,7 @@ export default function OdometerAuditView() {
 
                         {/* End KM & Photo */}
                         <TableCell className='text-center'>
-                          {session.status === 'COMPLETED' ? (
+                          {session.status === 'COMPLETED' || Boolean(session.end_time) ? (
                             <>
                               <div className='font-bold text-foreground font-mono'>
                                 {session.end_km.toLocaleString()} كم
@@ -769,7 +774,10 @@ export default function OdometerAuditView() {
                     referrerPolicy='no-referrer'
                     onError={(e) => {
                       const target = e.currentTarget;
-                      const directUrl = resolveAuditImageUrl(comparisonSession.start_km_image, true);
+                      const directUrl = resolveAuditImageUrl(
+                        comparisonSession.start_km_image,
+                        true
+                      );
                       if (target.src !== directUrl) {
                         target.src = directUrl;
                       }
@@ -879,9 +887,7 @@ export default function OdometerAuditView() {
               {reviewModalSession?.start_time && (
                 <>
                   <span>•</span>
-                  <span>
-                    {new Date(reviewModalSession.start_time).toLocaleDateString('ar-SA')}
-                  </span>
+                  <span>{new Date(reviewModalSession.start_time).toLocaleDateString('ar-SA')}</span>
                 </>
               )}
             </SheetDescription>
