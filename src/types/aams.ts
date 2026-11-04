@@ -347,6 +347,7 @@ export interface OilChangeCheck {
   total_distance: number;
   distance_since_oil: number;
   oil_change_interval: number;
+  interval?: number;
   vehicle_type: string;
   remaining_distance?: number;
   percentage?: number;

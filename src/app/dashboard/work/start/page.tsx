@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, type FormEvent } from 'react';
+import { useState, useMemo, useRef, useEffect, type FormEvent } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import PageContainer from '@/components/layout/page-container';
@@ -180,14 +180,23 @@ export default function StartWorkPage() {
       setStartKm(String(vehicle.current_km));
     }
 
-    // 2. Oil status
+    // 2. Oil status (strictly based on the vehicle)
     const interval = vehicle.oil_interval_km || 950;
+    // Explicitly check vehicle.needs_oil_change as calculated by fleet service
+    const needsOil =
+      typeof vehicle.needs_oil_change === 'boolean' ? vehicle.needs_oil_change : false;
+
+    const remaining =
+      typeof vehicle.remaining_oil_km === 'number'
+        ? vehicle.remaining_oil_km
+        : needsOil
+          ? 0
+          : interval;
+
     const drivenSinceOil =
-      vehicle.last_oil_change_km > 0
-        ? Math.max(0, vehicle.current_km - vehicle.last_oil_change_km)
-        : vehicle.total_distance || 0;
-    const remaining = vehicle.remaining_oil_km ?? Math.max(0, interval - drivenSinceOil);
-    const needsOil = Boolean(vehicle.needs_oil_change) || drivenSinceOil >= interval;
+      vehicle.last_oil_change_km > 0 && vehicle.current_km >= vehicle.last_oil_change_km
+        ? vehicle.current_km - vehicle.last_oil_change_km
+        : Math.max(0, interval - remaining);
 
     setOilCheck({
       needs_oil_change: needsOil,
@@ -197,13 +206,23 @@ export default function StartWorkPage() {
       vehicle_type: vehicle.vehicle_type || vehicle.type || 'motorcycle',
       remaining_distance: remaining,
       interval: interval,
-      percentage: Math.min(100, Math.round((drivenSinceOil / interval) * 100)),
+      percentage: Math.min(100, Math.round(((interval - remaining) / interval) * 100)),
       current_distance: vehicle.current_km,
       last_oil_change_distance: vehicle.last_oil_change_km || 0,
       has_active_maintenance_req: false,
       last_oil_change_date: ''
-    } as any);
+    });
   };
+
+  // Keep odometer and oil status synced with current motorcycle selection and vehicles cache
+  useEffect(() => {
+    const clean = motorcycleNumber.trim();
+    if (!clean || !allVehicles?.data?.length) return;
+    const matched = findMatchingVehicle(allVehicles.data, clean);
+    if (matched) {
+      applyVehicleState(matched);
+    }
+  }, [allVehicles?.data, motorcycleNumber]);
 
   const dispenseOilMutation = useMutation({
     mutationFn: () => {
@@ -345,14 +364,18 @@ export default function StartWorkPage() {
       return;
     }
 
-    // Instantly apply state if matched in local cache
+    // 1. Instantly apply state if matched in local cache
     const matched = findMatchingVehicle(allVehicles?.data, cleanMoto);
     if (matched) {
       applyVehicleState(matched);
+      return;
     }
 
-    // Query server for latest reading strictly for the motorcycle (no empId fallback)
-    await Promise.all([fetchLatestKm(undefined, cleanMoto), checkOilForBike(undefined, cleanMoto)]);
+    // 2. Only query server if motorcycle was not found in vehicles cache
+    await Promise.all([
+      fetchLatestKm(selectedEmployee?.id, cleanMoto),
+      checkOilForBike(selectedEmployee?.id, cleanMoto)
+    ]);
   };
 
   const selectEmployee = async (emp: Employee) => {
