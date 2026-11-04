@@ -348,6 +348,12 @@ export interface OilChangeCheck {
   distance_since_oil: number;
   oil_change_interval: number;
   vehicle_type: string;
+  remaining_distance?: number;
+  percentage?: number;
+  current_distance?: number;
+  last_oil_change_distance?: number;
+  has_active_maintenance_req?: boolean;
+  last_oil_change_date?: string;
 }
 
 export interface InvestigationResponse {

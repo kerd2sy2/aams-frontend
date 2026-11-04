@@ -42,6 +42,54 @@ function getApiErrorMessage(err: unknown, fallback: string): string {
   );
 }
 
+function normalizePlate(s: string): string {
+  if (!s) return '';
+  return s
+    .replace(/[\s\-_/\\,.]/g, '')
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .toLowerCase();
+}
+
+function findMatchingVehicle(vehicles: Vehicle[] | undefined, input: string): Vehicle | undefined {
+  if (!vehicles || !input.trim()) return undefined;
+  const raw = input.trim();
+  const digits = raw.replace(/\D/g, '');
+  const norm = normalizePlate(raw);
+
+  // 1. Exact match on plate_number or key_number
+  let found = vehicles.find(
+    (v) => v.plate_number === raw || (v.key_number && String(v.key_number).trim() === raw)
+  );
+  if (found) return found;
+
+  // 2. Normalized plate match (ignoring spaces, unified Arabic letters)
+  found = vehicles.find((v) => normalizePlate(v.plate_number) === norm);
+  if (found) return found;
+
+  // 3. Match by digits if length >= 3
+  if (digits && digits.length >= 3) {
+    found = vehicles.find((v) => {
+      const vDigits = v.plate_number.replace(/\D/g, '');
+      return vDigits === digits || (v.key_number && String(v.key_number).trim() === digits);
+    });
+    if (found) return found;
+
+    // Partial digits match (e.g. plate digits contain input digits)
+    found = vehicles.find((v) => v.plate_number.replace(/\D/g, '').includes(digits));
+    if (found) return found;
+  }
+
+  // 4. Normalized contains
+  if (norm.length >= 2) {
+    found = vehicles.find((v) => normalizePlate(v.plate_number).includes(norm));
+    if (found) return found;
+  }
+
+  return undefined;
+}
+
 export default function StartWorkPage() {
   const { t, locale, dir } = useLocale();
   const queryClient = useQueryClient();
@@ -125,6 +173,38 @@ export default function StartWorkPage() {
     });
   }, [allEmployees, allIdentifiers]);
 
+  const applyVehicleState = (vehicle: Vehicle) => {
+    // 1. Counter
+    if (vehicle.current_km > 0) {
+      setLastEndKm(vehicle.current_km);
+      setStartKm(String(vehicle.current_km));
+    }
+
+    // 2. Oil status
+    const interval = vehicle.oil_interval_km || 950;
+    const drivenSinceOil =
+      vehicle.last_oil_change_km > 0
+        ? Math.max(0, vehicle.current_km - vehicle.last_oil_change_km)
+        : vehicle.total_distance || 0;
+    const remaining = vehicle.remaining_oil_km ?? Math.max(0, interval - drivenSinceOil);
+    const needsOil = Boolean(vehicle.needs_oil_change) || drivenSinceOil >= interval;
+
+    setOilCheck({
+      needs_oil_change: needsOil,
+      total_distance: vehicle.total_distance || vehicle.current_km || 0,
+      distance_since_oil: drivenSinceOil,
+      oil_change_interval: interval,
+      vehicle_type: vehicle.vehicle_type || vehicle.type || 'motorcycle',
+      remaining_distance: remaining,
+      interval: interval,
+      percentage: Math.min(100, Math.round((drivenSinceOil / interval) * 100)),
+      current_distance: vehicle.current_km,
+      last_oil_change_distance: vehicle.last_oil_change_km || 0,
+      has_active_maintenance_req: false,
+      last_oil_change_date: ''
+    } as any);
+  };
+
   const dispenseOilMutation = useMutation({
     mutationFn: () => {
       if (!selectedEmployee) throw new Error('لا يوجد مندوب');
@@ -139,7 +219,17 @@ export default function StartWorkPage() {
     onSuccess: () => {
       const bikeLabel = motorcycleNumber.trim() || selectedEmployee?.name || '';
       toast.success(`تم صرف زيت للدباب ${bikeLabel}`);
-      checkOilForBike(selectedEmployee?.id, motorcycleNumber);
+      setOilCheck((prev) =>
+        prev
+          ? {
+              ...prev,
+              needs_oil_change: false,
+              distance_since_oil: 0,
+              remaining_distance: prev.oil_change_interval || 950
+            }
+          : null
+      );
+      checkOilForBike(undefined, motorcycleNumber);
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       queryClient.invalidateQueries({ queryKey: ['all-vehicles-cache'] });
@@ -189,41 +279,28 @@ export default function StartWorkPage() {
     const cleanMoto = (motoNumber || '').trim();
     if (!cleanMoto && !empId) return;
 
+    // 1. Immediately check local vehicle cache for fastest UI response
+    if (cleanMoto) {
+      const matched = findMatchingVehicle(allVehicles?.data, cleanMoto);
+      if (matched && matched.current_km > 0) {
+        setLastEndKm(matched.current_km);
+        setStartKm(String(matched.current_km));
+      }
+    }
+
     try {
-      // 1. Query live API first for the latest server odometer reading
-      const last = await workApi.getLastKM(empId, cleanMoto || undefined);
+      // 2. Query live server. When checking a motorcycle, never pass empId!
+      const last = await workApi.getLastKM(cleanMoto ? undefined : empId, cleanMoto || undefined);
       const apiKm = Math.max(last?.last_end_km || 0, last?.last_start_km || 0);
 
       if (apiKm > 0) {
         setLastEndKm(apiKm);
         setStartKm(String(apiKm));
-        toast.info(
-          cleanMoto
-            ? `تم جلب العداد الأحدث للدباب ${cleanMoto} (${apiKm.toLocaleString('en-US')} كم)`
-            : `تم جلب آخر عداد للموظف (${apiKm.toLocaleString('en-US')} كم)`
-        );
         return;
       }
     } catch {
-      // ignore & fallback
+      // ignore & keep local matched KM
     }
-
-    // 2. Fallback to cached allVehicles list if offline or server returned 0
-    if (cleanMoto && allVehicles?.data) {
-      const matched = allVehicles.data.find(
-        (v) => v.plate_number.toLowerCase() === cleanMoto.toLowerCase()
-      );
-      if (matched && matched.current_km > 0) {
-        setLastEndKm(matched.current_km);
-        setStartKm(String(matched.current_km));
-        toast.info(
-          `تم ضبط عداد البداية للدباب رقم ${cleanMoto} (${matched.current_km.toLocaleString('en-US')} كم)`
-        );
-        return;
-      }
-    }
-
-    setLastEndKm(null);
   };
 
   const checkOilForBike = async (empId?: string, motoNumber?: string) => {
@@ -232,12 +309,27 @@ export default function StartWorkPage() {
       setOilCheck(null);
       return;
     }
+
+    // 1. Immediately apply oil check from local vehicle cache
+    if (cleanMoto) {
+      const matched = findMatchingVehicle(allVehicles?.data, cleanMoto);
+      if (matched) {
+        applyVehicleState(matched);
+      }
+    }
+
+    // 2. Query live server for oil check (never pass empId if bike is specified)
     setCheckingOil(true);
     try {
-      const oc = await workApi.checkOilChange(empId, cleanMoto || undefined);
-      setOilCheck(oc);
+      const oc = await workApi.checkOilChange(
+        cleanMoto ? undefined : empId,
+        cleanMoto || undefined
+      );
+      if (oc) {
+        setOilCheck(oc);
+      }
     } catch {
-      setOilCheck(null);
+      // keep local vehicle oil state
     } finally {
       setCheckingOil(false);
     }
@@ -245,16 +337,22 @@ export default function StartWorkPage() {
 
   const handleMotorcycleChange = async (val: string) => {
     setMotorcycleNumber(val);
-    if (!val.trim()) {
+    const cleanMoto = val.trim();
+    if (!cleanMoto) {
       setOilCheck(null);
       setLastEndKm(null);
       setStartKm('');
       return;
     }
-    await Promise.all([
-      fetchLatestKm(selectedEmployee?.id, val),
-      checkOilForBike(selectedEmployee?.id, val)
-    ]);
+
+    // Instantly apply state if matched in local cache
+    const matched = findMatchingVehicle(allVehicles?.data, cleanMoto);
+    if (matched) {
+      applyVehicleState(matched);
+    }
+
+    // Query server for latest reading strictly for the motorcycle (no empId fallback)
+    await Promise.all([fetchLatestKm(undefined, cleanMoto), checkOilForBike(undefined, cleanMoto)]);
   };
 
   const selectEmployee = async (emp: Employee) => {
@@ -276,6 +374,7 @@ export default function StartWorkPage() {
     setNotes('');
     setLastEndKm(null);
     setStartKm('');
+    setOilCheck(null);
     autoFilledRef.current = false;
 
     try {
@@ -287,8 +386,11 @@ export default function StartWorkPage() {
       // تجاهل أخطاء عدّ الشفتات
     }
 
-    // Fetch the latest counter and oil status for the selected employee and motorcycle directly
-    await Promise.all([fetchLatestKm(emp.id, defaultMoto), checkOilForBike(emp.id, defaultMoto)]);
+    if (defaultMoto) {
+      await handleMotorcycleChange(defaultMoto);
+    } else {
+      await Promise.all([fetchLatestKm(emp.id, undefined), checkOilForBike(emp.id, undefined)]);
+    }
   };
 
   const handleSearch = async (e: FormEvent) => {
@@ -367,6 +469,8 @@ export default function StartWorkPage() {
 
   const empImageSrc = selectedEmployee?.personal_image || '';
   const oilWarningThreshold = Math.round((oilCheck?.oil_change_interval ?? 950) * 0.85);
+  const matchedBike = findMatchingVehicle(allVehicles?.data, motorcycleNumber);
+  const displayKeyNumber = matchedBike?.key_number || selectedEmployee?.key_number || '—';
 
   if (searching) return <WorkSkeleton />;
 
@@ -474,7 +578,7 @@ export default function StartWorkPage() {
                       {t('رقم المفتاح')}
                     </span>
                     <span className='text-foreground font-mono text-base font-bold'>
-                      {selectedEmployee.key_number || '—'}
+                      {displayKeyNumber}
                     </span>
                   </div>
 
@@ -501,20 +605,17 @@ export default function StartWorkPage() {
                       />
                       {allVehicles?.data && allVehicles.data.length > 0 && (
                         <NativeSelect
-                          value={
-                            allVehicles.data.some((v) => v.plate_number === motorcycleNumber)
-                              ? motorcycleNumber
-                              : ''
-                          }
+                          value={matchedBike?.plate_number || ''}
                           onChange={(e) => {
                             if (e.target.value) handleMotorcycleChange(e.target.value);
                           }}
-                          className='h-8 w-24 shrink-0 text-[11px]'
+                          className='h-8 w-28 shrink-0 text-[11px]'
                         >
-                          <option value=''>{t('Select Branch')}</option>
+                          <option value=''>اختر دباب...</option>
                           {allVehicles.data.map((v) => (
                             <option key={v.id} value={v.plate_number}>
-                              {v.plate_number} ({v.current_km} {t('KM')})
+                              {v.key_number ? `مفتاح ${v.key_number} | ` : ''}
+                              {v.plate_number} ({v.current_km} كم)
                             </option>
                           ))}
                         </NativeSelect>
@@ -530,23 +631,30 @@ export default function StartWorkPage() {
                   ) : oilCheck ? (
                     <div
                       className={cn(
-                        'flex flex-col items-center gap-1 rounded-xl border p-3 text-center',
+                        'flex flex-col items-center gap-1 rounded-xl border p-3 text-center transition-colors',
                         oilCheck.needs_oil_change
                           ? 'bg-destructive/10 border-destructive/30'
                           : oilCheck.distance_since_oil >= oilWarningThreshold
                             ? 'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950/20'
-                            : 'bg-muted/50'
+                            : 'bg-emerald-500/10 border-emerald-500/25'
                       )}
                     >
                       {oilCheck.needs_oil_change ? (
                         <Icons.warning className='text-destructive size-4' />
                       ) : (
-                        <Icons.circleCheck className='text-muted-foreground size-4' />
+                        <Icons.circleCheck className='text-emerald-600 dark:text-emerald-400 size-4' />
                       )}
                       <span className='text-muted-foreground text-[10px] font-medium'>
                         حالة الزيت
                       </span>
-                      <span className='text-xs font-semibold'>
+                      <span
+                        className={cn(
+                          'text-xs font-semibold',
+                          oilCheck.needs_oil_change
+                            ? 'text-destructive'
+                            : 'text-emerald-700 dark:text-emerald-400'
+                        )}
+                      >
                         {oilCheck.needs_oil_change
                           ? 'يحتاج تغيير'
                           : oilCheck.distance_since_oil >= oilWarningThreshold
@@ -554,7 +662,16 @@ export default function StartWorkPage() {
                             : 'جيدة'}
                       </span>
                       <span className='text-muted-foreground font-mono text-[10px]'>
-                        {oilCheck.distance_since_oil} كم
+                        {oilCheck.needs_oil_change
+                          ? `${oilCheck.distance_since_oil.toLocaleString('en-US')} كم`
+                          : `باقي ${Math.round(
+                              oilCheck.remaining_distance ??
+                                Math.max(
+                                  0,
+                                  (oilCheck.oil_change_interval || 950) -
+                                    oilCheck.distance_since_oil
+                                )
+                            ).toLocaleString('en-US')} كم`}
                       </span>
                       {oilCheck.needs_oil_change && (
                         <Button
