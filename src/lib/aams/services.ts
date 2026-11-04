@@ -269,9 +269,12 @@ export const workApi = {
     const res = await apiClient.get<WorkSession>(`/work/sessions/${sessionId}`);
     return res.data;
   },
-  checkOilChange: async (employee_id: string) => {
+  checkOilChange: async (employee_id?: string, motorcycle_number?: string) => {
+    const params: Record<string, string> = {};
+    if (employee_id) params.employee_id = employee_id;
+    if (motorcycle_number) params.motorcycle_number = motorcycle_number;
     const res = await apiClient.get<OilChangeCheck>('/work/check-oil', {
-      params: { employee_id }
+      params
     });
     return res.data;
   }

@@ -128,12 +128,21 @@ export default function StartWorkPage() {
   const dispenseOilMutation = useMutation({
     mutationFn: () => {
       if (!selectedEmployee) throw new Error('لا يوجد مندوب');
-      return inventoryApi.dispenseOil({ employee_id: selectedEmployee.id, quantity: 1 });
+      const kmNum = Number(startKm) || lastEndKm || 0;
+      return inventoryApi.dispenseOil({
+        employee_id: selectedEmployee.id,
+        plate_number: motorcycleNumber.trim() || undefined,
+        current_km: kmNum > 0 ? kmNum : undefined,
+        quantity: 1
+      });
     },
     onSuccess: () => {
-      toast.success(`تم صرف زيت للمندوب ${selectedEmployee?.name ?? ''}`);
-      setOilCheck(null);
+      const bikeLabel = motorcycleNumber.trim() || selectedEmployee?.name || '';
+      toast.success(`تم صرف زيت للدباب ${bikeLabel}`);
+      checkOilForBike(selectedEmployee?.id, motorcycleNumber);
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['all-vehicles-cache'] });
     },
     onError: (err: unknown) => {
       toast.error(getApiErrorMessage(err, 'فشل صرف الزيت'));
@@ -217,10 +226,35 @@ export default function StartWorkPage() {
     setLastEndKm(null);
   };
 
+  const checkOilForBike = async (empId?: string, motoNumber?: string) => {
+    const cleanMoto = (motoNumber || '').trim();
+    if (!cleanMoto && !empId) {
+      setOilCheck(null);
+      return;
+    }
+    setCheckingOil(true);
+    try {
+      const oc = await workApi.checkOilChange(empId, cleanMoto || undefined);
+      setOilCheck(oc);
+    } catch {
+      setOilCheck(null);
+    } finally {
+      setCheckingOil(false);
+    }
+  };
+
   const handleMotorcycleChange = async (val: string) => {
     setMotorcycleNumber(val);
-    if (!val.trim()) return;
-    await fetchLatestKm(selectedEmployee?.id, val);
+    if (!val.trim()) {
+      setOilCheck(null);
+      setLastEndKm(null);
+      setStartKm('');
+      return;
+    }
+    await Promise.all([
+      fetchLatestKm(selectedEmployee?.id, val),
+      checkOilForBike(selectedEmployee?.id, val)
+    ]);
   };
 
   const selectEmployee = async (emp: Employee) => {
@@ -253,18 +287,8 @@ export default function StartWorkPage() {
       // تجاهل أخطاء عدّ الشفتات
     }
 
-    setCheckingOil(true);
-    try {
-      const oc = await workApi.checkOilChange(emp.id);
-      setOilCheck(oc);
-    } catch {
-      setOilCheck(null);
-    } finally {
-      setCheckingOil(false);
-    }
-
-    // Fetch the latest counter for the selected employee and motorcycle directly
-    await fetchLatestKm(emp.id, defaultMoto);
+    // Fetch the latest counter and oil status for the selected employee and motorcycle directly
+    await Promise.all([fetchLatestKm(emp.id, defaultMoto), checkOilForBike(emp.id, defaultMoto)]);
   };
 
   const handleSearch = async (e: FormEvent) => {
