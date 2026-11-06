@@ -15,6 +15,7 @@ export const navGroups: NavGroup[] = [
         url: '#',
         icon: 'play',
         items: [
+          { title: 'Manual Orders Entry', url: '/dashboard/work/manual-entry' },
           { title: 'Start Work', url: '/dashboard/work/start', permission: 'work.start' },
           { title: 'End Work', url: '/dashboard/work/end', permission: 'work.end' },
           {
@@ -23,6 +24,13 @@ export const navGroups: NavGroup[] = [
             permission: 'work.view'
           }
         ]
+      },
+
+      // 2b. تسجيل طلبات المناديب (يدوي)
+      {
+        title: 'Manual Orders Entry',
+        url: '/dashboard/work/manual-entry',
+        icon: 'clipboardList'
       },
 
       // 3. المعرفات

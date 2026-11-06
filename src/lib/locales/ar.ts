@@ -23,6 +23,7 @@ const ar: Record<string, string> = {
   Today: 'اليوم',
   Work: 'الدوام',
   'Work Sessions': 'جلسات العمل والورديات',
+  'Manual Orders Entry': 'تسجيل طلبات المناديب (يدوي)',
   'Start Work': 'بدء الدوام',
   'End Work': 'إنهاء الدوام',
   'Odometer Audits': 'مراجعة وتدقيق العدادات',

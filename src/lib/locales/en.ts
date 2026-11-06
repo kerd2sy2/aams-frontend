@@ -17,6 +17,7 @@ const en: Record<string, string> = {
   OTP: 'OTP',
   Work: 'Work',
   'Work Sessions': 'Work Sessions',
+  'Manual Orders Entry': 'Manual Orders Entry',
   'Start Work': 'Start Work',
   'End Work': 'End Work',
   'Odometer Audits': 'Odometer Audits',

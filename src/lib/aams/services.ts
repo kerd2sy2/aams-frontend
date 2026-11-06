@@ -277,6 +277,26 @@ export const workApi = {
       params
     });
     return res.data;
+  },
+  saveManualEntries: async (data: {
+    employee_id: string;
+    entries: Array<{
+      date: string;
+      orders_count: number;
+      distance: number;
+      fuel_cost: number;
+      start_km?: number;
+      end_km?: number;
+      application_type?: string;
+      notes?: string;
+    }>;
+  }) => {
+    const res = await apiClient.post<{
+      message: string;
+      data: WorkSession[];
+      count: number;
+    }>('/work/manual-entry', data);
+    return res.data;
   }
 };
 
