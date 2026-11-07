@@ -83,6 +83,14 @@ export default function EmployeesPage() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const { t, dir } = useLocale();
+
+  const handleNavigateToEmployee = (empId: string) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('employees_scroll_y', window.scrollY.toString());
+    }
+    router.push(`/dashboard/employees/${empId}`);
+  };
+
   const [search, setSearch] = useState('');
   const [selectedDept, setSelectedDept] = useState<DepartmentFilter>('ALL');
   const [selectedBranch, setSelectedBranch] = useState<string>('ALL');
@@ -173,6 +181,19 @@ export default function EmployeesPage() {
   });
 
   const allEmployees = data?.data ?? [];
+
+  // Restore scroll position when returning from employee details
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const savedScroll = sessionStorage.getItem('employees_scroll_y');
+    if (savedScroll && allEmployees.length > 0) {
+      const y = parseInt(savedScroll, 10);
+      const timer = setTimeout(() => {
+        window.scrollTo({ top: y, behavior: 'instant' });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [allEmployees.length]);
 
   // Branch counts for filter
   const branchCounts = useMemo(() => {
@@ -571,6 +592,7 @@ export default function EmployeesPage() {
                             <TableHead className='text-center text-xs'>الفرع</TableHead>
                             <TableHead className='text-center text-xs'>القسم والوظيفة</TableHead>
                             <TableHead className='text-center text-xs'>الهوية الوطنية</TableHead>
+                            <TableHead className='text-center text-xs'>المعرف</TableHead>
                             <TableHead className='text-center text-xs'>الصلاحيات</TableHead>
                             <TableHead className='text-center text-xs'>المركبة / المفتاح</TableHead>
                             <TableHead className='text-center text-xs'>الوردية</TableHead>
@@ -585,7 +607,7 @@ export default function EmployeesPage() {
                               <TableRow
                                 key={emp.id}
                                 className='group cursor-pointer hover:bg-primary/5 transition-colors'
-                                onClick={() => router.push(`/dashboard/employees/${emp.id}`)}
+                                onClick={() => handleNavigateToEmployee(emp.id)}
                               >
                                 <TableCell className='text-center text-muted-foreground font-mono text-xs w-12'>
                                   {idx + 1}
@@ -626,6 +648,22 @@ export default function EmployeesPage() {
 
                                 <TableCell className='text-center font-mono tabular-nums text-xs font-semibold'>
                                   {emp.national_id || '—'}
+                                </TableCell>
+
+                                <TableCell className='text-center'>
+                                  {emp.application_id ? (
+                                    <div className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/60 border border-border/60 text-xs font-mono font-bold text-foreground'>
+                                      <span className='size-1.5 rounded-full bg-primary' />
+                                      <span>{emp.application_id}</span>
+                                      {emp.application_type && (
+                                        <span className='text-[10px] text-muted-foreground uppercase font-sans'>
+                                          ({emp.application_type})
+                                        </span>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span className='text-muted-foreground text-xs'>—</span>
+                                  )}
                                 </TableCell>
 
                                 <TableCell className='text-center'>
@@ -1050,7 +1088,12 @@ function EmployeeMobileCard({
   return (
     <Card
       className='cursor-pointer p-3.5 hover:bg-primary/5 transition-colors border shadow-2xs'
-      onClick={() => router.push(`/dashboard/employees/${emp.id}`)}
+      onClick={() => {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('employees_scroll_y', window.scrollY.toString());
+        }
+        router.push(`/dashboard/employees/${emp.id}`);
+      }}
     >
       <div className='flex items-start gap-3'>
         <span className='text-muted-foreground font-mono text-xs pt-2.5 w-5 shrink-0 text-center'>
@@ -1078,6 +1121,17 @@ function EmployeeMobileCard({
             <span className='font-mono tabular-nums font-bold text-foreground'>
               {emp.national_id}
             </span>
+            {emp.application_id && (
+              <span className='inline-flex items-center gap-1 font-mono text-xs font-bold bg-muted/60 px-2 py-0.5 rounded border border-border/60 text-foreground'>
+                <span className='text-[10px] text-muted-foreground font-sans'>المعرف:</span>
+                {emp.application_id}
+                {emp.application_type && (
+                  <span className='text-[10px] text-muted-foreground uppercase font-sans'>
+                    ({emp.application_type})
+                  </span>
+                )}
+              </span>
+            )}
             {phoneNum && (
               <span className='font-mono tabular-nums text-foreground/90' dir='ltr'>
                 {phoneNum}

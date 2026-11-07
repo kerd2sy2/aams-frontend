@@ -238,7 +238,13 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
               <Button
                 variant='outline'
                 size='sm'
-                onClick={() => router.push('/dashboard/employees')}
+                onClick={() => {
+                  if (typeof window !== 'undefined' && window.history.length > 1) {
+                    router.back();
+                  } else {
+                    router.push('/dashboard/employees');
+                  }
+                }}
                 className='gap-1.5'
               >
                 <ArrowRight className='size-4' />
@@ -256,25 +262,6 @@ export default function EmployeeDetailsPage({ params }: { params: Promise<{ id: 
                   </Button>
                 </a>
               )}
-              <Link href={`/dashboard/employees/${id}/card`}>
-                <Button variant='outline' size='sm' className='gap-1.5'>
-                  <Printer className='size-4' />
-                  طباعة البطاقة
-                </Button>
-              </Link>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={() => {
-                  setNewPassword('');
-                  setShowPassword(false);
-                  setPasswordModalOpen(true);
-                }}
-                className='gap-1.5 border-primary/30 text-primary hover:bg-primary/10'
-              >
-                <KeyRound className='size-4' />
-                تغيير كلمة المرور
-              </Button>
               <Link href={`/dashboard/employees/${id}/edit`}>
                 <Button size='sm' className='gap-1.5 font-bold shadow-xs'>
                   <Edit className='size-4' />
