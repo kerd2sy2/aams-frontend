@@ -81,7 +81,7 @@ function formatStat(stat: StatConfig, stats?: DashboardResponse, locale: string 
     return n % 1 === 0 ? String(n) : n.toFixed(1);
   }
   if (stat.key === 'today_fuel_cost') {
-    return n.toFixed(2);
+    return String(Math.round(n));
   }
   return n.toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US');
 }
