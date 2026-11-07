@@ -59,8 +59,17 @@ async function downloadExcelFile(url: string, filename: string): Promise<void> {
   URL.revokeObjectURL(objectUrl);
 }
 
+function getInitialReportDate(): string {
+  const now = new Date();
+  if (now.getHours() < 10) {
+    const y = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    return formatDateInput(y);
+  }
+  return formatDateInput(now);
+}
+
 export default function DailyReportPage() {
-  const [selectedDate, setSelectedDate] = useState<string>(() => formatDateInput(new Date()));
+  const [selectedDate, setSelectedDate] = useState<string>(() => getInitialReportDate());
   const [isDownloading, setIsDownloading] = useState(false);
 
   const { data, isLoading, isFetching } = useQuery<DailyReportResponse>({
