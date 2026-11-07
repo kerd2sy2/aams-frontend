@@ -230,9 +230,43 @@ export default function EmployeesPage() {
     return counts;
   }, [allEmployees]);
 
+  // Helper to compare key numbers numerically (e.g. 1, 2, ... 10, 11) with empty keys last
+  const compareKeys = (a?: string | null, b?: string | null): number => {
+    const cleanA = (a || '').trim();
+    const cleanB = (b || '').trim();
+
+    if (!cleanA && !cleanB) return 0;
+    if (!cleanA) return 1;
+    if (!cleanB) return -1;
+
+    const numA = parseInt(cleanA.replace(/\D/g, ''), 10);
+    const numB = parseInt(cleanB.replace(/\D/g, ''), 10);
+
+    const hasNumA = !isNaN(numA);
+    const hasNumB = !isNaN(numB);
+
+    if (hasNumA && hasNumB) {
+      if (numA !== numB) {
+        return numA - numB;
+      }
+      return cleanA.localeCompare(cleanB, undefined, { numeric: true, sensitivity: 'base' });
+    }
+
+    if (hasNumA && !hasNumB) return -1;
+    if (!hasNumA && hasNumB) return 1;
+
+    return cleanA.localeCompare(cleanB, undefined, { numeric: true, sensitivity: 'base' });
+  };
+
+  const sortEmployeesByKey = (a: Employee, b: Employee): number => {
+    const keyComp = compareKeys(a.key_number, b.key_number);
+    if (keyComp !== 0) return keyComp;
+    return (a.name || '').localeCompare(b.name || '', 'ar');
+  };
+
   // Filter employees by selected department and branch
   const filteredEmployees = useMemo(() => {
-    return allEmployees.filter((emp) => {
+    const list = allEmployees.filter((emp) => {
       // Branch filter
       if (selectedBranch !== 'ALL') {
         const bId = emp.branch?.id || emp.branch_id || 'unassigned';
@@ -253,6 +287,8 @@ export default function EmployeesPage() {
         );
       return true;
     });
+
+    return list.sort(sortEmployeesByKey);
   }, [allEmployees, selectedDept, selectedBranch]);
 
   // Group filtered employees by branch
@@ -284,13 +320,18 @@ export default function EmployeesPage() {
       map.get(branchId)!.employees.push(emp);
     });
 
-    return Array.from(map.values()).sort((a, b) => {
-      if (a.id === 'unassigned') return 1;
-      if (b.id === 'unassigned') return -1;
-      if (a.name.includes('الأول')) return -1;
-      if (b.name.includes('الأول')) return 1;
-      return a.name.localeCompare(b.name, 'ar');
-    });
+    return Array.from(map.values())
+      .map((g) => ({
+        ...g,
+        employees: [...g.employees].sort(sortEmployeesByKey)
+      }))
+      .sort((a, b) => {
+        if (a.id === 'unassigned') return 1;
+        if (b.id === 'unassigned') return -1;
+        if (a.name.includes('الأول')) return -1;
+        if (b.name.includes('الأول')) return 1;
+        return a.name.localeCompare(b.name, 'ar');
+      });
   }, [filteredEmployees, branchMap]);
 
   const [openBranchIds, setOpenBranchIds] = useState<string[]>([]);
@@ -594,7 +635,7 @@ export default function EmployeesPage() {
                             <TableHead className='text-center text-xs'>الهوية الوطنية</TableHead>
                             <TableHead className='text-center text-xs'>المعرف</TableHead>
                             <TableHead className='text-center text-xs'>الصلاحيات</TableHead>
-                            <TableHead className='text-center text-xs'>المركبة / المفتاح</TableHead>
+                            <TableHead className='text-center text-xs'>المفتاح / المركبة</TableHead>
                             <TableHead className='text-center text-xs'>الوردية</TableHead>
                             <TableHead className='text-center text-xs'>الإجراءات</TableHead>
                           </TableRow>
@@ -671,11 +712,19 @@ export default function EmployeesPage() {
                                 </TableCell>
 
                                 <TableCell className='text-center font-mono tabular-nums text-xs font-medium'>
-                                  {emp.motorcycle_number ? (
-                                    <span className='font-bold text-foreground'>
-                                      {emp.motorcycle_number}
-                                      {emp.key_number && ` (مفتاح ${emp.key_number})`}
-                                    </span>
+                                  {emp.key_number || emp.motorcycle_number ? (
+                                    <div className='flex flex-col items-center justify-center gap-1'>
+                                      {emp.key_number && (
+                                        <span className='inline-flex items-center gap-1 font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md text-[11px]'>
+                                          مفتاح {emp.key_number}
+                                        </span>
+                                      )}
+                                      {emp.motorcycle_number && (
+                                        <span className='text-muted-foreground text-[11px] font-semibold'>
+                                          {emp.motorcycle_number}
+                                        </span>
+                                      )}
+                                    </div>
                                   ) : (
                                     <span className='text-muted-foreground'>—</span>
                                   )}
@@ -1137,9 +1186,16 @@ function EmployeeMobileCard({
                 {phoneNum}
               </span>
             )}
-            {emp.motorcycle_number && (
-              <span className='font-mono tabular-nums font-semibold text-foreground'>
-                {emp.motorcycle_number}
+            {(emp.key_number || emp.motorcycle_number) && (
+              <span className='inline-flex items-center gap-1 font-mono text-xs font-bold bg-muted/60 px-2 py-0.5 rounded border border-border/60 text-foreground'>
+                {emp.key_number && (
+                  <span className='text-primary font-bold'>مفتاح {emp.key_number}</span>
+                )}
+                {emp.motorcycle_number && (
+                  <span className={emp.key_number ? 'text-muted-foreground text-[11px]' : ''}>
+                    {emp.motorcycle_number}
+                  </span>
+                )}
               </span>
             )}
           </div>
