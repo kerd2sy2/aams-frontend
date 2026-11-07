@@ -26,3 +26,29 @@ export function getTodayRiyadh(): string {
   return dateFnsFormat(tzDate, 'yyyy-MM-dd');
 }
 
+/**
+ * Returns the operational date range for delivery shifts.
+ * The operational day cut-off is 10:00 AM (Riyadh timezone).
+ * Before 10:00 AM: belongs to yesterday's cycle, so it returns yesterday as start and today as end.
+ * From 10:00 AM onwards: returns today.
+ */
+export function getOperationalDateRange(): { startDate: string; endDate: string } {
+  const now = new Date();
+  const tzDate = new TZDate(now, RIYADH_TZ);
+  const hours = tzDate.getHours();
+
+  if (hours < 10) {
+    const yesterday = new Date(tzDate);
+    yesterday.setDate(yesterday.getDate() - 1);
+    return {
+      startDate: dateFnsFormat(yesterday, 'yyyy-MM-dd'),
+      endDate: dateFnsFormat(tzDate, 'yyyy-MM-dd')
+    };
+  }
+
+  const todayStr = dateFnsFormat(tzDate, 'yyyy-MM-dd');
+  return {
+    startDate: todayStr,
+    endDate: todayStr
+  };
+}

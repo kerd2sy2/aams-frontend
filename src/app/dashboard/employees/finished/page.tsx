@@ -21,23 +21,24 @@ import {
 import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/layout/page-header';
 import PageContainer from '@/components/layout/page-container';
-import { formatRiyadh } from '@/lib/aams/riyadh-time';
+import { formatRiyadh, getOperationalDateRange } from '@/lib/aams/riyadh-time';
 import { Eye, CheckCircle2, FileText, ArrowLeft, Navigation, Package, Fuel } from 'lucide-react';
 
 import { useLocale } from '@/components/layout/locale-provider';
 
-function getTodayStr() {
-  return formatRiyadh(new Date(), 'yyyy-MM-dd');
-}
-
 export default function FinishedEmployeesPage() {
   const router = useRouter();
   const { t, locale, dir } = useLocale();
-  const today = getTodayStr();
+  const dateRange = useMemo(() => getOperationalDateRange(), []);
 
   const { data, isLoading } = useOfflineQuery({
-    queryKey: ['employees-finished', today],
-    queryFn: () => reportApi.getReports({ start_date: today, end_date: today, limit: 200 }),
+    queryKey: ['employees-finished', dateRange.startDate, dateRange.endDate],
+    queryFn: () =>
+      reportApi.getReports({
+        start_date: dateRange.startDate,
+        end_date: dateRange.endDate,
+        limit: 200
+      }),
     staleTime: 1000 * 60,
     refetchOnMount: true,
     cacheKey: 'employees_finished'
