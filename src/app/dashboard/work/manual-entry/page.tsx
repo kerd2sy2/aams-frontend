@@ -95,6 +95,74 @@ function extractSessionDateKey(s: WorkSessionDetail): string {
   }
 }
 
+function parseKeyNumber(keyStr?: string | null): number | null {
+  if (!keyStr) return null;
+  const match = String(keyStr).match(/\d+/);
+  if (match) {
+    const n = parseInt(match[0], 10);
+    return isNaN(n) ? null : n;
+  }
+  return null;
+}
+
+function compareEmployeesByKey(a: Employee, b: Employee): number {
+  const keyA = parseKeyNumber(a.key_number);
+  const keyB = parseKeyNumber(b.key_number);
+
+  if (keyA !== null && keyB !== null) {
+    if (keyA !== keyB) return keyA - keyB;
+    return (a.name || '').localeCompare(b.name || '', 'ar');
+  }
+  if (keyA !== null && keyB === null) return -1;
+  if (keyA === null && keyB !== null) return 1;
+
+  return (a.name || '').localeCompare(b.name || '', 'ar');
+}
+
+function generateMonthRows(
+  monthStr: string,
+  sessionsMap?: Map<string, WorkSessionDetail[]>
+): EntryRow[] {
+  const [y, m] = monthStr.split('-').map(Number);
+  if (!y || !m) return [];
+
+  const now = new Date();
+  const currentY = now.getFullYear();
+  const currentM = now.getMonth() + 1;
+  const currentD = now.getDate();
+
+  let targetEndDay: number;
+  if (y === currentY && m === currentM) {
+    // الشهر الحالي: العرض حتى اليوم السابق لليوم الحالي (مثلاً اليوم 16 يعرض حتى 15، اليوم 9 يعرض حتى 8)
+    targetEndDay = Math.max(1, currentD - 1);
+  } else if (y < currentY || (y === currentY && m < currentM)) {
+    // شهر سابق: عرض جميع أيام الشهر
+    targetEndDay = new Date(y, m, 0).getDate();
+  } else {
+    // شهر مستقبلي: يوم واحد كبداية
+    targetEndDay = 1;
+  }
+
+  const generatedRows: EntryRow[] = [];
+  for (let d = 1; d <= targetEndDay; d++) {
+    const dateKey = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const existingList = sessionsMap?.get(dateKey);
+    const existing =
+      existingList && existingList.length > 0 ? existingList[existingList.length - 1] : null;
+
+    generatedRows.push({
+      id: `row-${dateKey}-${d}`,
+      date: dateKey,
+      orders_count: existing ? String(existing.orders_count ?? 0) : '',
+      distance: existing ? String(existing.distance ?? 0) : '',
+      fuel_cost: existing ? String(existing.fuel_cost ?? 0) : '',
+      notes: existing?.notes || ''
+    });
+  }
+
+  return generatedRows;
+}
+
 export default function ManualOrdersEntryPage() {
   const { dir } = useLocale();
   const queryClient = useQueryClient();
@@ -108,17 +176,8 @@ export default function ManualOrdersEntryPage() {
 
   const [rows, setRows] = useState<EntryRow[]>(() => {
     const now = new Date();
-    const firstDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-    return [
-      {
-        id: 'row-1',
-        date: firstDay,
-        orders_count: '',
-        distance: '',
-        fuel_cost: '',
-        notes: ''
-      }
-    ];
+    const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    return generateMonthRows(currentMonthStr);
   });
 
   // 1. Fetch all employees for fast search
@@ -133,26 +192,26 @@ export default function ManualOrdersEntryPage() {
 
   const allEmployees = useMemo(() => {
     const list = employeesRes?.data || (Array.isArray(employeesRes) ? employeesRes : []);
-    return list.filter((e: Employee) => {
-      const role = String(e.job_role || '').toUpperCase();
-      return !role.includes('ADMIN');
-    });
+    return list
+      .filter((e: Employee) => {
+        const role = String(e.job_role || '').toUpperCase();
+        return !role.includes('ADMIN');
+      })
+      .sort(compareEmployeesByKey);
   }, [employeesRes]);
 
   const filteredEmployees = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
-    if (!q) return allEmployees.slice(0, 12);
-    return allEmployees
-      .filter(
-        (e) =>
-          (e.name && e.name.toLowerCase().includes(q)) ||
-          (e.national_id && String(e.national_id).includes(q)) ||
-          (e.phone && String(e.phone).includes(q)) ||
-          (e.motorcycle_number && e.motorcycle_number.toLowerCase().includes(q)) ||
-          (e.key_number && String(e.key_number).toLowerCase().includes(q)) ||
-          (e.employee_number && String(e.employee_number).toLowerCase().includes(q))
-      )
-      .slice(0, 15);
+    if (!q) return allEmployees;
+    return allEmployees.filter(
+      (e) =>
+        (e.name && e.name.toLowerCase().includes(q)) ||
+        (e.national_id && String(e.national_id).includes(q)) ||
+        (e.phone && String(e.phone).includes(q)) ||
+        (e.motorcycle_number && e.motorcycle_number.toLowerCase().includes(q)) ||
+        (e.key_number && String(e.key_number).toLowerCase().includes(q)) ||
+        (e.employee_number && String(e.employee_number).toLowerCase().includes(q))
+    );
   }, [allEmployees, searchTerm]);
 
   // 2. Fetch existing recorded sessions for the selected employee
@@ -211,7 +270,8 @@ export default function ManualOrdersEntryPage() {
   // Pre-fill existing values when a row's date matches an already recorded day
   const handleDateChange = (rowId: string, newDate: string) => {
     const existingList = sessionsByDate.get(newDate);
-    const existing = existingList && existingList.length > 0 ? existingList[existingList.length - 1] : null;
+    const existing =
+      existingList && existingList.length > 0 ? existingList[existingList.length - 1] : null;
 
     setRows((prev) =>
       prev.map((r) => {
@@ -343,11 +403,14 @@ export default function ManualOrdersEntryPage() {
     toast.info(`تم تحميل بيانات يوم ${dateKey} للتعديل`);
   };
 
-  // When selecting a new employee, automatically check if row 1's date has recorded data
+  // When selecting an employee or when session history finishes loading:
   useEffect(() => {
     if (!selectedEmployee) return;
-    setRows((prev) =>
-      prev.map((r) => {
+    setRows((prev) => {
+      if (prev.length === 0 || !prev[0]?.date.startsWith(selectedMonth)) {
+        return generateMonthRows(selectedMonth, sessionsByDate);
+      }
+      return prev.map((r) => {
         const existingList = sessionsByDate.get(r.date);
         const existing =
           existingList && existingList.length > 0 ? existingList[existingList.length - 1] : null;
@@ -361,9 +424,14 @@ export default function ManualOrdersEntryPage() {
           };
         }
         return r;
-      })
-    );
-  }, [selectedEmployee, sessionsByDate]);
+      });
+    });
+  }, [selectedEmployee, sessionsByDate, selectedMonth]);
+
+  const handleSelectEmployee = (emp: Employee) => {
+    setSelectedEmployee(emp);
+    setRows(generateMonthRows(selectedMonth, sessionsByDate));
+  };
 
   // Save Mutation
   const saveMutation = useMutation({
@@ -374,9 +442,7 @@ export default function ManualOrdersEntryPage() {
         .filter(
           (r) =>
             r.date &&
-            (r.orders_count.trim() !== '' ||
-              r.distance.trim() !== '' ||
-              r.fuel_cost.trim() !== '')
+            (r.orders_count.trim() !== '' || r.distance.trim() !== '' || r.fuel_cost.trim() !== '')
         )
         .map((r) => ({
           date: r.date,
@@ -464,7 +530,8 @@ export default function ManualOrdersEntryPage() {
               1. اختر المندوب
             </CardTitle>
             <CardDescription className='text-xs'>
-              ابحث باسم المندوب، رقم الهوية، رقم الجوال، رقم اللوحة، أو رقم المفتاح لعرض سجله وإضافة أيام عمل جديدة
+              ابحث باسم المندوب، رقم الهوية، رقم الجوال، رقم اللوحة، أو رقم المفتاح لعرض سجله وإضافة
+              أيام عمل جديدة
             </CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
@@ -491,16 +558,7 @@ export default function ManualOrdersEntryPage() {
                     const val = e.target.value;
                     if (val) {
                       setSelectedMonth(val);
-                      setRows([
-                        {
-                          id: `row-${Date.now()}`,
-                          date: `${val}-01`,
-                          orders_count: '',
-                          distance: '',
-                          fuel_cost: '',
-                          notes: ''
-                        }
-                      ]);
+                      setRows(generateMonthRows(val, sessionsByDate));
                     }
                   }}
                   className='w-[165px] font-mono text-sm'
@@ -513,7 +571,10 @@ export default function ManualOrdersEntryPage() {
               <div className='bg-primary/5 border-primary/30 flex flex-wrap items-center justify-between gap-4 rounded-xl border p-3.5'>
                 <div className='flex items-center gap-3'>
                   <Avatar className='border-primary/20 size-12 border'>
-                    <AvatarImage src={selectedEmployee.personal_image} alt={selectedEmployee.name} />
+                    <AvatarImage
+                      src={selectedEmployee.personal_image}
+                      alt={selectedEmployee.name}
+                    />
                     <AvatarFallback className='bg-primary/10 text-primary font-bold'>
                       {selectedEmployee.name?.slice(0, 2)}
                     </AvatarFallback>
@@ -543,7 +604,12 @@ export default function ManualOrdersEntryPage() {
                         </span>
                       )}
                       {selectedEmployee.key_number && (
-                        <span>المفتاح: #{selectedEmployee.key_number}</span>
+                        <Badge
+                          variant='outline'
+                          className='font-mono font-bold text-primary border-primary/40'
+                        >
+                          مفتاح #{selectedEmployee.key_number}
+                        </Badge>
                       )}
                     </div>
                   </div>
@@ -561,8 +627,8 @@ export default function ManualOrdersEntryPage() {
                 </Button>
               </div>
             ) : (
-              /* Employee Quick Selection Grid */
-              <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+              /* Employee Quick Selection Grid — Ordered by Key Number */
+              <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 max-h-[380px] overflow-y-auto p-1'>
                 {isLoadingEmployees ? (
                   <p className='text-muted-foreground col-span-full py-4 text-center text-xs'>
                     جاري تحميل قائمة المناديب...
@@ -576,22 +642,33 @@ export default function ManualOrdersEntryPage() {
                     <button
                       key={emp.id}
                       type='button'
-                      onClick={() => setSelectedEmployee(emp)}
-                      className='hover:border-primary/50 hover:bg-muted/50 flex items-center gap-2.5 rounded-xl border p-2.5 text-start transition-all'
+                      onClick={() => handleSelectEmployee(emp)}
+                      className='hover:border-primary/50 hover:bg-muted/50 flex items-center justify-between gap-2.5 rounded-xl border p-2.5 text-start transition-all'
                     >
-                      <Avatar className='size-9 shrink-0'>
-                        <AvatarImage src={emp.personal_image} alt={emp.name} />
-                        <AvatarFallback className='text-xs font-bold'>
-                          {emp.name?.slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className='min-w-0 flex-1'>
-                        <p className='truncate text-sm font-bold'>{emp.name}</p>
-                        <p className='text-muted-foreground truncate text-xs'>
-                          {emp.national_id || emp.phone || '—'}
-                          {emp.motorcycle_number ? ` • ${emp.motorcycle_number}` : ''}
-                        </p>
+                      <div className='flex items-center gap-2.5 min-w-0 flex-1'>
+                        <Avatar className='size-9 shrink-0'>
+                          <AvatarImage src={emp.personal_image} alt={emp.name} />
+                          <AvatarFallback className='text-xs font-bold'>
+                            {emp.name?.slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className='min-w-0 flex-1'>
+                          <p className='truncate text-sm font-bold'>{emp.name}</p>
+                          <p className='text-muted-foreground truncate text-xs'>
+                            {emp.motorcycle_number
+                              ? `دباب: ${emp.motorcycle_number}`
+                              : emp.national_id || emp.phone || '—'}
+                          </p>
+                        </div>
                       </div>
+                      {emp.key_number ? (
+                        <Badge
+                          variant='outline'
+                          className='shrink-0 border-primary/40 bg-primary/10 text-primary font-mono text-xs font-bold'
+                        >
+                          #{emp.key_number}
+                        </Badge>
+                      ) : null}
                     </button>
                   ))
                 )}
@@ -612,7 +689,8 @@ export default function ManualOrdersEntryPage() {
                     2. إدخال البيانات اليومية بالتتابع
                   </CardTitle>
                   <CardDescription className='mt-1 text-xs'>
-                    اختر التاريخ (مثلاً 1/11) ثم اضغط &quot;إضافة اليوم التالي (+1)&quot; لينتقل تلقائياً إلى 2/11 وهكذا
+                    يتم تلقائياً عرض الأيام حتى يوم أمس — استخدم زر &quot;إضافة يوم إضافي (+1)&quot;
+                    لإضافة اليوم الحالي أو أيام أخرى عند انتهاء الوردية
                   </CardDescription>
                 </div>
 
@@ -622,10 +700,10 @@ export default function ManualOrdersEntryPage() {
                     variant='outline'
                     size='sm'
                     onClick={handleAddNextDayRow}
-                    className='border-primary/40 text-primary hover:bg-primary/10 gap-1.5 font-bold'
+                    className='border-primary/40 text-primary hover:bg-primary/10 gap-1.5 font-bold shadow-xs'
                   >
                     <Plus className='size-4' />
-                    إضافة اليوم التالي (+1)
+                    إضافة يوم إضافي (+1)
                   </Button>
 
                   <Button
@@ -665,9 +743,7 @@ export default function ManualOrdersEntryPage() {
                         return (
                           <TableRow
                             key={row.id}
-                            className={cn(
-                              hasExisting && 'bg-amber-500/5 dark:bg-amber-500/10'
-                            )}
+                            className={cn(hasExisting && 'bg-amber-500/5 dark:bg-amber-500/10')}
                           >
                             <TableCell className='text-muted-foreground text-center font-mono text-xs font-bold'>
                               {idx + 1}
@@ -820,7 +896,8 @@ export default function ManualOrdersEntryPage() {
                     سجل طلبات المندوب المسجلة مسبقاً
                   </CardTitle>
                   <CardDescription className='mt-1 text-xs'>
-                    الأيام والطلبات التي سجلها المندوب أو المشرف في شهر ({selectedMonth}) لضمان دقة البيانات وعدم التكرار
+                    الأيام والطلبات التي سجلها المندوب أو المشرف في شهر ({selectedMonth}) لضمان دقة
+                    البيانات وعدم التكرار
                   </CardDescription>
                 </div>
 
@@ -882,9 +959,12 @@ export default function ManualOrdersEntryPage() {
                 ) : recordedSessions.length === 0 ? (
                   <div className='bg-muted/30 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed py-10 text-center'>
                     <AlertCircle className='text-muted-foreground size-7' />
-                    <p className='text-sm font-bold'>لا توجد طلبات مسجلة لهذا المندوب في هذا الشهر</p>
+                    <p className='text-sm font-bold'>
+                      لا توجد طلبات مسجلة لهذا المندوب في هذا الشهر
+                    </p>
                     <p className='text-muted-foreground max-w-xs text-xs'>
-                      يمكنك البدء بإدخال أيام العمل من يوم 1 في الجدول المجاور والضغط على إضافة اليوم التالي
+                      يمكنك البدء بإدخال أيام العمل من يوم 1 في الجدول المجاور والضغط على إضافة
+                      اليوم التالي
                     </p>
                   </div>
                 ) : (

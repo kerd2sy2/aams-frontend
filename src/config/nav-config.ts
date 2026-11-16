@@ -26,13 +26,6 @@ export const navGroups: NavGroup[] = [
         ]
       },
 
-      // 2b. تسجيل طلبات المناديب (يدوي)
-      {
-        title: 'Manual Orders Entry',
-        url: '/dashboard/work/manual-entry',
-        icon: 'clipboardList'
-      },
-
       // 3. المعرفات
       {
         title: 'Identifiers',
