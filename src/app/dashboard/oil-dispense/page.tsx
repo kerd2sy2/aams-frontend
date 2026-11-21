@@ -67,7 +67,13 @@ export default function OilDispensePage() {
   const effectiveCurrentKM = parseFloat(customKM) || selectedVehicle?.current_km || 0;
   const lastOilKM = selectedVehicle?.last_oil_change_km || 0;
   const distanceSinceOil = Math.max(0, effectiveCurrentKM - lastOilKM);
-  const oilInterval = selectedVehicle?.vehicle_type === 'car' ? 10000 : 950;
+  const oilInterval = ['car', 'سيارة'].includes(
+    String(selectedVehicle?.vehicle_type || '')
+      .trim()
+      .toLowerCase()
+  )
+    ? 10000
+    : 1000;
   const oilWarningThreshold = Math.round(oilInterval * 0.85);
   const isOilNeeded = distanceSinceOil >= oilInterval;
   const isOilApproaching = !isOilNeeded && distanceSinceOil >= oilWarningThreshold;
@@ -176,7 +182,13 @@ export default function OilDispensePage() {
                         0,
                         (veh.current_km || 0) - (veh.last_oil_change_km || 0)
                       );
-                      const vehInterval = veh.vehicle_type === 'car' ? 10000 : 950;
+                      const vehInterval = ['car', 'سيارة'].includes(
+                        String(veh.vehicle_type || '')
+                          .trim()
+                          .toLowerCase()
+                      )
+                        ? 10000
+                        : 1000;
                       const vehNeedsOil = vehDist >= vehInterval;
 
                       return (

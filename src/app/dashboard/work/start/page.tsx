@@ -181,7 +181,11 @@ export default function StartWorkPage() {
     }
 
     // 2. Oil status (strictly based on the vehicle)
-    const interval = vehicle.oil_interval_km || 950;
+    const vType = String(vehicle.vehicle_type || vehicle.type || '')
+      .trim()
+      .toLowerCase();
+    const interval =
+      vehicle.oil_interval_km || (vType === 'car' || vType === 'سيارة' ? 10000 : 1000);
     // Explicitly check vehicle.needs_oil_change as calculated by fleet service
     const needsOil =
       typeof vehicle.needs_oil_change === 'boolean' ? vehicle.needs_oil_change : false;
@@ -244,7 +248,16 @@ export default function StartWorkPage() {
               ...prev,
               needs_oil_change: false,
               distance_since_oil: 0,
-              remaining_distance: prev.oil_change_interval || 950
+              remaining_distance:
+                prev.oil_change_interval ||
+                prev.interval ||
+                (['car', 'سيارة'].includes(
+                  String(prev.vehicle_type || '')
+                    .trim()
+                    .toLowerCase()
+                )
+                  ? 10000
+                  : 1000)
             }
           : null
       );
@@ -491,7 +504,17 @@ export default function StartWorkPage() {
   };
 
   const empImageSrc = selectedEmployee?.personal_image || '';
-  const oilWarningThreshold = Math.round((oilCheck?.oil_change_interval ?? 950) * 0.85);
+  const activeOilInterval =
+    oilCheck?.oil_change_interval ||
+    oilCheck?.interval ||
+    (['car', 'سيارة'].includes(
+      String(oilCheck?.vehicle_type || '')
+        .trim()
+        .toLowerCase()
+    )
+      ? 10000
+      : 1000);
+  const oilWarningThreshold = Math.round(activeOilInterval * 0.85);
   const matchedBike = findMatchingVehicle(allVehicles?.data, motorcycleNumber);
   const displayKeyNumber = matchedBike?.key_number || selectedEmployee?.key_number || '—';
 
@@ -689,11 +712,7 @@ export default function StartWorkPage() {
                           ? `${oilCheck.distance_since_oil.toLocaleString('en-US')} كم`
                           : `باقي ${Math.round(
                               oilCheck.remaining_distance ??
-                                Math.max(
-                                  0,
-                                  (oilCheck.oil_change_interval || 950) -
-                                    oilCheck.distance_since_oil
-                                )
+                                Math.max(0, activeOilInterval - oilCheck.distance_since_oil)
                             ).toLocaleString('en-US')} كم`}
                       </span>
                       {oilCheck.needs_oil_change && (
