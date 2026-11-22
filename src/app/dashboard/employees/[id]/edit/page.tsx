@@ -165,6 +165,9 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
     try {
       setSaving(true);
       const resolvedAppId = applicationIdVal || values.application_id || '';
+      const resolvedMotorcycle = isDriver
+        ? (isManualVehicle ? values.motorcycle_number || '' : selectedVehiclePlate || '').trim()
+        : '';
 
       const updatePayload = {
         ...values,
@@ -177,10 +180,11 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
         national_id_image: nationalIdImage,
         driving_license_image: isDriver ? drivingLicenseImage : '',
         passport_image: passportImage,
-        vehicle_registration_image: isDriver ? vehicleRegistrationImage : '',
+        vehicle_registration_image: isDriver && resolvedMotorcycle ? vehicleRegistrationImage : '',
         vehicle_type: isDriver ? vehicleType : '',
-        motorcycle_number: isDriver ? selectedVehiclePlate || values.motorcycle_number || '' : '',
-        key_number: isDriver ? values.key_number || '' : '',
+        motorcycle_number: resolvedMotorcycle,
+        clear_motorcycle: !resolvedMotorcycle,
+        key_number: isDriver && resolvedMotorcycle ? values.key_number || '' : '',
         application_type: isDriver ? applicationType : '',
         application_id: isDriver ? resolvedAppId : '',
         shift: shift || 'morning',
@@ -504,7 +508,10 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
                           onChange={(plate, matched) => {
                             setSelectedVehiclePlate(plate);
                             setValue('motorcycle_number', plate);
-                            if (matched) {
+                            if (!plate) {
+                              setValue('key_number', '');
+                              setVehicleRegistrationImage('');
+                            } else if (matched) {
                               if (matched.key_number) {
                                 setValue('key_number', matched.key_number);
                               }
