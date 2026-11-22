@@ -89,10 +89,31 @@ function extractSessionDateKey(s: WorkSessionDetail): string {
   if (!s.start_time) return '';
   try {
     const d = new Date(s.start_time);
-    return formatDateInput(d);
+    if (isNaN(d.getTime())) return String(s.start_time).slice(0, 10);
+    // Always format in Asia/Riyadh (UTC+3) to match backend day boundaries
+    const riyadhMs = d.getTime() + 3 * 60 * 60 * 1000;
+    const rd = new Date(riyadhMs);
+    const y = rd.getUTCFullYear();
+    const m = String(rd.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(rd.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   } catch {
     return String(s.start_time).slice(0, 10);
   }
+}
+
+function summarizeDaySessions(existingList?: WorkSessionDetail[]) {
+  if (!existingList || existingList.length === 0) return null;
+  const orders = existingList.reduce((sum, s) => sum + Number(s.orders_count ?? 0), 0);
+  const distance = existingList.reduce((sum, s) => sum + Number(s.distance ?? 0), 0);
+  const fuel = existingList.reduce((sum, s) => sum + Number(s.fuel_cost ?? 0), 0);
+  const latest = existingList[existingList.length - 1];
+  return {
+    orders,
+    distance: Math.round(distance * 10) / 10,
+    fuel: Math.round(fuel * 100) / 100,
+    notes: latest?.notes || ''
+  };
 }
 
 function parseKeyNumber(keyStr?: string | null): number | null {
@@ -146,17 +167,15 @@ function generateMonthRows(
   const generatedRows: EntryRow[] = [];
   for (let d = 1; d <= targetEndDay; d++) {
     const dateKey = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const existingList = sessionsMap?.get(dateKey);
-    const existing =
-      existingList && existingList.length > 0 ? existingList[existingList.length - 1] : null;
+    const summary = summarizeDaySessions(sessionsMap?.get(dateKey));
 
     generatedRows.push({
       id: `row-${dateKey}-${d}`,
       date: dateKey,
-      orders_count: existing ? String(existing.orders_count ?? 0) : '',
-      distance: existing ? String(existing.distance ?? 0) : '',
-      fuel_cost: existing ? String(existing.fuel_cost ?? 0) : '',
-      notes: existing?.notes || ''
+      orders_count: summary ? String(summary.orders) : '',
+      distance: summary ? String(summary.distance) : '',
+      fuel_cost: summary ? String(summary.fuel) : '',
+      notes: summary?.notes || ''
     });
   }
 
@@ -269,21 +288,19 @@ export default function ManualOrdersEntryPage() {
 
   // Pre-fill existing values when a row's date matches an already recorded day
   const handleDateChange = (rowId: string, newDate: string) => {
-    const existingList = sessionsByDate.get(newDate);
-    const existing =
-      existingList && existingList.length > 0 ? existingList[existingList.length - 1] : null;
+    const summary = summarizeDaySessions(sessionsByDate.get(newDate));
 
     setRows((prev) =>
       prev.map((r) => {
         if (r.id !== rowId) return r;
-        if (existing) {
+        if (summary) {
           return {
             ...r,
             date: newDate,
-            orders_count: String(existing.orders_count ?? 0),
-            distance: String(existing.distance ?? 0),
-            fuel_cost: String(existing.fuel_cost ?? 0),
-            notes: existing.notes || r.notes
+            orders_count: String(summary.orders),
+            distance: String(summary.distance),
+            fuel_cost: String(summary.fuel),
+            notes: summary.notes || r.notes
           };
         }
         return { ...r, date: newDate };
@@ -303,19 +320,17 @@ export default function ManualOrdersEntryPage() {
       const baseDate = lastRow?.date || `${selectedMonth}-01`;
       const nextDate = addDaysToDateStr(baseDate, 1);
 
-      const existingList = sessionsByDate.get(nextDate);
-      const existing =
-        existingList && existingList.length > 0 ? existingList[existingList.length - 1] : null;
+      const summary = summarizeDaySessions(sessionsByDate.get(nextDate));
 
       return [
         ...prev,
         {
           id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           date: nextDate,
-          orders_count: existing ? String(existing.orders_count ?? 0) : '',
-          distance: existing ? String(existing.distance ?? 0) : '',
-          fuel_cost: existing ? String(existing.fuel_cost ?? 0) : '',
-          notes: existing?.notes || ''
+          orders_count: summary ? String(summary.orders) : '',
+          distance: summary ? String(summary.distance) : '',
+          fuel_cost: summary ? String(summary.fuel) : '',
+          notes: summary?.notes || ''
         }
       ];
     });
@@ -329,16 +344,14 @@ export default function ManualOrdersEntryPage() {
       const added: EntryRow[] = [];
       for (let i = 1; i <= 7; i++) {
         curDate = addDaysToDateStr(curDate, 1);
-        const existingList = sessionsByDate.get(curDate);
-        const existing =
-          existingList && existingList.length > 0 ? existingList[existingList.length - 1] : null;
+        const summary = summarizeDaySessions(sessionsByDate.get(curDate));
         added.push({
           id: `row-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 5)}`,
           date: curDate,
-          orders_count: existing ? String(existing.orders_count ?? 0) : '',
-          distance: existing ? String(existing.distance ?? 0) : '',
-          fuel_cost: existing ? String(existing.fuel_cost ?? 0) : '',
-          notes: existing?.notes || ''
+          orders_count: summary ? String(summary.orders) : '',
+          distance: summary ? String(summary.distance) : '',
+          fuel_cost: summary ? String(summary.fuel) : '',
+          notes: summary?.notes || ''
         });
       }
       return [...prev, ...added];
@@ -764,10 +777,21 @@ export default function ManualOrdersEntryPage() {
                                   {hasExisting && (
                                     <Badge
                                       variant='outline'
-                                      className='border-amber-500/40 bg-amber-500/10 px-1.5 py-0 text-[10px] text-amber-700 dark:text-amber-300'
-                                      title='المندوب لديه بيانات مسجلة في هذا اليوم — سيتم تحديثها عند الحفظ'
+                                      className={cn(
+                                        'px-1.5 py-0 text-[10px]',
+                                        existingForDay && existingForDay.length > 1
+                                          ? 'border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300'
+                                          : 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                                      )}
+                                      title={
+                                        existingForDay && existingForDay.length > 1
+                                          ? `يوجد ${existingForDay.length} شفتات في هذا اليوم بإجمالي ${existingTotalOrders} طلب — عند الحفظ سيتم دمجها في سجل واحد`
+                                          : 'المندوب لديه بيانات مسجلة في هذا اليوم — سيتم تحديثها عند الحفظ'
+                                      }
                                     >
-                                      مسجل ({existingTotalOrders} طلب)
+                                      {existingForDay && existingForDay.length > 1
+                                        ? `${existingForDay.length} شفتات (${existingTotalOrders} طلب)`
+                                        : `مسجل (${existingTotalOrders} طلب)`}
                                     </Badge>
                                   )}
                                 </div>
