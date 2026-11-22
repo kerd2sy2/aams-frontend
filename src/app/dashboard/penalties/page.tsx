@@ -225,11 +225,19 @@ export default function PenaltiesPage() {
 
     setSubmitting(true);
     try {
+      const resolvedPaidAmount =
+        status === 'RECORDED'
+          ? 0
+          : status === 'DEDUCTED' || status === 'PAID'
+            ? parseFloat(amount)
+            : paidAmount
+              ? parseFloat(paidAmount)
+              : 0;
       const payload: Partial<TrafficViolation> = {
         violation_number: penaltyNumber || `PEN-${Date.now().toString().slice(-6)}`,
         employee_id: employeeId,
         amount: parseFloat(amount),
-        paid_amount: paidAmount ? parseFloat(paidAmount) : 0,
+        paid_amount: resolvedPaidAmount,
         reason,
         violation_date: penaltyDate,
         status,
