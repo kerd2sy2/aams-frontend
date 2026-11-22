@@ -112,6 +112,7 @@ export default function ViolationsPage() {
     setLoading(true);
     try {
       const res = await violationApi.getAll({
+        record_type: 'TRAFFIC',
         status: activeTab === 'ALL' ? undefined : activeTab,
         search,
         start_date: startDate,
@@ -216,16 +217,25 @@ export default function ViolationsPage() {
 
     setSubmitting(true);
     try {
+      const resolvedPaidAmount =
+        status === 'RECORDED'
+          ? 0
+          : status === 'DEDUCTED' || status === 'PAID'
+            ? parseFloat(amount)
+            : paidAmount
+              ? parseFloat(paidAmount)
+              : 0;
       const payload: Partial<TrafficViolation> = {
         violation_number: violationNumber,
         employee_id: employeeId || undefined,
         vehicle_plate: vehiclePlate,
         amount: parseFloat(amount),
-        paid_amount: paidAmount ? parseFloat(paidAmount) : 0,
+        paid_amount: resolvedPaidAmount,
         reason,
         violation_date: violationDate,
         city,
         status,
+        record_type: 'TRAFFIC',
         notes
       };
 

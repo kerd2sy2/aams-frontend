@@ -115,6 +115,7 @@ export default function PenaltiesPage() {
     setLoading(true);
     try {
       const res = await violationApi.getAll({
+        record_type: 'PENALTY',
         status: activeTab === 'ALL' ? undefined : activeTab,
         search,
         start_date: startDate,
@@ -122,21 +123,7 @@ export default function PenaltiesPage() {
         limit: 300
       });
 
-      // Filter to penalties or show all recorded administrative records
-      const allItems = res.data || [];
-      const penaltyItems = allItems.filter(
-        (v) =>
-          PENALTY_REASONS.includes(v.reason) ||
-          v.reason?.includes('جزاء') ||
-          v.reason?.includes('خصم') ||
-          v.reason?.includes('تأخير') ||
-          v.reason?.includes('غياب') ||
-          v.reason?.includes('زي') ||
-          v.reason?.includes('عهدة')
-      );
-
-      // If user has specific items or wants to see all penalties
-      setPenalties(penaltyItems.length > 0 ? penaltyItems : allItems);
+      setPenalties(res.data || []);
     } catch (err: any) {
       toast.error('فشل في جلب قائمة الجزاءات');
     } finally {
@@ -241,6 +228,7 @@ export default function PenaltiesPage() {
         reason,
         violation_date: penaltyDate,
         status,
+        record_type: 'PENALTY',
         notes
       };
 

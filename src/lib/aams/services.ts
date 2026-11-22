@@ -878,6 +878,7 @@ export const violationApi = {
   getAll: async (params?: {
     branch_id?: string;
     employee_id?: string;
+    record_type?: 'TRAFFIC' | 'PENALTY' | string;
     status?: string;
     start_date?: string;
     end_date?: string;

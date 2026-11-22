@@ -508,6 +508,7 @@ export interface TrafficViolation {
   violation_date: string;
   city?: string;
   status: 'RECORDED' | 'PARTIAL' | 'DEDUCTED' | 'DISPUTED' | 'PAID' | string;
+  record_type?: 'TRAFFIC' | 'PENALTY' | string;
   branch_id?: string | null;
   branch?: Branch | null;
   notes?: string;
