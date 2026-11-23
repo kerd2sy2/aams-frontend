@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import PageContainer from '@/components/layout/page-container';
@@ -33,13 +33,34 @@ export default function OilDispensePage() {
   const [notes, setNotes] = useState('');
   const [selectedItemId, setSelectedItemId] = useState<string>('');
 
-  // Search vehicles (by plate_number, brand, key_number)
+  // Search vehicles (by plate_number, brand, key_number) — always fetch live odometer
   const { data: searchResults, isLoading: isSearching } = useQuery({
     queryKey: ['vehicles-search', vehicleSearch],
     queryFn: () => vehicleApi.getAll({ search: vehicleSearch.trim(), limit: 10 }),
     enabled: vehicleSearch.trim().length >= 1,
-    staleTime: 1000 * 20
+    staleTime: 0
   });
+
+  // Always fetch live vehicle details (latest current_km & last_oil_change_km) when selected
+  const { data: liveVehicle } = useQuery<Vehicle>({
+    queryKey: ['vehicle-live-oil', selectedVehicle?.id],
+    queryFn: () => vehicleApi.getById(selectedVehicle!.id),
+    enabled: Boolean(selectedVehicle?.id),
+    staleTime: 0,
+    refetchOnWindowFocus: true
+  });
+
+  useEffect(() => {
+    if (!liveVehicle || !selectedVehicle || liveVehicle.id !== selectedVehicle.id) return;
+    const liveKm = Number(liveVehicle.current_km || 0);
+    const prevKm = Number(selectedVehicle.current_km || 0);
+    const liveOilKm = Number(liveVehicle.last_oil_change_km || 0);
+    const prevOilKm = Number(selectedVehicle.last_oil_change_km || 0);
+    if (liveKm !== prevKm || liveOilKm !== prevOilKm) {
+      setSelectedVehicle(liveVehicle);
+      setCustomKM(liveKm > 0 ? String(liveKm) : '');
+    }
+  }, [liveVehicle, selectedVehicle]);
 
   // Get available oil items in inventory
   const { data: oilItems, isLoading: loadingOilItems } = useQuery<InventoryItem[]>({
@@ -112,6 +133,7 @@ export default function OilDispensePage() {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       queryClient.invalidateQueries({ queryKey: ['vehicles-list'] });
       queryClient.invalidateQueries({ queryKey: ['vehicles-search'] });
+      queryClient.invalidateQueries({ queryKey: ['vehicle-live-oil'] });
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
       queryClient.invalidateQueries({ queryKey: ['inventory-oil-items'] });
       queryClient.invalidateQueries({ queryKey: ['inventory-transactions'] });
